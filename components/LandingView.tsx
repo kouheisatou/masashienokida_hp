@@ -37,11 +37,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Royal Classic
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">正統派</span>
+                縦書き・クラシック
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                静謐なる正統。縦書きのタイポグラフィとクリーム色の背景による、格式高い招待状のようなデザイン。
+                縦書きと明朝体を使用した、落ち着いた印象のデザインです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
@@ -57,11 +56,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Editorial Classic
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">現代的</span>
+                マガジン・スタイル
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                現代のポートフォリオ。雑誌のような大胆な余白と非対称レイアウト、ハイコントラストな配色。
+                雑誌のように写真を大きく使い、余白を活かしたレイアウトです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
@@ -77,11 +75,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Nocturne
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">夜想曲</span>
+                ダーク・モード
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                夜の独白。漆黒の背景に浮かぶ文字。演奏会場のような没入感と静寂を表現。
+                黒を背景にした、没入感のあるデザインです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
@@ -97,11 +94,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Modern Studio
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">機能美</span>
+                ミニマル・グリッド
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                記録とデータ。無機質なグレー、グリッドライン、等幅フォントによるアーカイブ的な知性。
+                装飾を抑え、情報の見やすさを重視したシンプルなデザインです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
@@ -117,11 +113,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Grand Stage
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">劇場</span>
+                シアター・スタイル
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                幕開けの緊張。深いボルドーと黒、プログラムリスト形式のレイアウトによるドラマチックな演出。
+                劇場の雰囲気をイメージした、深みのある赤色が特徴のデザインです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
@@ -137,11 +132,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             </div>
             <div className="p-8">
               <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                Harmony & Nature
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">調和</span>
+                ナチュラル・コラージュ
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                原風景。アースカラーと素材感を重視したコラージュレイアウト。ルーツである自然との調和。
+                自然な色味と写真を重ねた配置で、柔らかさを出したデザインです。
               </p>
               <span className="text-blue-600 text-sm font-bold group-hover:underline">デザインを確認する &rarr;</span>
             </div>
