@@ -1,6 +1,6 @@
 import { BlogPost, Concert, Profile, NavItem } from './types';
 
-export const SITE_NAME = "榎田 雅志";
+export const SITE_NAME = "榎田 匡志";
 export const SITE_ROLE = "Pianist";
 
 export const NAV_ITEMS: NavItem[] = [
@@ -12,7 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 export const PROFILE: Profile = {
-  name: "榎田 雅志",
+  name: "榎田 匡志",
   role: "Pianist",
   // Strictly factual based on provided text
   bioShort: "宮崎県小林市生まれ。5歳よりピアノをはじめ、大分県立芸術緑丘高等学校、愛知県立芸術大学卒業、同大学院修了。UCLAにてヴィタリー・マルグリス氏に師事。アジア各地での演奏活動のほか、ソウル総合芸術大学やハノイ芸術大学にて指導を行う。",

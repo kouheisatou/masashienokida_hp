@@ -27,7 +27,7 @@ const RoyalClassicTheme: React.FC = () => {
         <section id="home" className="min-h-screen relative flex items-center justify-center p-8">
            <div className="absolute top-12 left-12 md:top-24 md:left-24 z-10">
               <h1 className="text-4xl md:text-6xl font-medium tracking-widest leading-loose writing-vertical-rl h-[60vh]">
-                榎田 雅志
+                榎田 匡志
               </h1>
            </div>
            

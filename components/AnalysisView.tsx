@@ -12,7 +12,7 @@ const AnalysisView: React.FC = () => {
           </div>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">masashi-enokida.com デザイン提案</h1>
           <p className="text-lg text-slate-600">
-             榎田雅志氏のアーティスト性を多角的に解釈した6つのデザインアプローチ。
+             榎田匡志氏のアーティスト性を多角的に解釈した6つのデザインアプローチ。
              各デザインは個別のデザインガイド（docs/design_guide_*.md）に基づいて厳格に定義されています。
           </p>
         </header>

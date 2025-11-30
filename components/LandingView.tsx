@@ -15,7 +15,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             Web Design Proposal
           </p>
           <h1 className="text-3xl md:text-4xl font-bold mb-6">
-            榎田 雅志 様 公式ウェブサイト リニューアルデザイン案
+            榎田 匡志 様 公式ウェブサイト リニューアルデザイン案
           </h1>
           <p className="text-slate-600 max-w-3xl leading-relaxed">
             6つの異なるデザイン方向性をご提案いたします。
