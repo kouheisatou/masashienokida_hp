@@ -18,7 +18,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSelect }) => {
             榎田 雅志 様 公式ウェブサイト リニューアルデザイン案
           </h1>
           <p className="text-slate-600 max-w-3xl leading-relaxed">
-            アーティストとしてのアイデンティティを再定義するための、6つの異なるデザイン方向性をご提案いたします。
+            6つの異なるデザイン方向性をご提案いたします。
             各カードをクリックして、それぞれのウェブサイトデザインをご確認ください。
           </p>
         </div>
