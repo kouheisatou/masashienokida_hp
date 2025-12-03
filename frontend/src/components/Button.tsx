@@ -1,30 +1,56 @@
 import { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'gold' | 'velvet' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
 }
 
 export default function Button({
-  variant = 'primary',
+  variant = 'gold',
   size = 'md',
   children,
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-semibold tracking-wide transition-all duration-300 rounded-full hover-glow';
+  const baseStyles = `
+    relative font-bold tracking-[0.15em] uppercase
+    transition-all duration-500 overflow-hidden
+    rounded-sm
+    before:content-[''] before:absolute before:inset-0
+    before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent
+    before:translate-x-[-200%] hover:before:translate-x-[200%]
+    before:transition-transform before:duration-700
+  `;
 
   const variantStyles = {
-    primary: 'bg-maroon text-off-white hover:bg-maroon/90',
-    secondary: 'bg-metallic-gold text-rich-black hover:bg-metallic-gold/90',
-    outline: 'border-2 border-metallic-gold text-metallic-gold hover:bg-metallic-gold hover:text-rich-black',
+    gold: `
+      bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700]
+      text-black shadow-[0_0_20px_rgba(255,215,0,0.3)]
+      hover:shadow-[0_0_40px_rgba(255,215,0,0.6)]
+      hover:scale-105
+      border border-[#FFD700]
+    `,
+    velvet: `
+      bg-gradient-to-br from-[#8B0000] to-[#4a0e0e]
+      text-[#FFD700] shadow-[0_0_20px_rgba(139,0,0,0.5)]
+      hover:shadow-[0_0_40px_rgba(139,0,0,0.8)]
+      hover:scale-105
+      border border-[#8B0000]
+    `,
+    outline: `
+      bg-transparent
+      text-[#FFD700] border-2 border-[#FFD700]
+      hover:bg-[#FFD700] hover:text-black
+      shadow-[inset_0_0_20px_rgba(255,215,0,0.1)]
+      hover:shadow-[0_0_30px_rgba(255,215,0,0.4)]
+    `,
   };
 
   const sizeStyles = {
-    sm: 'px-6 py-2 text-sm',
-    md: 'px-8 py-3 text-base',
-    lg: 'px-10 py-4 text-lg',
+    sm: 'px-6 py-2.5 text-xs',
+    md: 'px-10 py-3.5 text-sm',
+    lg: 'px-14 py-4.5 text-base',
   };
 
   return (
@@ -32,7 +58,7 @@ export default function Button({
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       {...props}
     >
-      {children}
+      <span className="relative z-10">{children}</span>
     </button>
   );
 }

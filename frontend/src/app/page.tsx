@@ -54,7 +54,7 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/concerts">
-              <Button variant="primary" size="lg">
+              <Button variant="gold" size="lg">
                 コンサート情報
               </Button>
             </Link>
@@ -118,7 +118,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <Link href="/concerts">
-              <Button variant="primary">コンサート一覧を見る</Button>
+              <Button variant="gold">コンサート一覧を見る</Button>
             </Link>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function Home() {
             さまざまな特典をご用意しております。
           </p>
           <Link href="/supporters">
-            <Button variant="secondary" size="lg">
+            <Button variant="velvet" size="lg">
               入会について詳しく見る
             </Button>
           </Link>
