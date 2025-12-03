@@ -5,7 +5,7 @@ services:
     image: postgres:15-alpine
     container_name: masashienokida_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -25,6 +25,7 @@ services:
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
       BACKEND_PORT: ${BACKEND_PORT}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       - db
     networks:
@@ -38,7 +39,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3010:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     depends_on:
