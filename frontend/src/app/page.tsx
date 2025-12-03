@@ -41,26 +41,23 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center gradient-overlay">
-        <div
-          className="absolute inset-0 -z-10 bg-gradient-to-b from-deep-red-black via-rich-black to-rich-black"
-        />
+      <section className="relative h-screen flex items-center justify-center">
         <div className="text-center z-10 px-6">
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 text-metallic-gold tracking-wider">
-            MASASHI ENOKIDA
+          <h1 className="text-7xl md:text-8xl font-light mb-6 text-white tracking-wide">
+            Enokida
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-off-white">
+          <p className="text-sm md:text-base mb-12 text-[#888888] tracking-[0.3em] uppercase">
             Pianist
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/concerts">
-              <Button variant="gold" size="lg">
-                コンサート情報
+              <Button variant="primary" size="md">
+                Concerts
               </Button>
             </Link>
             <Link href="/discography">
-              <Button variant="outline" size="lg">
-                ディスコグラフィ
+              <Button variant="outline" size="md">
+                Discography
               </Button>
             </Link>
           </div>
@@ -68,12 +65,12 @@ export default function Home() {
       </section>
 
       {/* Latest News */}
-      <section className="py-20 md:py-32 px-6">
+      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
         <div className="max-w-[1200px] mx-auto">
-          <h2 className="text-4xl font-bold mb-12 text-center text-metallic-gold">
-            LATEST NEWS
+          <h2 className="text-2xl font-light mb-12 text-white tracking-[0.15em] uppercase">
+            Latest News
           </h2>
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
             {latestNews.map((news) => (
               <Card
                 key={news.id}
@@ -81,62 +78,62 @@ export default function Home() {
                 description={news.excerpt}
                 onClick={() => {}}
               >
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-metallic-gold">{news.category}</span>
-                  <span className="text-off-white/50">{news.date}</span>
+                <div className="flex justify-between items-center text-xs mt-4">
+                  <span className="text-[#888888]">{news.category}</span>
+                  <span className="text-[#888888]">{news.date}</span>
                 </div>
               </Card>
             ))}
           </div>
           <div className="text-center">
             <Link href="/blog">
-              <Button variant="outline">すべてのニュースを見る</Button>
+              <Button variant="outline">View All</Button>
             </Link>
           </div>
         </div>
       </section>
 
       {/* Upcoming Concerts */}
-      <section className="py-20 md:py-32 px-6 bg-deep-red-black/30">
+      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
         <div className="max-w-[1200px] mx-auto">
-          <h2 className="text-4xl font-bold mb-12 text-center text-metallic-gold">
-            UPCOMING CONCERTS
+          <h2 className="text-2xl font-light mb-12 text-white tracking-[0.15em] uppercase">
+            Upcoming Concerts
           </h2>
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
             {upcomingConcerts.map((concert) => (
               <Card
                 key={concert.id}
                 title={concert.title}
                 onClick={() => {}}
               >
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-off-white">{concert.venue}</span>
-                  <span className="text-metallic-gold">{concert.date}</span>
+                <div className="flex justify-between items-center text-xs mt-4">
+                  <span className="text-[#cccccc]">{concert.venue}</span>
+                  <span className="text-[#888888]">{concert.date}</span>
                 </div>
               </Card>
             ))}
           </div>
           <div className="text-center">
             <Link href="/concerts">
-              <Button variant="gold">コンサート一覧を見る</Button>
+              <Button variant="outline">View All</Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Call to Action - Fan Club */}
-      <section className="py-20 md:py-32 px-6">
+      {/* Call to Action - Supporters Club */}
+      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
         <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6 text-metallic-gold">
-            SUPPORTERS CLUB
+          <h2 className="text-2xl font-light mb-6 text-white tracking-[0.15em] uppercase">
+            Supporters Club
           </h2>
-          <p className="text-lg mb-8 leading-relaxed text-off-white/80">
+          <p className="text-sm mb-8 leading-relaxed text-[#888888]">
             ファンクラブ会員限定のコンテンツや先行予約など、<br />
             さまざまな特典をご用意しております。
           </p>
           <Link href="/supporters">
-            <Button variant="velvet" size="lg">
-              入会について詳しく見る
+            <Button variant="primary" size="md">
+              Learn More
             </Button>
           </Link>
         </div>

@@ -1,24 +1,17 @@
 import type { Metadata } from "next";
-import { Zen_Kaku_Gothic_New, Noto_Sans_JP } from "next/font/google";
+import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 
-const zenKaku = Zen_Kaku_Gothic_New({
-  weight: ["300", "400", "500", "700"],
+const notoSerif = Noto_Serif_JP({
+  weight: ["300", "400", "500", "600"],
   subsets: ["latin"],
-  variable: "--font-zen-kaku",
-  display: "swap",
-});
-
-const notoSans = Noto_Sans_JP({
-  weight: ["300", "400", "500", "700"],
-  subsets: ["latin"],
-  variable: "--font-noto-sans",
+  variable: "--font-noto-serif",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Masashi Enokida Official Website",
-  description: "Official website of Masashi Enokida, Pianist.",
+  title: "榎田 雅士 公式サイト | Masashi Enokida Official Website",
+  description: "ピアニスト榎田雅士の公式ウェブサイト。Official website of Masashi Enokida, Pianist.",
 };
 
 import Header from '@/components/Header';
@@ -32,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${zenKaku.variable} ${notoSans.variable} font-sans antialiased`}
+        className={`${notoSerif.variable} font-serif antialiased`}
       >
         <Header />
         <main className="min-h-screen pt-16">{children}</main>

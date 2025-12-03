@@ -1,239 +1,114 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors - 劇場の豪華な配色 */
-  --color-stage-black: #0a0a0a;
-  --color-velvet-red: #8B0000;
-  --color-burgundy: #4a0e0e;
-  --color-champagne: #f0f0f0;
-  --color-gold: #FFD700;
-  --color-brass: #b8860b;
-  --color-bronze: #cd7f32;
-  --color-curtain: #1a0505;
+  /* Colors - ミニマルな配色 */
+  --color-black: #0a0a0a;
+  --color-gray-darkest: #1a1a1a;
+  --color-gray-dark: #333333;
+  --color-gray: #888888;
+  --color-gray-light: #cccccc;
+  --color-white: #ffffff;
 
   /* Font Families */
-  --font-sans: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
-  --font-display: "Zen Kaku Gothic New", serif;
+  --font-serif: "Noto Serif JP", "Yu Mincho", "游明朝", serif;
 
   /* Font Sizes */
-  --font-size-hero: 80px;
-  --font-size-hero-mobile: 48px;
-  --font-size-h1: 64px;
-  --font-size-h1-mobile: 40px;
-  --font-size-h2: 42px;
-  --font-size-h2-mobile: 32px;
-  --font-size-h3: 28px;
-  --font-size-h3-mobile: 22px;
-  --font-size-body: 17px;
-  --font-size-body-mobile: 16px;
+  --font-size-hero: 72px;
+  --font-size-hero-mobile: 40px;
+  --font-size-h1: 48px;
+  --font-size-h1-mobile: 32px;
+  --font-size-h2: 32px;
+  --font-size-h2-mobile: 24px;
+  --font-size-h3: 20px;
+  --font-size-h3-mobile: 18px;
+  --font-size-body: 16px;
+  --font-size-body-mobile: 15px;
+  --font-size-small: 13px;
 
   /* Spacing */
-  --spacing-section: 140px;
+  --spacing-section: 120px;
   --spacing-section-mobile: 80px;
-
-  /* Effects */
-  --spotlight-gradient: radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
-  --curtain-gradient: linear-gradient(180deg, #1a0505 0%, #0a0a0a 100%);
-  --stage-glow: 0 0 80px rgba(255, 215, 0, 0.3);
 }
 
-/* Base Styles - 劇場の雰囲気 */
+/* Base Styles */
 body {
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a0505 50%, #0a0a0a 100%);
-  color: var(--color-champagne);
-  font-family: var(--font-sans);
+  background: var(--color-black);
+  color: var(--color-gray-light);
+  font-family: var(--font-serif);
   font-size: var(--font-size-body);
-  line-height: 1.75;
-  position: relative;
-}
-
-/* ステージライトの光の演出 */
-body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150%;
-  height: 100%;
-  background: var(--spotlight-gradient);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.4;
+  line-height: 1.8;
+  font-weight: 400;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   letter-spacing: 0.05em;
+  color: var(--color-white);
 }
 
 h1 {
   font-size: var(--font-size-h1);
-  line-height: 1.15;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  line-height: 1.3;
 }
 
 h2 {
   font-size: var(--font-size-h2);
-  line-height: 1.3;
-  color: var(--color-gold);
+  line-height: 1.4;
 }
 
 h3 {
   font-size: var(--font-size-h3);
-  line-height: 1.4;
-  color: var(--color-brass);
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
   h1 { font-size: var(--font-size-h1-mobile); }
   h2 { font-size: var(--font-size-h2-mobile); }
   h3 { font-size: var(--font-size-h3-mobile); }
+  body { font-size: var(--font-size-body-mobile); }
 }
 
-/* 劇場モチーフのデコレーション */
-.theater-frame {
-  position: relative;
-  padding: 3rem;
-}
-
-.theater-frame::before,
-.theater-frame::after {
-  content: '';
-  position: absolute;
-  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
-  height: 2px;
-  left: 0;
-  right: 0;
-}
-
-.theater-frame::before { top: 0; }
-.theater-frame::after { bottom: 0; }
-
-/* カーテン風の装飾 */
-.curtain-top {
-  position: relative;
-}
-
-.curtain-top::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(180deg, var(--color-velvet-red) 0%, transparent 100%);
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-/* ベルベット風のカード */
-.velvet-card {
-  background: linear-gradient(145deg, rgba(139, 0, 0, 0.2) 0%, rgba(74, 14, 14, 0.3) 100%);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: 8px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 215, 0, 0.1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.velvet-card:hover {
-  transform: translateY(-8px);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.7),
-    0 0 40px rgba(255, 215, 0, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.2);
-  border-color: rgba(255, 215, 0, 0.4);
-}
-
-/* スポットライト効果 */
-.spotlight {
-  position: relative;
-}
-
-.spotlight::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200%;
-  height: 300px;
-  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-/* ゴールドの装飾線 */
-.gold-divider {
+/* シンプルな区切り線 */
+.divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--color-gold) 50%, transparent 100%);
+  background: var(--color-gray-dark);
   margin: 4rem 0;
-  position: relative;
 }
 
-.gold-divider::before {
-  content: '◆';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--color-gold);
-  font-size: 12px;
-  background: var(--color-stage-black);
-  padding: 0 1rem;
+/* シンプルなカード */
+.card {
+  background: var(--color-gray-darkest);
+  border: 1px solid var(--color-gray-dark);
+  transition: border-color 0.3s ease;
 }
 
-/* ステージのようなグラデーション */
-.stage-gradient {
-  background: radial-gradient(ellipse at bottom, rgba(139, 0, 0, 0.3) 0%, transparent 60%);
+.card:hover {
+  border-color: var(--color-gray);
 }
-
-/* 優雅なホバーアニメーション */
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-.shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.3) 50%, transparent 100%);
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
-}
-
-/* オーナメント */
-.ornament {
-  position: relative;
-  text-align: center;
-  margin: 3rem 0;
-}
-
-.ornament::before,
-.ornament::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--color-gold), transparent);
-}
-
-.ornament::before { left: 0; }
-.ornament::after { right: 0; }
 
 /* 画像の演出 */
 img {
-  filter: brightness(0.85) contrast(1.1);
-  transition: all 0.5s ease;
+  filter: brightness(0.9);
+  transition: filter 0.3s ease;
 }
 
 img:hover {
-  filter: brightness(1) contrast(1.15);
-  transform: scale(1.02);
+  filter: brightness(1);
+}
+
+/* リンク */
+a {
+  color: var(--color-white);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--color-gray-light);
+}
+
+/* ボタンのリセット */
+button {
+  font-family: var(--font-serif);
 }
