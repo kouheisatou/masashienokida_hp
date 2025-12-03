@@ -39,7 +39,7 @@ export default function Card({
           {title}
         </h3>
         {description && (
-          <p className="text-[#888888] leading-relaxed mb-4 text-sm">
+          <p className="text-[#9b8b7e] leading-relaxed mb-4 text-sm">
             {description}
           </p>
         )}

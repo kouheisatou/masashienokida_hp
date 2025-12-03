@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors - ミニマルな配色 */
-  --color-black: #0a0a0a;
-  --color-gray-darkest: #1a1a1a;
-  --color-gray-dark: #333333;
-  --color-gray: #888888;
-  --color-gray-light: #cccccc;
+  /* Colors - ボルドー系ミニマル配色 */
+  --color-burgundy-black: #1a0a0a;
+  --color-burgundy: #2d1616;
+  --color-burgundy-light: #3d2020;
+  --color-burgundy-border: #4a2828;
+  --color-burgundy-accent: #8b4545;
+  --color-taupe: #9b8b7e;
+  --color-beige: #d4c4b0;
   --color-white: #ffffff;
 
   /* Font Families */
@@ -32,8 +34,8 @@
 
 /* Base Styles */
 body {
-  background: var(--color-black);
-  color: var(--color-gray-light);
+  background: var(--color-burgundy-black);
+  color: var(--color-beige);
   font-family: var(--font-serif);
   font-size: var(--font-size-body);
   line-height: 1.8;
@@ -72,19 +74,19 @@ h3 {
 /* シンプルな区切り線 */
 .divider {
   height: 1px;
-  background: var(--color-gray-dark);
+  background: var(--color-burgundy-border);
   margin: 4rem 0;
 }
 
 /* シンプルなカード */
 .card {
-  background: var(--color-gray-darkest);
-  border: 1px solid var(--color-gray-dark);
+  background: var(--color-burgundy-light);
+  border: 1px solid var(--color-burgundy-border);
   transition: border-color 0.3s ease;
 }
 
 .card:hover {
-  border-color: var(--color-gray);
+  border-color: var(--color-burgundy-accent);
 }
 
 /* 画像の演出 */
@@ -105,7 +107,7 @@ a {
 }
 
 a:hover {
-  color: var(--color-gray-light);
+  color: var(--color-beige);
 }
 
 /* ボタンのリセット */

@@ -46,7 +46,7 @@ export default function Home() {
           <h1 className="text-7xl md:text-8xl font-light mb-6 text-white tracking-wide">
             Enokida
           </h1>
-          <p className="text-sm md:text-base mb-12 text-[#888888] tracking-[0.3em] uppercase">
+          <p className="text-sm md:text-base mb-12 text-[#9b8b7e] tracking-[0.3em] uppercase">
             Pianist
           </p>
           <div className="flex gap-4 justify-center">
@@ -65,7 +65,7 @@ export default function Home() {
       </section>
 
       {/* Latest News */}
-      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
+      <section className="py-24 md:py-32 px-6 border-t border-[#4a2828]">
         <div className="max-w-[1200px] mx-auto">
           <h2 className="text-2xl font-light mb-12 text-white tracking-[0.15em] uppercase">
             Latest News
@@ -79,8 +79,8 @@ export default function Home() {
                 onClick={() => {}}
               >
                 <div className="flex justify-between items-center text-xs mt-4">
-                  <span className="text-[#888888]">{news.category}</span>
-                  <span className="text-[#888888]">{news.date}</span>
+                  <span className="text-[#9b8b7e]">{news.category}</span>
+                  <span className="text-[#9b8b7e]">{news.date}</span>
                 </div>
               </Card>
             ))}
@@ -94,7 +94,7 @@ export default function Home() {
       </section>
 
       {/* Upcoming Concerts */}
-      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
+      <section className="py-24 md:py-32 px-6 border-t border-[#4a2828]">
         <div className="max-w-[1200px] mx-auto">
           <h2 className="text-2xl font-light mb-12 text-white tracking-[0.15em] uppercase">
             Upcoming Concerts
@@ -107,8 +107,8 @@ export default function Home() {
                 onClick={() => {}}
               >
                 <div className="flex justify-between items-center text-xs mt-4">
-                  <span className="text-[#cccccc]">{concert.venue}</span>
-                  <span className="text-[#888888]">{concert.date}</span>
+                  <span className="text-[#d4c4b0]">{concert.venue}</span>
+                  <span className="text-[#9b8b7e]">{concert.date}</span>
                 </div>
               </Card>
             ))}
@@ -122,12 +122,12 @@ export default function Home() {
       </section>
 
       {/* Call to Action - Supporters Club */}
-      <section className="py-24 md:py-32 px-6 border-t border-[#333333]">
+      <section className="py-24 md:py-32 px-6 border-t border-[#4a2828]">
         <div className="max-w-[800px] mx-auto text-center">
           <h2 className="text-2xl font-light mb-6 text-white tracking-[0.15em] uppercase">
             Supporters Club
           </h2>
-          <p className="text-sm mb-8 leading-relaxed text-[#888888]">
+          <p className="text-sm mb-8 leading-relaxed text-[#9b8b7e]">
             ファンクラブ会員限定のコンテンツや先行予約など、<br />
             さまざまな特典をご用意しております。
           </p>

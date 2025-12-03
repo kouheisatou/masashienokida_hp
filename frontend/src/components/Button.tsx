@@ -21,11 +21,11 @@ export default function Button({
 
   const variantStyles = {
     primary: `
-      bg-white text-black border-white
+      bg-white text-[#1a0a0a] border-white
       hover:bg-transparent hover:text-white
     `,
     outline: `
-      bg-transparent text-white border-[#333333]
+      bg-transparent text-white border-[#4a2828]
       hover:border-white
     `,
   };

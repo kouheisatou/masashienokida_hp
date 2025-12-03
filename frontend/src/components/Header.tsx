@@ -18,13 +18,13 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#333333]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a0a0a]/95 backdrop-blur-sm border-b border-[#4a2828]">
       <div className="max-w-[1400px] mx-auto px-6">
         <nav className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link
             href="/"
-            className="text-sm tracking-[0.2em] text-white hover:text-[#cccccc] transition-colors"
+            className="text-sm tracking-[0.2em] text-white hover:text-[#d4c4b0] transition-colors"
           >
             榎田 雅士
           </Link>
@@ -35,7 +35,7 @@ export default function Header() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-[11px] tracking-[0.15em] uppercase text-[#cccccc] hover:text-white transition-colors"
+                  className="text-[11px] tracking-[0.15em] uppercase text-[#d4c4b0] hover:text-white transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -45,7 +45,7 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden text-white hover:text-[#cccccc] transition-colors"
+            className="lg:hidden text-white hover:text-[#d4c4b0] transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -69,13 +69,13 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden pb-4 pt-2 border-t border-[#333333]">
+          <div className="lg:hidden pb-4 pt-2 border-t border-[#4a2828]">
             <ul className="space-y-3">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="block text-[11px] tracking-[0.15em] uppercase text-[#cccccc] hover:text-white transition-colors"
+                    className="block text-[11px] tracking-[0.15em] uppercase text-[#d4c4b0] hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {link.label}

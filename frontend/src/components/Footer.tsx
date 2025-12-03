@@ -4,7 +4,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#0a0a0a] border-t border-[#333333]">
+    <footer className="bg-[#1a0a0a] border-t border-[#4a2828]">
       <div className="max-w-[1400px] mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           {/* About */}
@@ -12,7 +12,7 @@ export default function Footer() {
             <h3 className="text-white font-normal text-sm mb-4 tracking-[0.2em]">
               榎田 雅士
             </h3>
-            <p className="text-[#888888] text-xs leading-relaxed">
+            <p className="text-[#9b8b7e] text-xs leading-relaxed">
               ピアニスト 榎田雅士のオフィシャルウェブサイト
             </p>
           </div>
@@ -24,22 +24,22 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="/biography" className="text-[#888888] hover:text-white transition-colors">
+                <Link href="/biography" className="text-[#9b8b7e] hover:text-white transition-colors">
                   Biography
                 </Link>
               </li>
               <li>
-                <Link href="/concerts" className="text-[#888888] hover:text-white transition-colors">
+                <Link href="/concerts" className="text-[#9b8b7e] hover:text-white transition-colors">
                   Concerts
                 </Link>
               </li>
               <li>
-                <Link href="/discography" className="text-[#888888] hover:text-white transition-colors">
+                <Link href="/discography" className="text-[#9b8b7e] hover:text-white transition-colors">
                   Discography
                 </Link>
               </li>
               <li>
-                <Link href="/supporters" className="text-[#888888] hover:text-white transition-colors">
+                <Link href="/supporters" className="text-[#9b8b7e] hover:text-white transition-colors">
                   Supporters Club
                 </Link>
               </li>
@@ -54,7 +54,7 @@ export default function Footer() {
             <div className="flex gap-4">
               <a
                 href="#"
-                className="text-[#888888] hover:text-white transition-colors"
+                className="text-[#9b8b7e] hover:text-white transition-colors"
                 aria-label="Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="text-[#888888] hover:text-white transition-colors"
+                className="text-[#9b8b7e] hover:text-white transition-colors"
                 aria-label="YouTube"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -72,7 +72,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="text-[#888888] hover:text-white transition-colors"
+                className="text-[#9b8b7e] hover:text-white transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="text-center text-xs text-[#888888] pt-8 border-t border-[#333333]">
+        <div className="text-center text-xs text-[#9b8b7e] pt-8 border-t border-[#4a2828]">
           <p>&copy; {currentYear} Masashi Enokida. All rights reserved.</p>
         </div>
       </div>
