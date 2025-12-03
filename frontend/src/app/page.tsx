@@ -1,76 +1,146 @@
-import Image from "next/image";
+'use client';
+
+import Button from '@/components/Button';
+import Card from '@/components/Card';
+import Link from 'next/link';
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-primary text-primary-foreground font-sans">
-      {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          {/* Placeholder for Hero Image - using a dark gradient for now */}
-          <div className="w-full h-full bg-gradient-to-b from-black/70 to-primary" />
-        </div>
+  // Mock data - 後でAPIから取得
+  const latestNews = [
+    {
+      id: '1',
+      title: '2025年春 リサイタルツアー開催決定',
+      date: '2025-01-15',
+      category: 'コンサート情報',
+      excerpt: '全国5都市でのリサイタルツアーが決定いたしました。',
+    },
+    {
+      id: '2',
+      title: '新アルバム「Nocturne」リリース',
+      date: '2025-01-10',
+      category: 'メディア',
+      excerpt: 'ショパンの夜想曲全曲録音アルバムをリリースいたしました。',
+    },
+  ];
 
-        <div className="relative z-10 text-center space-y-8 px-4">
-          <h1 className="text-4xl md:text-6xl lg:text-[64px] font-bold tracking-wider text-accent drop-shadow-lg">
+  const upcomingConcerts = [
+    {
+      id: '1',
+      title: 'ショパン・リサイタル',
+      date: '2025-02-20',
+      venue: '東京文化会館',
+    },
+    {
+      id: '2',
+      title: '協奏曲の夕べ',
+      date: '2025-03-15',
+      venue: 'サントリーホール',
+    },
+  ];
+
+  return (
+    <div>
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center gradient-overlay">
+        <div
+          className="absolute inset-0 -z-10 bg-gradient-to-b from-deep-red-black via-rich-black to-rich-black"
+        />
+        <div className="text-center z-10 px-6">
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 text-metallic-gold tracking-wider">
             MASASHI ENOKIDA
           </h1>
-          <p className="text-lg md:text-xl tracking-[0.2em] text-gray-300">
-            PIANIST
+          <p className="text-xl md:text-2xl mb-8 text-off-white">
+            Pianist
           </p>
-        </div>
-      </section>
-
-      {/* News Section */}
-      <section className="py-20 md:py-[120px] px-6 max-w-[1200px] mx-auto">
-        <h2 className="text-2xl md:text-4xl font-bold text-accent mb-12 text-center tracking-widest">
-          NEWS
-        </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* Placeholder News Items */}
-          {[1, 2, 3].map((item) => (
-            <article key={item} className="glass p-6 rounded-card hover-glow cursor-pointer">
-              <div className="aspect-video bg-gray-800 rounded-sm mb-4"></div>
-              <time className="text-sm text-gray-400 block mb-2">2025.12.03</time>
-              <h3 className="text-lg font-medium mb-2">Concert Announcement</h3>
-              <p className="text-sm text-gray-300 line-clamp-2">
-                Details about the upcoming concert at Suntory Hall...
-              </p>
-            </article>
-          ))}
-        </div>
-        <div className="text-center mt-12">
-          <button className="border border-accent text-accent px-8 py-3 rounded-full hover:bg-accent hover:text-primary transition-all duration-300">
-            VIEW ALL
-          </button>
-        </div>
-      </section>
-
-      {/* Pickup Section */}
-      <section className="py-20 md:py-[120px] bg-[#1a0505]">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-2xl md:text-4xl font-bold text-accent mb-12 text-center tracking-widest">
-            PICK UP
-          </h2>
-          <div className="flex flex-col md:flex-row gap-12 items-center">
-            <div className="w-full md:w-1/2 aspect-square bg-gray-800 rounded-card shadow-2xl relative">
-              {/* Placeholder for Album Art */}
-              <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                Album Art
-              </div>
-            </div>
-            <div className="w-full md:w-1/2 space-y-6">
-              <h3 className="text-3xl font-bold">New Album "Resonance"</h3>
-              <p className="text-gray-300 leading-relaxed">
-                A collection of masterpieces that resonate with the soul.
-                Experience the profound depth of sound.
-              </p>
-              <button className="bg-maroon text-white px-8 py-3 rounded-full hover:bg-red-900 transition-all duration-300 shadow-lg">
-                DISCOVER MORE
-              </button>
-            </div>
+          <div className="flex gap-4 justify-center">
+            <Link href="/concerts">
+              <Button variant="primary" size="lg">
+                コンサート情報
+              </Button>
+            </Link>
+            <Link href="/discography">
+              <Button variant="outline" size="lg">
+                ディスコグラフィ
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
-    </main>
+
+      {/* Latest News */}
+      <section className="py-20 md:py-32 px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <h2 className="text-4xl font-bold mb-12 text-center text-metallic-gold">
+            LATEST NEWS
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            {latestNews.map((news) => (
+              <Card
+                key={news.id}
+                title={news.title}
+                description={news.excerpt}
+                onClick={() => {}}
+              >
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-metallic-gold">{news.category}</span>
+                  <span className="text-off-white/50">{news.date}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/blog">
+              <Button variant="outline">すべてのニュースを見る</Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Upcoming Concerts */}
+      <section className="py-20 md:py-32 px-6 bg-deep-red-black/30">
+        <div className="max-w-[1200px] mx-auto">
+          <h2 className="text-4xl font-bold mb-12 text-center text-metallic-gold">
+            UPCOMING CONCERTS
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            {upcomingConcerts.map((concert) => (
+              <Card
+                key={concert.id}
+                title={concert.title}
+                onClick={() => {}}
+              >
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-off-white">{concert.venue}</span>
+                  <span className="text-metallic-gold">{concert.date}</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/concerts">
+              <Button variant="primary">コンサート一覧を見る</Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action - Fan Club */}
+      <section className="py-20 md:py-32 px-6">
+        <div className="max-w-[800px] mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-6 text-metallic-gold">
+            SUPPORTERS CLUB
+          </h2>
+          <p className="text-lg mb-8 leading-relaxed text-off-white/80">
+            ファンクラブ会員限定のコンテンツや先行予約など、<br />
+            さまざまな特典をご用意しております。
+          </p>
+          <Link href="/supporters">
+            <Button variant="secondary" size="lg">
+              入会について詳しく見る
+            </Button>
+          </Link>
+        </div>
+      </section>
+    </div>
   );
 }
