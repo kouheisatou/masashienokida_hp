@@ -30,7 +30,7 @@ export default function SupportersPage() {
       price: '¥5,000',
       priceDetail: '年会費（税込）',
       color: 'from-[#d4af37] to-[#b8860b]',
-      borderColor: 'border-[#FFD700]',
+      borderColor: 'border-[#8b4545]',
       features: [
         '無料会員の全特典',
         'チケット先行予約（最優先）',
@@ -141,7 +141,7 @@ export default function SupportersPage() {
               >
                 {tier.recommended && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <span className="inline-block px-6 py-2 bg-[#FFD700] text-black text-sm font-bold tracking-wider rounded-full shadow-lg">
+                    <span className="inline-block px-6 py-2 bg-white text-black text-sm font-bold tracking-wider rounded-full shadow-lg">
                       RECOMMENDED
                     </span>
                   </div>
@@ -152,17 +152,17 @@ export default function SupportersPage() {
                 }`}>
                   {/* Tier Name */}
                   <div className="text-center mb-8">
-                    <h3 className="text-3xl font-bold text-[#FFD700] mb-2">
+                    <h3 className="text-3xl font-bold text-white mb-2">
                       {tier.name}
                     </h3>
-                    <p className="text-sm text-[#FFA500] tracking-[0.2em]">
+                    <p className="text-sm text-[#d4c4b0] tracking-[0.2em]">
                       {tier.nameEn}
                     </p>
                   </div>
 
                   {/* Price */}
-                  <div className="text-center mb-8 pb-8 border-b border-[#FFD700]/20">
-                    <div className="text-4xl md:text-5xl font-bold text-[#FFD700] mb-2">
+                  <div className="text-center mb-8 pb-8 border-b border-[#8b4545]/20">
+                    <div className="text-4xl md:text-5xl font-bold text-white mb-2">
                       {tier.price}
                     </div>
                     <p className="text-sm text-[#f0f0f0]/60">
@@ -178,7 +178,7 @@ export default function SupportersPage() {
                         className="flex items-start gap-3 text-[#f0f0f0]/90"
                       >
                         <svg
-                          className="w-5 h-5 text-[#FFD700] flex-shrink-0 mt-0.5"
+                          className="w-5 h-5 text-white flex-shrink-0 mt-0.5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -198,7 +198,7 @@ export default function SupportersPage() {
                   {/* CTA Button */}
                   <div className="text-center">
                     <Button
-                      variant={tier.recommended ? 'gold' : 'outline'}
+                      variant={tier.recommended ? 'primary' : 'outline'}
                       size="lg"
                       className="w-full"
                     >
@@ -216,7 +216,7 @@ export default function SupportersPage() {
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[1200px] mx-auto">
           <div className="ornament mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] tracking-wider">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wider">
               会員特典
             </h2>
           </div>
@@ -227,9 +227,8 @@ export default function SupportersPage() {
                 key={idx}
                 title={benefit.title}
                 description={benefit.description}
-                variant="velvet"
               >
-                <div className="text-[#FFD700] mb-4">
+                <div className="text-white mb-4">
                   {benefit.icon}
                 </div>
               </Card>
@@ -242,7 +241,7 @@ export default function SupportersPage() {
       <section className="py-20 px-6">
         <div className="max-w-[900px] mx-auto">
           <div className="ornament mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] tracking-wider">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wider">
               よくあるご質問
             </h2>
           </div>
@@ -253,12 +252,12 @@ export default function SupportersPage() {
                 key={idx}
                 className="velvet-card p-6 md:p-8"
               >
-                <h3 className="text-lg font-bold text-[#FFD700] mb-3 flex items-start gap-3">
-                  <span className="text-[#FFA500] flex-shrink-0">Q.</span>
+                <h3 className="text-lg font-bold text-white mb-3 flex items-start gap-3">
+                  <span className="text-[#d4c4b0] flex-shrink-0">Q.</span>
                   <span>{faq.question}</span>
                 </h3>
                 <p className="text-[#f0f0f0]/80 leading-relaxed pl-8">
-                  <span className="text-[#FFA500] mr-2">A.</span>
+                  <span className="text-[#d4c4b0] mr-2">A.</span>
                   {faq.answer}
                 </p>
               </div>
@@ -271,7 +270,7 @@ export default function SupportersPage() {
       <section className="py-20 px-6 theater-frame">
         <div className="max-w-[800px] mx-auto text-center">
           <div className="velvet-card p-12">
-            <h2 className="text-3xl font-bold text-[#FFD700] mb-6 tracking-wider">
+            <h2 className="text-3xl font-bold text-white mb-6 tracking-wider">
               今すぐ入会する
             </h2>
             <p className="text-[#f0f0f0]/80 mb-8 leading-relaxed">
@@ -279,7 +278,7 @@ export default function SupportersPage() {
               特別な体験を一緒に創りあげていきましょう。
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="gold" size="lg">
+              <Button variant="primary" size="lg">
                 ゴールド会員に入会
               </Button>
               <Button variant="outline" size="lg">

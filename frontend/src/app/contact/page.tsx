@@ -123,16 +123,16 @@ export default function ContactPage() {
                 key={idx}
                 className="velvet-card p-6 text-center"
               >
-                <div className="text-[#FFD700] mb-4 flex justify-center">
+                <div className="text-white mb-4 flex justify-center">
                   {info.icon}
                 </div>
-                <h3 className="text-sm font-bold text-[#FFA500] tracking-wider mb-2">
+                <h3 className="text-sm font-bold text-[#d4c4b0] tracking-wider mb-2">
                   {info.title}
                 </h3>
                 {info.link ? (
                   <a
                     href={info.link}
-                    className="text-[#f0f0f0]/80 hover:text-[#FFD700] transition-colors"
+                    className="text-[#f0f0f0]/80 hover:text-white transition-colors"
                   >
                     {info.content}
                   </a>
@@ -149,15 +149,15 @@ export default function ContactPage() {
       <section className="py-20 px-6">
         <div className="max-w-[800px] mx-auto">
           <div className="velvet-card p-8 md:p-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#FFD700] mb-8 text-center tracking-wider">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center tracking-wider">
               お問い合わせフォーム
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-bold text-[#FFA500] mb-2 tracking-wider">
-                  お名前 <span className="text-[#FFD700]">*</span>
+                <label htmlFor="name" className="block text-sm font-bold text-[#d4c4b0] mb-2 tracking-wider">
+                  お名前 <span className="text-white">*</span>
                 </label>
                 <input
                   type="text"
@@ -166,15 +166,15 @@ export default function ContactPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#FFD700]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#FFD700] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#8b4545]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#8b4545] transition-colors"
                   placeholder="山田 太郎"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-[#FFA500] mb-2 tracking-wider">
-                  メールアドレス <span className="text-[#FFD700]">*</span>
+                <label htmlFor="email" className="block text-sm font-bold text-[#d4c4b0] mb-2 tracking-wider">
+                  メールアドレス <span className="text-white">*</span>
                 </label>
                 <input
                   type="email"
@@ -183,15 +183,15 @@ export default function ContactPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#FFD700]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#FFD700] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#8b4545]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#8b4545] transition-colors"
                   placeholder="example@email.com"
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label htmlFor="category" className="block text-sm font-bold text-[#FFA500] mb-2 tracking-wider">
-                  お問い合わせ種別 <span className="text-[#FFD700]">*</span>
+                <label htmlFor="category" className="block text-sm font-bold text-[#d4c4b0] mb-2 tracking-wider">
+                  お問い合わせ種別 <span className="text-white">*</span>
                 </label>
                 <select
                   id="category"
@@ -199,7 +199,7 @@ export default function ContactPage() {
                   required
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#FFD700]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#FFD700] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#8b4545]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#8b4545] transition-colors"
                 >
                   {categories.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -211,8 +211,8 @@ export default function ContactPage() {
 
               {/* Subject */}
               <div>
-                <label htmlFor="subject" className="block text-sm font-bold text-[#FFA500] mb-2 tracking-wider">
-                  件名 <span className="text-[#FFD700]">*</span>
+                <label htmlFor="subject" className="block text-sm font-bold text-[#d4c4b0] mb-2 tracking-wider">
+                  件名 <span className="text-white">*</span>
                 </label>
                 <input
                   type="text"
@@ -221,15 +221,15 @@ export default function ContactPage() {
                   required
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#FFD700]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#FFD700] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#8b4545]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#8b4545] transition-colors"
                   placeholder="お問い合わせの件名"
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label htmlFor="message" className="block text-sm font-bold text-[#FFA500] mb-2 tracking-wider">
-                  お問い合わせ内容 <span className="text-[#FFD700]">*</span>
+                <label htmlFor="message" className="block text-sm font-bold text-[#d4c4b0] mb-2 tracking-wider">
+                  お問い合わせ内容 <span className="text-white">*</span>
                 </label>
                 <textarea
                   id="message"
@@ -238,13 +238,13 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   rows={8}
-                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#FFD700]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#FFD700] transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#8b4545]/30 rounded text-[#f0f0f0] focus:outline-none focus:border-[#8b4545] transition-colors resize-none"
                   placeholder="お問い合わせ内容をご記入ください"
                 />
               </div>
 
               {/* Privacy Notice */}
-              <div className="bg-[#8B0000]/10 border border-[#FFD700]/20 rounded p-4">
+              <div className="bg-[#8B0000]/10 border border-[#8b4545]/20 rounded p-4">
                 <p className="text-xs text-[#f0f0f0]/70 leading-relaxed">
                   お送りいただいた個人情報は、お問い合わせへの回答および関連する連絡のためにのみ使用し、適切に管理いたします。
                 </p>
@@ -254,7 +254,7 @@ export default function ContactPage() {
               <div className="text-center pt-4">
                 <Button
                   type="submit"
-                  variant="gold"
+                  variant="primary"
                   size="lg"
                   disabled={isSubmitting}
                   className="min-w-[200px]"
@@ -271,7 +271,7 @@ export default function ContactPage() {
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[900px] mx-auto">
           <div className="ornament mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] tracking-wider">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wider">
               よくあるご質問
             </h2>
           </div>
@@ -282,12 +282,12 @@ export default function ContactPage() {
                 key={idx}
                 className="velvet-card p-6 md:p-8"
               >
-                <h3 className="text-lg font-bold text-[#FFD700] mb-3 flex items-start gap-3">
-                  <span className="text-[#FFA500] flex-shrink-0">Q.</span>
+                <h3 className="text-lg font-bold text-white mb-3 flex items-start gap-3">
+                  <span className="text-[#d4c4b0] flex-shrink-0">Q.</span>
                   <span>{faq.question}</span>
                 </h3>
                 <p className="text-[#f0f0f0]/80 leading-relaxed pl-8">
-                  <span className="text-[#FFA500] mr-2">A.</span>
+                  <span className="text-[#d4c4b0] mr-2">A.</span>
                   {faq.answer}
                 </p>
               </div>

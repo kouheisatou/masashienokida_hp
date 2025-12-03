@@ -127,27 +127,27 @@ export default function DiscographyPage() {
               }`}>
                 {/* Album Cover */}
                 <div className={`md:col-span-2 ${index % 2 === 1 ? 'md:col-start-4' : ''}`}>
-                  <div className="relative aspect-square rounded overflow-hidden border-2 border-[#FFD700]/30 group-hover:border-[#FFD700]/60 transition-all duration-500">
+                  <div className="relative aspect-square rounded overflow-hidden border-2 border-[#8b4545]/30 group-hover:border-[#8b4545]/60 transition-all duration-500">
                     {/* Gradient placeholder */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${album.coverColor}`} />
 
                     {/* Album info overlay */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                      <div className="text-[#FFD700]/80 text-6xl mb-4">♪</div>
+                      <div className="text-white/80 text-6xl mb-4">♪</div>
                       <div className="text-[#f0f0f0] text-lg font-bold mb-2">
                         {album.title}
                       </div>
-                      <div className="text-[#FFD700]/70 text-sm">
+                      <div className="text-white/70 text-sm">
                         {album.year}
                       </div>
                     </div>
 
                     {/* Decorative corners */}
-                    <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-[#FFD700]/40" />
-                    <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-[#FFD700]/40" />
+                    <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-[#8b4545]/40" />
+                    <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-[#8b4545]/40" />
 
                     {/* Hover effect */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#FFD700]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
                 </div>
 
@@ -156,12 +156,12 @@ export default function DiscographyPage() {
                   <div className="velvet-card p-8 md:p-10 h-full">
                     {/* Title & Year */}
                     <div className="mb-6">
-                      <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] mb-3 leading-tight">
+                      <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">
                         {album.title}
                       </h2>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-[#f0f0f0]/70">
-                        <span className="text-[#FFA500] font-bold">{album.year}</span>
-                        <span className="text-[#FFD700]/50">•</span>
+                        <span className="text-[#d4c4b0] font-bold">{album.year}</span>
+                        <span className="text-white/50">•</span>
                         <span>{album.label}</span>
                       </div>
                     </div>
@@ -174,14 +174,14 @@ export default function DiscographyPage() {
                     {/* Awards */}
                     {album.awards && album.awards.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-bold text-[#FFA500] tracking-wider mb-3">
+                        <h4 className="text-sm font-bold text-[#d4c4b0] tracking-wider mb-3">
                           AWARDS & RECOGNITION
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {album.awards.map((award, idx) => (
                             <span
                               key={idx}
-                              className="px-3 py-1.5 text-xs bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] rounded"
+                              className="px-3 py-1.5 text-xs bg-white/10 border border-[#8b4545]/30 text-white rounded"
                             >
                               {award}
                             </span>
@@ -192,7 +192,7 @@ export default function DiscographyPage() {
 
                     {/* Track List */}
                     <div className="mb-6">
-                      <h4 className="text-sm font-bold text-[#FFA500] tracking-wider mb-3">
+                      <h4 className="text-sm font-bold text-[#d4c4b0] tracking-wider mb-3">
                         TRACK LIST
                       </h4>
                       <ul className="space-y-2">
@@ -201,7 +201,7 @@ export default function DiscographyPage() {
                             key={idx}
                             className="flex items-start gap-3 text-sm text-[#f0f0f0]/80"
                           >
-                            <span className="text-[#FFD700]/50 font-mono text-xs mt-0.5 min-w-[20px]">
+                            <span className="text-white/50 font-mono text-xs mt-0.5 min-w-[20px]">
                               {String(idx + 1).padStart(2, '0')}
                             </span>
                             <span>{track}</span>
@@ -210,11 +210,11 @@ export default function DiscographyPage() {
                       </ul>
                     </div>
 
-                    <div className="gold-divider my-6" />
+                    <div className="divider my-6" />
 
                     {/* Streaming Links */}
                     <div>
-                      <h4 className="text-sm font-bold text-[#FFA500] tracking-wider mb-4">
+                      <h4 className="text-sm font-bold text-[#d4c4b0] tracking-wider mb-4">
                         LISTEN NOW
                       </h4>
                       <div className="flex flex-wrap gap-3">
@@ -227,7 +227,7 @@ export default function DiscographyPage() {
                         <Button variant="outline" size="sm">
                           Amazon Music
                         </Button>
-                        <Button variant="gold" size="sm">
+                        <Button variant="primary" size="sm">
                           購入する
                         </Button>
                       </div>
@@ -239,7 +239,7 @@ export default function DiscographyPage() {
               {/* Divider */}
               {index < albums.length - 1 && (
                 <div className="mt-20">
-                  <div className="gold-divider" />
+                  <div className="divider" />
                 </div>
               )}
             </div>
@@ -250,14 +250,14 @@ export default function DiscographyPage() {
       {/* CTA Section */}
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[#FFD700] mb-6 tracking-wider">
+          <h2 className="text-3xl font-bold text-white mb-6 tracking-wider">
             最新情報をチェック
           </h2>
           <p className="text-[#f0f0f0]/80 mb-8 leading-relaxed">
             新譜情報やレコーディング秘話など、<br />
             サポーターズクラブ会員限定コンテンツをお楽しみいただけます。
           </p>
-          <Button variant="velvet" size="lg">
+          <Button variant="outline" size="lg">
             サポーターズクラブについて
           </Button>
         </div>

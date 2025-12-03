@@ -119,16 +119,16 @@ export default function ConcertsPage() {
       </section>
 
       {/* Tab Navigation */}
-      <section className="py-8 px-6 border-b border-[#FFD700]/20">
+      <section className="py-8 px-6 border-b border-[#8b4545]/20">
         <div className="max-w-[1200px] mx-auto flex justify-center gap-4">
           <Button
-            variant={activeTab === 'upcoming' ? 'gold' : 'outline'}
+            variant={activeTab === 'upcoming' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('upcoming')}
           >
             今後の公演
           </Button>
           <Button
-            variant={activeTab === 'past' ? 'gold' : 'outline'}
+            variant={activeTab === 'past' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('past')}
           >
             過去の公演
@@ -150,8 +150,8 @@ export default function ConcertsPage() {
                   <div className="absolute top-6 right-6">
                     <span className={`px-4 py-1.5 text-xs font-bold tracking-wider rounded ${
                       concert.status === '販売中'
-                        ? 'bg-[#FFD700] text-black'
-                        : 'bg-[#8B0000] text-[#FFD700] border border-[#FFD700]/30'
+                        ? 'bg-white text-black'
+                        : 'bg-[#8B0000] text-white border border-[#8b4545]/30'
                     }`}>
                       {concert.status}
                     </span>
@@ -160,11 +160,11 @@ export default function ConcertsPage() {
                   <div className="grid md:grid-cols-12 gap-8">
                     {/* Date */}
                     <div className="md:col-span-3 text-center md:text-left">
-                      <div className="inline-block velvet-card px-6 py-4 border-2 border-[#FFD700]/40">
-                        <div className="text-4xl font-bold text-[#FFD700] mb-1">
+                      <div className="inline-block velvet-card px-6 py-4 border-2 border-[#8b4545]/40">
+                        <div className="text-4xl font-bold text-white mb-1">
                           {new Date(concert.date).getDate()}
                         </div>
-                        <div className="text-sm text-[#FFA500] tracking-wider">
+                        <div className="text-sm text-[#d4c4b0] tracking-wider">
                           {new Date(concert.date).toLocaleDateString('ja-JP', {
                             year: 'numeric',
                             month: 'short',
@@ -179,18 +179,18 @@ export default function ConcertsPage() {
                     {/* Details */}
                     <div className="md:col-span-9 space-y-4">
                       <div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-[#FFD700] mb-3">
+                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
                           {concert.title}
                         </h3>
                         <div className="flex flex-wrap gap-4 text-sm text-[#f0f0f0]/80">
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <span>{concert.venue}</span>
                           </div>
-                          <span className="text-[#FFD700]/50">•</span>
+                          <span className="text-white/50">•</span>
                           <span>{concert.location}</span>
                         </div>
                       </div>
@@ -204,13 +204,13 @@ export default function ConcertsPage() {
 
                       {concert.program && (
                         <div className="space-y-2">
-                          <h4 className="text-sm font-bold text-[#FFA500] tracking-wider">
+                          <h4 className="text-sm font-bold text-[#d4c4b0] tracking-wider">
                             PROGRAM
                           </h4>
                           <ul className="space-y-1.5 text-sm text-[#f0f0f0]/80">
                             {concert.program.map((piece, idx) => (
                               <li key={idx} className="flex items-start gap-2">
-                                <span className="text-[#FFD700]/50 mt-1.5">•</span>
+                                <span className="text-white/50 mt-1.5">•</span>
                                 <span>{piece}</span>
                               </li>
                             ))}
@@ -219,7 +219,7 @@ export default function ConcertsPage() {
                       )}
 
                       <div className="pt-4">
-                        <Button variant="gold" size="sm">
+                        <Button variant="primary" size="sm">
                           チケット情報・予約
                         </Button>
                       </div>
@@ -227,8 +227,8 @@ export default function ConcertsPage() {
                   </div>
 
                   {/* Decorative elements */}
-                  <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-[#FFD700]/20" />
-                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-[#FFD700]/20" />
+                  <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-[#8b4545]/20" />
+                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-[#8b4545]/20" />
                 </div>
               ))}
             </div>
@@ -245,10 +245,9 @@ export default function ConcertsPage() {
                 <Card
                   key={concert.id}
                   title={concert.title}
-                  variant="velvet"
                 >
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-[#FFD700]">
+                    <div className="flex items-center gap-2 text-white">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -281,14 +280,14 @@ export default function ConcertsPage() {
       {/* CTA Section */}
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[#FFD700] mb-6 tracking-wider">
+          <h2 className="text-3xl font-bold text-white mb-6 tracking-wider">
             最新情報をお届け
           </h2>
           <p className="text-[#f0f0f0]/80 mb-8 leading-relaxed">
             サポーターズクラブ会員の方には、公演情報の先行案内やチケット優先予約など、<br />
             さまざまな特典をご用意しております。
           </p>
-          <Button variant="velvet" size="lg">
+          <Button variant="outline" size="lg">
             サポーターズクラブについて
           </Button>
         </div>

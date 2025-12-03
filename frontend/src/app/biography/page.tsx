@@ -78,10 +78,10 @@ export default function BiographyPage() {
           <div className="grid md:grid-cols-5 gap-12 items-start">
             {/* Profile Image */}
             <div className="md:col-span-2">
-              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#8B0000]/30 to-[#4a0e0e]/40 rounded overflow-hidden border-2 border-[#FFD700]/30">
+              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#8B0000]/30 to-[#4a0e0e]/40 rounded overflow-hidden border-2 border-[#8b4545]/30">
                 {/* Placeholder for profile image */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-[#FFD700]/30 text-center">
+                  <div className="text-white/30 text-center">
                     <svg className="w-24 h-24 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -89,18 +89,18 @@ export default function BiographyPage() {
                   </div>
                 </div>
                 {/* Decorative corners */}
-                <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-[#FFD700]/50" />
-                <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-[#FFD700]/50" />
+                <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-[#8b4545]/50" />
+                <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-[#8b4545]/50" />
               </div>
             </div>
 
             {/* Profile Info */}
             <div className="md:col-span-3 space-y-6">
               <div>
-                <h2 className="text-4xl font-bold text-[#FFD700] mb-2 tracking-wider">
+                <h2 className="text-4xl font-bold text-white mb-2 tracking-wider">
                   {profile.name}
                 </h2>
-                <p className="text-xl text-[#FFA500] tracking-[0.15em] mb-4">
+                <p className="text-xl text-[#d4c4b0] tracking-[0.15em] mb-4">
                   {profile.nameEn}
                 </p>
                 <p className="text-[#f0f0f0]/80 text-sm tracking-widest">
@@ -108,7 +108,7 @@ export default function BiographyPage() {
                 </p>
               </div>
 
-              <div className="gold-divider" />
+              <div className="divider" />
 
               <div className="space-y-4 text-[#f0f0f0]/80 leading-relaxed whitespace-pre-line">
                 {profile.bio}
@@ -122,7 +122,7 @@ export default function BiographyPage() {
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[1200px] mx-auto">
           <div className="ornament mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] tracking-wider">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wider">
               EDUCATION
             </h2>
           </div>
@@ -133,9 +133,8 @@ export default function BiographyPage() {
                 key={index}
                 title={item.title}
                 description={item.description}
-                variant="velvet"
               >
-                <div className="text-[#FFD700] text-sm font-bold tracking-wider">
+                <div className="text-white text-sm font-bold tracking-wider">
                   {item.year}
                 </div>
               </Card>
@@ -148,7 +147,7 @@ export default function BiographyPage() {
       <section className="py-20 px-6">
         <div className="max-w-[1200px] mx-auto">
           <div className="ornament mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#FFD700] tracking-wider">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wider">
               AWARDS & HONORS
             </h2>
           </div>
@@ -159,9 +158,8 @@ export default function BiographyPage() {
                 key={index}
                 title={award.title}
                 description={award.description}
-                variant="stage"
               >
-                <div className="text-[#FFD700] text-lg font-bold tracking-wider">
+                <div className="text-white text-lg font-bold tracking-wider">
                   {award.year}
                 </div>
               </Card>
@@ -174,7 +172,7 @@ export default function BiographyPage() {
       <section className="py-20 px-6 theater-frame">
         <div className="max-w-[800px] mx-auto text-center">
           <div className="velvet-card p-12">
-            <svg className="w-12 h-12 text-[#FFD700]/30 mx-auto mb-6" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-white/30 mx-auto mb-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>
             <p className="text-xl md:text-2xl text-[#f0f0f0]/90 leading-relaxed mb-6 italic">
@@ -182,7 +180,7 @@ export default function BiographyPage() {
               一音一音に心を込めて、聴く人の魂に届ける。<br />
               それが私の使命です。
             </p>
-            <p className="text-[#FFD700] tracking-widest">
+            <p className="text-white tracking-widest">
               — MASASHI ENOKIDA
             </p>
           </div>

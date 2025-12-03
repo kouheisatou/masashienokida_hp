@@ -100,13 +100,13 @@ export default function BlogPage() {
       </section>
 
       {/* Category Filter */}
-      <section className="py-8 px-6 border-b border-[#FFD700]/20">
+      <section className="py-8 px-6 border-b border-[#8b4545]/20">
         <div className="max-w-[1200px] mx-auto">
           <div className="flex flex-wrap justify-center gap-3">
             {categories.map((category) => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? 'gold' : 'outline'}
+                variant={selectedCategory === category.id ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -131,7 +131,7 @@ export default function BlogPage() {
                     {/* Members only badge */}
                     {post.membersOnly && (
                       <div className="absolute top-4 right-4 z-10">
-                        <span className="px-3 py-1.5 text-xs font-bold tracking-wider rounded bg-[#FFD700] text-black flex items-center gap-1.5">
+                        <span className="px-3 py-1.5 text-xs font-bold tracking-wider rounded bg-white text-black flex items-center gap-1.5">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
@@ -148,7 +148,7 @@ export default function BlogPage() {
                   <div className="p-6 flex-1 flex flex-col">
                     {/* Category & Date */}
                     <div className="flex items-center justify-between mb-3 text-xs">
-                      <span className="px-2.5 py-1 bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] rounded">
+                      <span className="px-2.5 py-1 bg-white/10 border border-[#8b4545]/30 text-white rounded">
                         {post.categoryLabel}
                       </span>
                       <span className="text-[#f0f0f0]/50">
@@ -161,7 +161,7 @@ export default function BlogPage() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold mb-3 text-[#FFD700] group-hover:text-[#FFA500] transition-colors duration-300 line-clamp-2">
+                    <h3 className="text-xl font-bold mb-3 text-white group-hover:text-[#d4c4b0] transition-colors duration-300 line-clamp-2">
                       {post.title}
                     </h3>
 
@@ -171,7 +171,7 @@ export default function BlogPage() {
                     </p>
 
                     {/* Read more */}
-                    <div className="mt-4 flex items-center gap-2 text-[#FFD700] text-sm font-bold group-hover:gap-3 transition-all duration-300">
+                    <div className="mt-4 flex items-center gap-2 text-white text-sm font-bold group-hover:gap-3 transition-all duration-300">
                       <span>続きを読む</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -180,8 +180,8 @@ export default function BlogPage() {
                   </div>
 
                   {/* Decorative corners */}
-                  <div className="absolute top-0 left-0 w-12 h-12 border-t border-l border-[#FFD700]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b border-r border-[#FFD700]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-0 left-0 w-12 h-12 border-t border-l border-[#8b4545]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b border-r border-[#8b4545]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </Link>
             ))}
@@ -192,14 +192,14 @@ export default function BlogPage() {
       {/* CTA Section */}
       <section className="py-20 px-6 stage-gradient">
         <div className="max-w-[800px] mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[#FFD700] mb-6 tracking-wider">
+          <h2 className="text-3xl font-bold text-white mb-6 tracking-wider">
             会員限定コンテンツ
           </h2>
           <p className="text-[#f0f0f0]/80 mb-8 leading-relaxed">
             サポーターズクラブ会員の方は、<br />
             会員限定の記事や動画など、特別なコンテンツをお楽しみいただけます。
           </p>
-          <Button variant="velvet" size="lg">
+          <Button variant="outline" size="lg">
             サポーターズクラブについて
           </Button>
         </div>

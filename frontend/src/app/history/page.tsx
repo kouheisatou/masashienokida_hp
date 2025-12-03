@@ -121,11 +121,11 @@ export default function HistoryPage() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'award':
-        return 'text-[#FFD700] border-[#FFD700]';
+        return 'text-white border-[#8b4545]';
       case 'education':
         return 'text-[#87CEEB] border-[#87CEEB]';
       case 'release':
-        return 'text-[#FFA500] border-[#FFA500]';
+        return 'text-[#d4c4b0] border-[#8b4545]';
       case 'concert':
         return 'text-[#DDA0DD] border-[#DDA0DD]';
       default:
@@ -167,11 +167,11 @@ export default function HistoryPage() {
       </section>
 
       {/* Legend Section */}
-      <section className="py-8 px-6 border-b border-[#FFD700]/20">
+      <section className="py-8 px-6 border-b border-[#8b4545]/20">
         <div className="max-w-[1200px] mx-auto">
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#FFD700]" />
+              <div className="w-3 h-3 rounded-full bg-white" />
               <span className="text-[#f0f0f0]/80">受賞</span>
             </div>
             <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default function HistoryPage() {
               <span className="text-[#f0f0f0]/80">学歴</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#FFA500]" />
+              <div className="w-3 h-3 rounded-full bg-[#8b4545]" />
               <span className="text-[#f0f0f0]/80">リリース</span>
             </div>
             <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export default function HistoryPage() {
         <div className="max-w-[900px] mx-auto">
           <div className="relative">
             {/* Vertical line */}
-            <div className="absolute left-[60px] md:left-[120px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#FFD700]/50 via-[#FFD700]/20 to-transparent" />
+            <div className="absolute left-[60px] md:left-[120px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/50 via-white/20 to-transparent" />
 
             <div className="space-y-12">
               {timeline.map((event, index) => (
@@ -205,7 +205,7 @@ export default function HistoryPage() {
                 >
                   {/* Year */}
                   <div className="w-[60px] md:w-[120px] flex-shrink-0 text-right pt-1">
-                    <div className="text-2xl md:text-3xl font-bold text-[#FFD700] tracking-wider">
+                    <div className="text-2xl md:text-3xl font-bold text-white tracking-wider">
                       {event.year}
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export default function HistoryPage() {
 
                   {/* Content */}
                   <div className="flex-1 pb-2">
-                    <div className="velvet-card p-6 md:p-8 transition-all duration-300 group-hover:border-[#FFD700]/40">
+                    <div className="velvet-card p-6 md:p-8 transition-all duration-300 group-hover:border-[#8b4545]/40">
                       {/* Category badge */}
                       <div className="mb-3">
                         <span
@@ -233,7 +233,7 @@ export default function HistoryPage() {
                         </span>
                       </div>
 
-                      <h3 className="text-xl md:text-2xl font-bold text-[#FFD700] mb-3 group-hover:text-[#FFA500] transition-colors">
+                      <h3 className="text-xl md:text-2xl font-bold text-white mb-3 group-hover:text-[#d4c4b0] transition-colors">
                         {event.title}
                       </h3>
                       <p className="text-[#f0f0f0]/80 leading-relaxed">
@@ -241,7 +241,7 @@ export default function HistoryPage() {
                       </p>
 
                       {/* Decorative corner */}
-                      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-[#FFD700]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-[#8b4545]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </div>
                 </div>
@@ -250,7 +250,7 @@ export default function HistoryPage() {
 
             {/* Bottom ornament */}
             <div className="mt-12 text-center">
-              <div className="inline-block text-[#FFD700] text-2xl">◆</div>
+              <div className="inline-block text-white text-2xl">◆</div>
             </div>
           </div>
         </div>
@@ -264,8 +264,8 @@ export default function HistoryPage() {
               これまでの歩みすべてが、今この瞬間の演奏へと繋がっています。<br />
               そして、これからも音楽と共に歩み続けます。
             </p>
-            <div className="gold-divider my-6" />
-            <p className="text-[#FFD700] tracking-widest">
+            <div className="divider my-6" />
+            <p className="text-white tracking-widest">
               — MASASHI ENOKIDA
             </p>
           </div>
