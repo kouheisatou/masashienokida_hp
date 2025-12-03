@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0a0a0a;
+  --color-primary-foreground: #f0f0f0;
+  --color-accent: #d4af37;
+  --color-maroon: #800000;
+  --color-dark-gray: #2d2d2d;
+
+  --font-sans: var(--font-zen-kaku), var(--font-noto-sans), sans-serif;
+
+  --spacing-120: 120px;
+
+  --radius-card: 4px;
+  --radius-button: 9999px;
+}
+
+/* Custom Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+}
