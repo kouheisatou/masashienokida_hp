@@ -37,6 +37,8 @@ DEFAULT_BUCKET_NAME="enokida-website-static"
 DEFAULT_DB_NAME="enokidadb"
 DEFAULT_FN_APP_NAME="enokida-website-functions"
 DEFAULT_API_GW_NAME="enokida-api-gateway"
+DEFAULT_EMAIL_DOMAIN=""
+DEFAULT_SENDER_EMAIL="noreply"
 
 # ============================================================
 # Helper Functions
@@ -134,6 +136,39 @@ wait_for_state() {
     return 1
 }
 
+wait_for_api_gateway_active() {
+    local gateway_id="$1"
+    local max_attempts=60
+    local interval=10
+
+    for ((i=1; i<=max_attempts; i++)); do
+        local state
+        state=$(oci api-gateway gateway get \
+            --gateway-id "$gateway_id" \
+            --query "data.\"lifecycle-state\"" \
+            --raw-output 2>/dev/null || echo "UNKNOWN")
+
+        printf "\r  [%d/%d] Status: %-15s" "$i" "$max_attempts" "$state"
+
+        if [[ "$state" == "ACTIVE" ]]; then
+            echo
+            return 0
+        elif [[ "$state" == "FAILED" ]]; then
+            echo
+            log_error "API Gateway creation failed!"
+            oci api-gateway gateway get --gateway-id "$gateway_id" \
+                --query "data.{state: \"lifecycle-state\", details: \"lifecycle-details\"}"
+            return 1
+        fi
+
+        sleep "$interval"
+    done
+
+    echo
+    log_error "Timeout waiting for API Gateway to become ACTIVE (waited $((max_attempts * interval)) seconds)"
+    return 1
+}
+
 save_config() {
     mkdir -p "$CONFIG_DIR"
     cat > "$CONFIG_FILE" << EOF
@@ -156,7 +191,14 @@ save_config() {
     "functionsAppId": "$FN_APP_ID",
     "apiGatewayId": "$API_GW_ID",
     "apiGatewayHostname": "$API_GW_HOSTNAME",
-    "emailSenderId": "$EMAIL_SENDER_ID"
+    "emailDelivery": {
+        "emailDomainId": "$EMAIL_DOMAIN_ID",
+        "emailDomain": "$EMAIL_DOMAIN",
+        "senderId": "$EMAIL_SENDER_ID",
+        "senderEmail": "$SENDER_EMAIL",
+        "smtpHost": "$SMTP_HOST",
+        "smtpUsername": "$SMTP_USERNAME"
+    }
 }
 EOF
     log_success "Configuration saved to $CONFIG_FILE"
@@ -212,6 +254,18 @@ configure_setup() {
     prompt_with_default "API Gateway name" "$DEFAULT_API_GW_NAME" "API_GW_NAME"
 
     echo
+    log_info "Email Delivery Configuration:"
+    echo "  Enter your domain for sending emails (e.g., masashi-enokida.com)"
+    echo "  Leave empty to skip Email Delivery setup"
+    echo
+    prompt_with_default "Email domain" "$DEFAULT_EMAIL_DOMAIN" "EMAIL_DOMAIN"
+
+    if [[ -n "$EMAIL_DOMAIN" ]]; then
+        prompt_with_default "Sender email prefix (e.g., noreply -> noreply@$EMAIL_DOMAIN)" "$DEFAULT_SENDER_EMAIL" "SENDER_EMAIL_PREFIX"
+        SENDER_EMAIL="${SENDER_EMAIL_PREFIX}@${EMAIL_DOMAIN}"
+    fi
+
+    echo
     log_info "Database Admin Password Requirements:"
     echo "  - Minimum 12 characters"
     echo "  - At least one uppercase letter"
@@ -230,6 +284,12 @@ configure_setup() {
     echo "  - Database: $DB_NAME"
     echo "  - Functions App: $FN_APP_NAME"
     echo "  - API Gateway: $API_GW_NAME"
+    if [[ -n "$EMAIL_DOMAIN" ]]; then
+        echo "  - Email Domain: $EMAIL_DOMAIN"
+        echo "  - Sender Email: $SENDER_EMAIL"
+    else
+        echo "  - Email Delivery: Skipped"
+    fi
     echo
 
     if ! confirm_action "Proceed with this configuration?"; then
@@ -776,28 +836,59 @@ create_functions_application() {
 create_api_gateway() {
     log_step "Step 8: Create API Gateway"
 
-    # Check if gateway exists
+    # Check if gateway exists (check both ACTIVE and CREATING states)
     local existing_gw
     existing_gw=$(oci api-gateway gateway list \
         --compartment-id "$COMPARTMENT_ID" \
         --display-name "$API_GW_NAME" \
-        --lifecycle-state ACTIVE \
-        --query "data.items[0].id" --raw-output 2>/dev/null || echo "")
+        --query "data.items[?\"lifecycle-state\"=='ACTIVE' || \"lifecycle-state\"=='CREATING'] | [0].id" \
+        --raw-output 2>/dev/null || echo "")
 
     if [[ -n "$existing_gw" && "$existing_gw" != "null" ]]; then
         log_warning "API Gateway '$API_GW_NAME' already exists"
         API_GW_ID="$existing_gw"
+
+        # Wait if still creating
+        local gw_state
+        gw_state=$(oci api-gateway gateway get --gateway-id "$API_GW_ID" \
+            --query "data.\"lifecycle-state\"" --raw-output 2>/dev/null)
+
+        if [[ "$gw_state" == "CREATING" ]]; then
+            log_info "API Gateway is still being created, waiting..."
+            wait_for_api_gateway_active "$API_GW_ID"
+        fi
     else
         log_info "Creating API Gateway: $API_GW_NAME"
-        log_info "This may take several minutes..."
+        log_info "This may take 2-5 minutes..."
 
-        API_GW_ID=$(oci api-gateway gateway create \
+        # Create without --wait-for-state to avoid timeout issues
+        local create_output
+        create_output=$(oci api-gateway gateway create \
             --compartment-id "$COMPARTMENT_ID" \
             --display-name "$API_GW_NAME" \
             --endpoint-type "PUBLIC" \
-            --subnet-id "$PUBLIC_SUBNET_ID" \
-            --wait-for-state ACTIVE \
-            --query "data.id" --raw-output)
+            --subnet-id "$PUBLIC_SUBNET_ID" 2>&1)
+
+        local create_exit_code=$?
+
+        if [[ $create_exit_code -ne 0 ]]; then
+            log_error "Failed to create API Gateway:"
+            echo "$create_output"
+            exit 1
+        fi
+
+        API_GW_ID=$(echo "$create_output" | jq -r '.data.id')
+
+        if [[ -z "$API_GW_ID" || "$API_GW_ID" == "null" ]]; then
+            log_error "Failed to get API Gateway ID from response:"
+            echo "$create_output"
+            exit 1
+        fi
+
+        log_info "API Gateway creation initiated: $API_GW_ID"
+
+        # Wait for ACTIVE state with progress
+        wait_for_api_gateway_active "$API_GW_ID"
 
         log_success "API Gateway created: $API_GW_ID"
     fi
@@ -836,19 +927,54 @@ create_api_gateway() {
         --compartment-id "$COMPARTMENT_ID" \
         --gateway-id "$API_GW_ID" \
         --display-name "enokida-api-v1" \
-        --lifecycle-state ACTIVE \
-        --query "data.items[0].id" --raw-output 2>/dev/null || echo "")
+        --query "data.items[?\"lifecycle-state\"=='ACTIVE' || \"lifecycle-state\"=='CREATING'] | [0].id" \
+        --raw-output 2>/dev/null || echo "")
 
     if [[ -z "$existing_deployment" || "$existing_deployment" == "null" ]]; then
-        oci api-gateway deployment create \
+        log_info "Creating API deployment..."
+
+        local deploy_output
+        deploy_output=$(oci api-gateway deployment create \
             --compartment-id "$COMPARTMENT_ID" \
             --gateway-id "$API_GW_ID" \
             --display-name "enokida-api-v1" \
             --path-prefix "/api" \
-            --specification "$deployment_spec" \
-            --wait-for-state ACTIVE > /dev/null
+            --specification "$deployment_spec" 2>&1)
 
-        log_success "API deployment created"
+        local deploy_exit_code=$?
+
+        if [[ $deploy_exit_code -ne 0 ]]; then
+            log_error "Failed to create API deployment:"
+            echo "$deploy_output"
+            exit 1
+        fi
+
+        local deployment_id
+        deployment_id=$(echo "$deploy_output" | jq -r '.data.id')
+
+        # Wait for deployment to be active
+        log_info "Waiting for API deployment to become ACTIVE..."
+        for ((i=1; i<=30; i++)); do
+            local dep_state
+            dep_state=$(oci api-gateway deployment get \
+                --deployment-id "$deployment_id" \
+                --query "data.\"lifecycle-state\"" \
+                --raw-output 2>/dev/null || echo "UNKNOWN")
+
+            printf "\r  [%d/30] Status: %-15s" "$i" "$dep_state"
+
+            if [[ "$dep_state" == "ACTIVE" ]]; then
+                echo
+                log_success "API deployment created"
+                break
+            elif [[ "$dep_state" == "FAILED" ]]; then
+                echo
+                log_error "API deployment creation failed!"
+                exit 1
+            fi
+
+            sleep 5
+        done
     else
         log_info "API deployment already exists"
     fi
@@ -860,16 +986,258 @@ create_api_gateway() {
 setup_email_delivery() {
     log_step "Step 9: Setup Email Delivery"
 
-    log_info "Email Delivery requires manual configuration in OCI Console:"
-    echo "  1. Go to Email Delivery in OCI Console"
-    echo "  2. Create an Email Domain"
-    echo "  3. Verify the domain with DNS records"
-    echo "  4. Create an Approved Sender"
-    echo "  5. Generate SMTP credentials"
-    echo
-    log_warning "Skipping automated Email Delivery setup"
+    # Skip if no email domain configured
+    if [[ -z "$EMAIL_DOMAIN" ]]; then
+        log_warning "Email domain not configured, skipping Email Delivery setup"
+        EMAIL_DOMAIN_ID=""
+        EMAIL_SENDER_ID=""
+        SMTP_USERNAME=""
+        SMTP_PASSWORD=""
+        SMTP_HOST=""
+        return
+    fi
 
-    EMAIL_SENDER_ID="manual-configuration-required"
+    log_info "Setting up Email Delivery for domain: $EMAIL_DOMAIN"
+
+    # Get SMTP endpoint for the region
+    SMTP_HOST="smtp.email.${REGION}.oci.oraclecloud.com"
+    log_info "SMTP Host: $SMTP_HOST"
+
+    # Step 1: Create Email Domain
+    local existing_domain
+    existing_domain=$(oci email domain list \
+        --compartment-id "$COMPARTMENT_ID" \
+        --name "$EMAIL_DOMAIN" \
+        --query "data.items[?\"lifecycle-state\"!='DELETED'] | [0].id" \
+        --raw-output 2>/dev/null || echo "")
+
+    if [[ -n "$existing_domain" && "$existing_domain" != "null" ]]; then
+        log_warning "Email domain '$EMAIL_DOMAIN' already exists"
+        EMAIL_DOMAIN_ID="$existing_domain"
+    else
+        log_info "Creating Email Domain: $EMAIL_DOMAIN"
+
+        local domain_output
+        domain_output=$(oci email domain create \
+            --compartment-id "$COMPARTMENT_ID" \
+            --name "$EMAIL_DOMAIN" \
+            --description "Email domain for Masashi Enokida website" 2>&1)
+
+        local domain_exit_code=$?
+
+        if [[ $domain_exit_code -ne 0 ]]; then
+            log_error "Failed to create Email Domain:"
+            echo "$domain_output"
+            log_warning "Continuing without Email Delivery..."
+            EMAIL_DOMAIN_ID=""
+            return
+        fi
+
+        EMAIL_DOMAIN_ID=$(echo "$domain_output" | jq -r '.data.id')
+        log_success "Email Domain created: $EMAIL_DOMAIN_ID"
+
+        # Wait for domain to be active
+        log_info "Waiting for Email Domain to become ACTIVE..."
+        for ((i=1; i<=30; i++)); do
+            local domain_state
+            domain_state=$(oci email domain get \
+                --email-domain-id "$EMAIL_DOMAIN_ID" \
+                --query "data.\"lifecycle-state\"" \
+                --raw-output 2>/dev/null || echo "UNKNOWN")
+
+            printf "\r  [%d/30] Status: %-15s" "$i" "$domain_state"
+
+            if [[ "$domain_state" == "ACTIVE" ]]; then
+                echo
+                break
+            elif [[ "$domain_state" == "FAILED" ]]; then
+                echo
+                log_error "Email Domain creation failed!"
+                return
+            fi
+
+            sleep 5
+        done
+    fi
+
+    # Get DNS records needed for domain verification
+    log_info "Fetching DNS records for domain verification..."
+    local dkim_records
+    dkim_records=$(oci email dkim list \
+        --email-domain-id "$EMAIL_DOMAIN_ID" \
+        --query "data.items[0]" 2>/dev/null || echo "")
+
+    if [[ -n "$dkim_records" && "$dkim_records" != "null" ]]; then
+        echo
+        log_info "DNS Records Required for Domain Verification:"
+        echo "  Add the following DNS records to your domain:"
+        echo
+
+        local dkim_id
+        dkim_id=$(echo "$dkim_records" | jq -r '.id')
+
+        if [[ -n "$dkim_id" && "$dkim_id" != "null" ]]; then
+            local dkim_details
+            dkim_details=$(oci email dkim get --dkim-id "$dkim_id" 2>/dev/null || echo "")
+
+            if [[ -n "$dkim_details" ]]; then
+                local cname_name cname_value
+                cname_name=$(echo "$dkim_details" | jq -r '.data."cname-record-value"' 2>/dev/null || echo "")
+                cname_value=$(echo "$dkim_details" | jq -r '.data."dns-subdomain-name"' 2>/dev/null || echo "")
+
+                if [[ -n "$cname_name" && "$cname_name" != "null" ]]; then
+                    echo "  DKIM CNAME Record:"
+                    echo "    Name: ${cname_value}._domainkey.${EMAIL_DOMAIN}"
+                    echo "    Value: $cname_name"
+                    echo
+                fi
+            fi
+        fi
+
+        # SPF record recommendation
+        echo "  SPF TXT Record (recommended):"
+        echo "    Name: $EMAIL_DOMAIN"
+        echo "    Value: v=spf1 include:rp.oracleemaildelivery.com ~all"
+        echo
+    fi
+
+    # Step 2: Create Approved Sender
+    local existing_sender
+    existing_sender=$(oci email sender list \
+        --compartment-id "$COMPARTMENT_ID" \
+        --email-address "$SENDER_EMAIL" \
+        --query "data.items[?\"lifecycle-state\"=='ACTIVE'] | [0].id" \
+        --raw-output 2>/dev/null || echo "")
+
+    if [[ -n "$existing_sender" && "$existing_sender" != "null" ]]; then
+        log_warning "Approved Sender '$SENDER_EMAIL' already exists"
+        EMAIL_SENDER_ID="$existing_sender"
+    else
+        log_info "Creating Approved Sender: $SENDER_EMAIL"
+
+        local sender_output
+        sender_output=$(oci email sender create \
+            --compartment-id "$COMPARTMENT_ID" \
+            --email-address "$SENDER_EMAIL" 2>&1)
+
+        local sender_exit_code=$?
+
+        if [[ $sender_exit_code -ne 0 ]]; then
+            log_error "Failed to create Approved Sender:"
+            echo "$sender_output"
+            EMAIL_SENDER_ID=""
+        else
+            EMAIL_SENDER_ID=$(echo "$sender_output" | jq -r '.data.id')
+            log_success "Approved Sender created: $EMAIL_SENDER_ID"
+
+            # Wait for sender to be active
+            log_info "Waiting for Approved Sender to become ACTIVE..."
+            for ((i=1; i<=20; i++)); do
+                local sender_state
+                sender_state=$(oci email sender get \
+                    --sender-id "$EMAIL_SENDER_ID" \
+                    --query "data.\"lifecycle-state\"" \
+                    --raw-output 2>/dev/null || echo "UNKNOWN")
+
+                printf "\r  [%d/20] Status: %-15s" "$i" "$sender_state"
+
+                if [[ "$sender_state" == "ACTIVE" ]]; then
+                    echo
+                    log_success "Approved Sender is active"
+                    break
+                fi
+
+                sleep 3
+            done
+        fi
+    fi
+
+    # Step 3: Create SMTP Credentials
+    log_info "Creating SMTP Credentials..."
+
+    # Get user OCID
+    local user_id
+    user_id=$(oci iam user list \
+        --compartment-id "$TENANCY_ID" \
+        --query "data[?\"lifecycle-state\"=='ACTIVE'] | [0].id" \
+        --raw-output 2>/dev/null)
+
+    if [[ -z "$user_id" || "$user_id" == "null" ]]; then
+        log_warning "Could not get user ID for SMTP credentials"
+        log_info "Please create SMTP credentials manually in OCI Console"
+        SMTP_USERNAME=""
+        SMTP_PASSWORD=""
+    else
+        # Check if SMTP credential already exists
+        local existing_smtp
+        existing_smtp=$(oci iam smtp-credential list \
+            --user-id "$user_id" \
+            --query "data[?\"lifecycle-state\"=='ACTIVE'] | [0].id" \
+            --raw-output 2>/dev/null || echo "")
+
+        if [[ -n "$existing_smtp" && "$existing_smtp" != "null" ]]; then
+            log_warning "SMTP credentials already exist"
+            log_info "Using existing SMTP credentials. Password was shown at creation time."
+            SMTP_USERNAME=$(oci iam smtp-credential list \
+                --user-id "$user_id" \
+                --query "data[?\"lifecycle-state\"=='ACTIVE'] | [0].username" \
+                --raw-output 2>/dev/null || echo "")
+            SMTP_PASSWORD="(existing - check your records)"
+        else
+            local smtp_output
+            smtp_output=$(oci iam smtp-credential create \
+                --user-id "$user_id" \
+                --description "SMTP credential for Enokida website" 2>&1)
+
+            local smtp_exit_code=$?
+
+            if [[ $smtp_exit_code -ne 0 ]]; then
+                log_error "Failed to create SMTP credentials:"
+                echo "$smtp_output"
+                SMTP_USERNAME=""
+                SMTP_PASSWORD=""
+            else
+                SMTP_USERNAME=$(echo "$smtp_output" | jq -r '.data.username')
+                SMTP_PASSWORD=$(echo "$smtp_output" | jq -r '.data.password')
+
+                log_success "SMTP credentials created"
+                echo
+                log_warning "IMPORTANT: Save these SMTP credentials! The password cannot be retrieved again."
+                echo "  SMTP Host: $SMTP_HOST"
+                echo "  SMTP Port: 587 (TLS) or 25"
+                echo "  SMTP Username: $SMTP_USERNAME"
+                echo "  SMTP Password: $SMTP_PASSWORD"
+                echo
+
+                # Save to a separate secure file
+                local smtp_creds_file="${CONFIG_DIR}/smtp-credentials.txt"
+                cat > "$smtp_creds_file" << SMTP_EOF
+# OCI Email Delivery SMTP Credentials
+# Created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+# IMPORTANT: Keep this file secure and do not commit to version control!
+
+SMTP_HOST=$SMTP_HOST
+SMTP_PORT=587
+SMTP_USERNAME=$SMTP_USERNAME
+SMTP_PASSWORD=$SMTP_PASSWORD
+SENDER_EMAIL=$SENDER_EMAIL
+SMTP_EOF
+                chmod 600 "$smtp_creds_file"
+                log_info "SMTP credentials saved to: $smtp_creds_file"
+            fi
+        fi
+    fi
+
+    echo
+    log_info "Email Delivery Setup Summary:"
+    echo "  - Email Domain: $EMAIL_DOMAIN (ID: $EMAIL_DOMAIN_ID)"
+    echo "  - Sender Email: $SENDER_EMAIL"
+    echo "  - SMTP Host: $SMTP_HOST"
+    if [[ -n "$SMTP_USERNAME" ]]; then
+        echo "  - SMTP Username: $SMTP_USERNAME"
+    fi
+    echo
+    log_warning "Remember to verify your domain by adding the DNS records shown above!"
 }
 
 # ============================================================
@@ -887,19 +1255,36 @@ print_summary() {
     echo "  - Autonomous Database: $DB_NAME"
     echo "  - Functions Application: $FN_APP_NAME"
     echo "  - API Gateway: https://$API_GW_HOSTNAME/api"
+    if [[ -n "$EMAIL_DOMAIN" ]]; then
+        echo "  - Email Domain: $EMAIL_DOMAIN"
+        echo "  - Sender Email: $SENDER_EMAIL"
+    fi
     echo
     echo "Configuration saved to: $CONFIG_FILE"
     echo
     echo "Next Steps:"
     echo "  1. Configure environment variables in Functions Application"
-    echo "  2. Set up Email Delivery domain in OCI Console"
-    echo "  3. Run database migrations: ./migrate.sh"
-    echo "  4. Deploy the application: ./deploy.sh"
+    if [[ -n "$EMAIL_DOMAIN" ]]; then
+        echo "  2. Add DNS records to verify your email domain (DKIM + SPF)"
+        echo "  3. Run database migrations: ./migrate.sh"
+        echo "  4. Deploy the application: ./deploy.sh"
+    else
+        echo "  2. Run database migrations: ./migrate.sh"
+        echo "  3. Deploy the application: ./deploy.sh"
+    fi
     echo
     echo "Database Connection:"
     echo "  - Wallet location: ${CONFIG_DIR}/wallet/"
     echo "  - TNS Name: ${DB_NAME}_low (for connection string)"
     echo
+    if [[ -n "$EMAIL_DOMAIN" && -n "$SMTP_USERNAME" ]]; then
+        echo "Email Delivery:"
+        echo "  - SMTP Host: $SMTP_HOST"
+        echo "  - SMTP Port: 587 (TLS)"
+        echo "  - SMTP Username: $SMTP_USERNAME"
+        echo "  - Credentials file: ${CONFIG_DIR}/smtp-credentials.txt"
+        echo
+    fi
 }
 
 # ============================================================

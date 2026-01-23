@@ -55,3 +55,8 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# OCI Config and Credentials
+oci/config/
+*.wallet.zip
+smtp-credentials.txt
