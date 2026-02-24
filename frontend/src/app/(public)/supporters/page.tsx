@@ -5,7 +5,7 @@ import { Check, Star } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'SUPPORTERS',
   description:
-    '榎田雅士サポーターズクラブのご案内。メール会員（無料）、ゴールド会員（年会費3,000円）をご用意しています。',
+    '榎田まさしサポーターズクラブのご案内。メール会員（無料）、ゴールド会員（年会費3,000円）をご用意しています。',
 };
 
 const freeBenefits = [
@@ -34,7 +34,7 @@ export default function SupportersPage() {
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="mb-6">SUPPORTERS CLUB</h1>
             <p className="text-taupe leading-relaxed">
-              榎田雅士の音楽活動を応援してくださるサポーターを募集しています。
+              榎田まさしの音楽活動を応援してくださるサポーターを募集しています。
               <br />
               皆様のご支援が、より良い音楽を届ける力となります。
             </p>

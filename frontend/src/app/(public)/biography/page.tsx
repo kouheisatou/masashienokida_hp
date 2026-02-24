@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'BIOGRAPHY',
-  description: 'ピアニスト榎田雅士のプロフィール。経歴、受賞歴、ディスコグラフィなどをご紹介します。',
+  description: 'ピアニスト榎田まさしのプロフィール。経歴、受賞歴、ディスコグラフィなどをご紹介します。',
 };
 
 export default function BiographyPage() {
@@ -20,7 +20,7 @@ export default function BiographyPage() {
                 <div className="aspect-[3/4] overflow-hidden rounded">
                   <img
                     src="https://picsum.photos/seed/enokida-profile/600/800"
-                    alt="榎田雅士"
+                    alt="榎田まさし"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -130,7 +130,7 @@ export default function BiographyPage() {
                 <div className="aspect-[3/4] overflow-hidden rounded">
                   <img
                     src="https://picsum.photos/seed/bio-formal/500/667"
-                    alt="榎田雅士 フォーマル"
+                    alt="榎田まさし フォーマル"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -180,7 +180,7 @@ export default function BiographyPage() {
                   <div className="aspect-square overflow-hidden rounded">
                     <img
                       src="https://picsum.photos/seed/bio-young/400/400"
-                      alt="若き日の榎田雅士"
+                      alt="若き日の榎田まさし"
                       className="w-full h-full object-cover"
                     />
                   </div>

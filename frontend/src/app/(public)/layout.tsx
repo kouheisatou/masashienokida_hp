@@ -4,20 +4,20 @@ import { Header } from '@/components/Header';
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | 榎田雅士 - ピアニスト',
-    default: '榎田雅士 - ピアニスト 公式サイト',
+    template: '%s | 榎田まさし - ピアニスト',
+    default: '榎田まさし - ピアニスト 公式サイト',
   },
   description:
-    'ピアニスト榎田雅士の公式ウェブサイト。コンサート情報、プロフィール、ディスコグラフィなどをご紹介しています。',
-  keywords: ['榎田雅士', 'ピアニスト', 'クラシック', 'ピアノ', 'コンサート'],
-  authors: [{ name: '榎田雅士' }],
+    'ピアニスト榎田まさしの公式ウェブサイト。コンサート情報、プロフィール、ディスコグラフィなどをご紹介しています。',
+  keywords: ['榎田まさし', 'ピアニスト', 'クラシック', 'ピアノ', 'コンサート'],
+  authors: [{ name: '榎田まさし' }],
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
     url: 'https://www.masashi-enokida.com',
-    siteName: '榎田雅士 公式サイト',
-    title: '榎田雅士 - ピアニスト 公式サイト',
-    description: 'ピアニスト榎田雅士の公式ウェブサイト',
+    siteName: '榎田まさし 公式サイト',
+    title: '榎田まさし - ピアニスト 公式サイト',
+    description: 'ピアニスト榎田まさしの公式ウェブサイト',
   },
   twitter: {
     card: 'summary_large_image',

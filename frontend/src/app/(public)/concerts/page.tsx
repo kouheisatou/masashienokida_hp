@@ -5,7 +5,7 @@ import { Calendar, MapPin, Clock, Ticket } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'CONCERT',
   description:
-    'ピアニスト榎田雅士のコンサート情報。今後の公演予定と過去の演奏会をご紹介します。',
+    'ピアニスト榎田まさしのコンサート情報。今後の公演予定と過去の演奏会をご紹介します。',
 };
 
 // Upcoming concerts data

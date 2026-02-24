@@ -18,7 +18,7 @@ export default function HomePage() {
 
         <div className="relative container text-center z-10 pt-20">
           <h1 className="text-hero text-white mb-6 animate-fade-in">
-            榎田雅士
+            榎田まさし
           </h1>
           <p className="text-2xl text-beige tracking-[0.3em] mb-8 animate-fade-in">
             PIANIST
@@ -47,7 +47,7 @@ export default function HomePage() {
             <div className="relative">
               <img
                 src="https://picsum.photos/seed/pianist-portrait/700/875"
-                alt="榎田雅士"
+                alt="榎田まさし"
                 className="w-full aspect-[4/5] object-cover rounded"
               />
               <div className="absolute -bottom-4 -right-4 w-32 h-32 border border-burgundy-accent opacity-40 rounded" />
@@ -56,7 +56,7 @@ export default function HomePage() {
             {/* Text */}
             <div>
               <p className="text-taupe tracking-[0.3em] text-sm mb-4">PIANIST</p>
-              <h2 className="mb-8">榎田雅士</h2>
+              <h2 className="mb-8">榎田まさし</h2>
               <div className="space-y-4 text-beige leading-relaxed">
                 <p>
                   1986年、宮崎県小林市生まれ。愛知県立芸術大学を経て、
@@ -145,7 +145,7 @@ export default function HomePage() {
                   サポーターズクラブ会員募集中
                 </h3>
                 <p className="text-taupe text-sm leading-relaxed">
-                  榎田雅士の活動を応援してくださる
+                  榎田まさしの活動を応援してくださる
                   サポーターズクラブ会員を募集しています。
                 </p>
               </div>
@@ -293,7 +293,7 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="mb-6">SUPPORTERS CLUB</h2>
             <p className="text-taupe leading-relaxed mb-8">
-              榎田雅士の音楽活動を応援してくださるサポーターを募集しています。
+              榎田まさしの音楽活動を応援してくださるサポーターを募集しています。
               <br />
               会員限定の特典やイベントをご用意しております。
             </p>
