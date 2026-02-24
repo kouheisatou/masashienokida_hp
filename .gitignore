@@ -60,3 +60,5 @@ Thumbs.db
 oci/config/
 *.wallet.zip
 smtp-credentials.txt
+/frontend/.next/
+/frontend/node_modules/

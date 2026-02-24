@@ -54,7 +54,7 @@ const tokyoAutumnRecitals = [
     program: [
       'モーツァルト: ピアノソナタ第11番「トルコ行進曲付き」',
       'ベートーヴェン: ピアノソナタ第14番「月光」',
-      'ショパン: 幻想即興曲 Op.66',
+      'ショパン: 幻想即響曲 Op.66',
     ],
   },
   {
@@ -181,24 +181,31 @@ const otherPerformances = [
 
 // International performances
 const internationalPerformances = [
-  { year: 2019, country: 'ポーランド', venue: 'ワルシャワ・フィルハーモニー', event: 'ショパン・フェスティバル' },
-  { year: 2018, country: 'ベトナム', venue: 'ハノイ国立音楽院', event: '日越文化交流コンサート' },
-  { year: 2017, country: 'イタリア', venue: 'ミラノ・コンセルヴァトーリオ', event: 'アジアン・ピアニスト・シリーズ' },
-  { year: 2016, country: '中国', venue: '上海コンサートホール', event: '日中友好コンサート' },
-  { year: 2015, country: '韓国', venue: 'ソウル芸術の殿堂', event: '東アジア音楽祭' },
-  { year: 2014, country: 'タイ', venue: 'バンコク文化センター', event: 'ASEAN音楽祭' },
+  { year: 2019, country: 'ポーランド', venue: 'ワルシャワ・フィルハーモニー', event: 'ショパン・フェスティバル', seed: 'intl-poland' },
+  { year: 2018, country: 'ベトナム', venue: 'ハノイ国立音楽院', event: '日越文化交流コンサート', seed: 'intl-vietnam' },
+  { year: 2017, country: 'イタリア', venue: 'ミラノ・コンセルヴァトーリオ', event: 'アジアン・ピアニスト・シリーズ', seed: 'intl-italy' },
+  { year: 2016, country: '中国', venue: '上海コンサートホール', event: '日中友好コンサート', seed: 'intl-china' },
+  { year: 2015, country: '韓国', venue: 'ソウル芸術の殿堂', event: '東アジア音楽祭', seed: 'intl-korea' },
+  { year: 2014, country: 'タイ', venue: 'バンコク文化センター', event: 'ASEAN音楽祭', seed: 'intl-thailand' },
 ];
 
 export default function HistoryPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="section-padding">
-        <div className="container">
-          <h1 className="text-center mb-6">HISTORY</h1>
-          <p className="text-taupe text-center max-w-2xl mx-auto">
+      <section className="relative h-72 flex items-end pb-16 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://picsum.photos/seed/history-hero/1600/600)',
+            filter: 'brightness(0.4)',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-burgundy-black via-burgundy-black/20 to-transparent" />
+        <div className="relative z-10 container">
+          <h1 className="mb-4">HISTORY</h1>
+          <p className="text-taupe max-w-2xl">
             2013年より続く東京秋のリサイタルシリーズを中心に、
-            <br />
             これまでの演奏活動をご覧いただけます。
           </p>
         </div>
@@ -285,18 +292,27 @@ export default function HistoryPage() {
       {/* International Performances */}
       <section className="section-padding">
         <div className="container">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h2 className="text-center mb-12">海外公演</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {internationalPerformances.map((perf, index) => (
-                <div key={index} className="card p-6">
-                  <div className="flex items-start gap-4">
-                    <span className="text-burgundy-accent text-lg">{perf.year}</span>
-                    <div>
-                      <p className="text-beige font-medium">{perf.country}</p>
-                      <p className="text-taupe text-sm">{perf.venue}</p>
-                      <p className="text-taupe text-xs mt-1">{perf.event}</p>
+                <div key={index} className="card overflow-hidden group">
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={`https://picsum.photos/seed/${perf.seed}/600/338`}
+                      alt={`${perf.country} 公演`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-burgundy-accent text-sm font-light">{perf.year}</span>
+                      <div>
+                        <p className="text-beige font-medium">{perf.country}</p>
+                        <p className="text-taupe text-sm">{perf.venue}</p>
+                        <p className="text-taupe text-xs mt-1">{perf.event}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -350,28 +366,40 @@ export default function HistoryPage() {
             <h2 className="text-center mb-12">ディスコグラフィ</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="card p-6">
-                <div className="aspect-square bg-burgundy-light rounded mb-4 img-overlay">
-                  {/* CD cover placeholder */}
+              <div className="card overflow-hidden group">
+                <div className="aspect-square overflow-hidden">
+                  <img
+                    src="https://picsum.photos/seed/disc-traumerei/500/500"
+                    alt="トロイメライ"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="text-lg mb-2">トロイメライ</h3>
-                <p className="text-taupe text-sm mb-2">2017年リリース</p>
-                <p className="text-beige text-sm">
-                  シューマンの名曲「トロイメライ」を中心に、
-                  夢見るような美しい作品を収録。
-                </p>
+                <div className="p-6">
+                  <h3 className="text-lg mb-2">トロイメライ</h3>
+                  <p className="text-taupe text-sm mb-2">2017年リリース</p>
+                  <p className="text-beige text-sm">
+                    シューマンの名曲「トロイメライ」を中心に、
+                    夢見るような美しい作品を収録。
+                  </p>
+                </div>
               </div>
 
-              <div className="card p-6">
-                <div className="aspect-square bg-burgundy-light rounded mb-4 img-overlay">
-                  {/* CD cover placeholder */}
+              <div className="card overflow-hidden group">
+                <div className="aspect-square overflow-hidden">
+                  <img
+                    src="https://picsum.photos/seed/disc-casals/500/500"
+                    alt="P.カザルスへのオマージュ"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="text-lg mb-2">P.カザルスへのオマージュ</h3>
-                <p className="text-taupe text-sm mb-2">2014年リリース</p>
-                <p className="text-beige text-sm">
-                  伝説のチェリスト、パブロ・カザルスへの敬意を込めた
-                  ピアノ編曲作品集。
-                </p>
+                <div className="p-6">
+                  <h3 className="text-lg mb-2">P.カザルスへのオマージュ</h3>
+                  <p className="text-taupe text-sm mb-2">2014年リリース</p>
+                  <p className="text-beige text-sm">
+                    伝説のチェリスト、パブロ・カザルスへの敬意を込めた
+                    ピアノ編曲作品集。
+                  </p>
+                </div>
               </div>
             </div>
           </div>

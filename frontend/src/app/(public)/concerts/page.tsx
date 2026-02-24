@@ -17,6 +17,7 @@ const upcomingConcerts = [
     time: '14:00開演（13:30開場）',
     venue: '東京文化会館 小ホール',
     address: '東京都台東区上野公園5-45',
+    image: 'https://picsum.photos/seed/venue-tokyo-bunka/900/450',
     program: [
       'ショパン: ノクターン 第2番 変ホ長調 Op.9-2',
       'リスト: 愛の夢 第3番',
@@ -35,6 +36,7 @@ const upcomingConcerts = [
     time: '15:00開演（14:30開場）',
     venue: '横浜みなとみらいホール 小ホール',
     address: '神奈川県横浜市西区みなとみらい2-3-6',
+    image: 'https://picsum.photos/seed/venue-minatomirai/900/450',
     program: [
       'ベートーヴェン: ピアノソナタ第14番「月光」',
       'ショパン: バラード第1番 ト短調 Op.23',
@@ -94,12 +96,19 @@ export default function ConcertsPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="section-padding">
-        <div className="container">
-          <h1 className="text-center mb-6">CONCERT</h1>
-          <p className="text-taupe text-center max-w-2xl mx-auto">
+      <section className="relative h-80 flex items-end pb-16 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://picsum.photos/seed/concert-hero/1600/600)',
+            filter: 'brightness(0.45)',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-burgundy-black via-burgundy-black/20 to-transparent" />
+        <div className="relative z-10 container">
+          <h1 className="mb-4">CONCERT</h1>
+          <p className="text-taupe max-w-2xl">
             今後の公演予定と過去の演奏会をご紹介します。
-            <br />
             サポーターズクラブ会員は優先予約・割引特典があります。
           </p>
         </div>
@@ -110,77 +119,103 @@ export default function ConcertsPage() {
         <div className="container">
           <h2 className="text-center mb-16">UPCOMING</h2>
 
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto space-y-12">
             {upcomingConcerts.map((concert) => (
-              <article key={concert.id} className="card p-8">
-                <div className="flex flex-col lg:flex-row gap-8">
-                  {/* Date Block */}
-                  <div className="lg:w-32 flex-shrink-0 text-center lg:text-left">
-                    <div className="text-4xl text-white font-light">
+              <article key={concert.id} className="card overflow-hidden">
+                {/* Venue Photo */}
+                <div className="relative h-56 overflow-hidden">
+                  <img
+                    src={concert.image}
+                    alt={concert.venue}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-burgundy-black/70 to-transparent" />
+                  <div className="absolute top-6 left-8">
+                    <div className="text-5xl text-white font-light leading-none">
                       {new Date(concert.date).getDate()}
                     </div>
-                    <div className="text-taupe text-sm uppercase">
+                    <div className="text-taupe text-sm uppercase mt-1">
                       {new Date(concert.date).toLocaleDateString('en-US', {
                         month: 'short',
                         year: 'numeric',
                       })}
                     </div>
                   </div>
+                </div>
 
-                  {/* Content */}
-                  <div className="flex-grow">
-                    <h3 className="text-xl mb-4">{concert.title}</h3>
+                {/* Content */}
+                <div className="p-8">
+                  <h3 className="text-xl mb-4">{concert.title}</h3>
 
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center gap-3 text-taupe text-sm">
-                        <Clock size={16} className="flex-shrink-0" />
-                        <span>{concert.time}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-taupe text-sm">
-                        <MapPin size={16} className="flex-shrink-0" />
-                        <span>
-                          {concert.venue}
-                          <br />
-                          <span className="text-xs">{concert.address}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-taupe text-sm">
-                        <Ticket size={16} className="flex-shrink-0" />
-                        <span>{concert.price}</span>
-                      </div>
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center gap-3 text-taupe text-sm">
+                      <Clock size={16} className="flex-shrink-0" />
+                      <span>{concert.time}</span>
                     </div>
-
-                    {/* Program */}
-                    <div className="mb-6">
-                      <h4 className="text-sm text-white mb-3">PROGRAM</h4>
-                      <ul className="space-y-1">
-                        {concert.program.map((item, index) => (
-                          <li key={index} className="text-taupe text-sm">
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="flex items-center gap-3 text-taupe text-sm">
+                      <MapPin size={16} className="flex-shrink-0" />
+                      <span>
+                        {concert.venue}
+                        <br />
+                        <span className="text-xs">{concert.address}</span>
+                      </span>
                     </div>
-
-                    {concert.note && (
-                      <p className="text-burgundy-accent text-sm mb-6">
-                        ※ {concert.note}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap gap-4">
-                      <Link href={concert.ticketUrl} className="btn btn-primary">
-                        チケットを購入
-                      </Link>
-                      <Link href="/supporters/" className="btn btn-outline">
-                        会員割引について
-                      </Link>
+                    <div className="flex items-center gap-3 text-taupe text-sm">
+                      <Ticket size={16} className="flex-shrink-0" />
+                      <span>{concert.price}</span>
                     </div>
+                  </div>
+
+                  {/* Program */}
+                  <div className="mb-6">
+                    <h4 className="text-sm text-white mb-3">PROGRAM</h4>
+                    <ul className="space-y-1">
+                      {concert.program.map((item, index) => (
+                        <li key={index} className="text-taupe text-sm">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {concert.note && (
+                    <p className="text-burgundy-accent text-sm mb-6">
+                      ※ {concert.note}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-4">
+                    <Link href={concert.ticketUrl} className="btn btn-primary">
+                      チケットを購入
+                    </Link>
+                    <Link href="/supporters/" className="btn btn-outline">
+                      会員割引について
+                    </Link>
                   </div>
                 </div>
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Photo Strip - Performance moments */}
+      <section>
+        <div className="grid grid-cols-3">
+          {[
+            'concert-moment-1',
+            'concert-moment-2',
+            'concert-moment-3',
+          ].map((seed) => (
+            <div key={seed} className="relative aspect-[4/3] overflow-hidden group">
+              <img
+                src={`https://picsum.photos/seed/${seed}/600/450`}
+                alt="演奏風景"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-burgundy-black/30 group-hover:bg-burgundy-black/10 transition-colors duration-500" />
+            </div>
+          ))}
         </div>
       </section>
 
@@ -263,8 +298,15 @@ export default function ConcertsPage() {
       </section>
 
       {/* Concert Request */}
-      <section className="section-padding">
-        <div className="container">
+      <section className="relative section-padding overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://picsum.photos/seed/concert-request-bg/1600/700)',
+            filter: 'brightness(0.3)',
+          }}
+        />
+        <div className="relative z-10 container">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="mb-6">コンサートのご依頼</h2>
             <p className="text-taupe leading-relaxed mb-8">
