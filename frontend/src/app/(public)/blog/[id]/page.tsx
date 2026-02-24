@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, ArrowLeft, Lock, Share2 } from 'lucide-react';
-import { blogApi, authApi, type BlogPost } from '@/lib/api-client';
+import { type BlogPost } from '@/lib/api-client';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -16,7 +16,8 @@ export default function BlogDetailPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    setIsAuthenticated(authApi.isAuthenticated());
+    // TODO: Implement authentication check
+    setIsAuthenticated(false);
   }, []);
 
   useEffect(() => {
@@ -26,13 +27,8 @@ export default function BlogDetailPage() {
       setLoading(true);
       setError('');
 
-      const result = await blogApi.getPost(id);
-
-      if (result.error) {
-        setError(result.error);
-      } else if (result.data) {
-        setPost(result.data);
-      }
+      // TODO: Implement blog post fetching
+      setError('ブログ機能は準備中です');
 
       setLoading(false);
     };

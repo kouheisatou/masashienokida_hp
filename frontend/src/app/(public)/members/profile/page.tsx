@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import { authApi, membersApi, stripeApi, type User as UserType, type Subscription } from '@/lib/api-client';
+import { type User as UserType, type Subscription } from '@/lib/api-client';
 
 export default function MembersProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -16,38 +16,8 @@ export default function MembersProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!authApi.isAuthenticated()) {
-        window.location.href = '/api/auth/signin';
-        return;
-      }
-
-      setLoading(true);
-      setError('');
-
-      try {
-        const [profileResult, subscriptionResult] = await Promise.all([
-          membersApi.getProfile(),
-          stripeApi.getSubscription(),
-        ]);
-
-        if (profileResult.error) {
-          setError(profileResult.error);
-          return;
-        }
-
-        if (profileResult.data) {
-          setUser(profileResult.data);
-          setName(profileResult.data.name || '');
-        }
-
-        if (subscriptionResult.data) {
-          setSubscription(subscriptionResult.data);
-        }
-      } catch {
-        setError('データの取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
+      // TODO: Implement authentication check and profile fetching
+      setLoading(false);
     };
 
     fetchData();
@@ -59,25 +29,17 @@ export default function MembersProfilePage() {
     setError('');
     setSuccess('');
 
-    const result = await membersApi.updateProfile(name);
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setSuccess('プロフィールを更新しました');
-      if (user) {
-        setUser({ ...user, name });
-      }
+    // TODO: Implement profile update
+    setSuccess('プロフィールを更新しました');
+    if (user) {
+      setUser({ ...user, name });
     }
 
     setSaving(false);
   };
 
   const handleManageSubscription = async () => {
-    const result = await stripeApi.getPortalUrl();
-    if (result.data?.url) {
-      window.location.href = result.data.url;
-    }
+    // TODO: Implement subscription management
   };
 
   if (loading) {

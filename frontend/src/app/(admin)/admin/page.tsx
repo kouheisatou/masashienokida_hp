@@ -212,14 +212,7 @@ export default function AdminDashboardPage() {
           <Link href="/admin/contacts" className="btn btn-outline">
             お問い合わせを確認
           </Link>
-          <a
-            href="https://microcms.io/dashboard"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-outline"
-          >
-            MicroCMS を開く
-          </a>
+
           <a
             href="https://dashboard.stripe.com"
             target="_blank"

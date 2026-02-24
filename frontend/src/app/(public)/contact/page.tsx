@@ -30,28 +30,9 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      // Get reCAPTCHA token (placeholder - implement with actual reCAPTCHA)
-      const recaptchaToken = '';
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/contact`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            recaptchaToken,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'エラーが発生しました');
-      }
+      // TODO: Implement contact form submission
+      // For now, simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setStatus('success');
       setFormData({

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown } from 'lucide-react';
-import { authApi, membersApi, stripeApi, type User as UserType, type Subscription } from '@/lib/api-client';
+import { type User as UserType, type Subscription } from '@/lib/api-client';
 
 export default function MembersDashboardPage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -13,59 +13,24 @@ export default function MembersDashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!authApi.isAuthenticated()) {
-        window.location.href = '/api/auth/signin';
-        return;
-      }
-
-      setLoading(true);
-      setError('');
-
-      try {
-        const [profileResult, subscriptionResult] = await Promise.all([
-          membersApi.getProfile(),
-          stripeApi.getSubscription(),
-        ]);
-
-        if (profileResult.error) {
-          setError(profileResult.error);
-          return;
-        }
-
-        if (profileResult.data) {
-          setUser(profileResult.data);
-        }
-
-        if (subscriptionResult.data) {
-          setSubscription(subscriptionResult.data);
-        }
-      } catch {
-        setError('データの取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
+      // TODO: Implement authentication check
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
   const handleSignOut = async () => {
-    await authApi.signOut();
+    // TODO: Implement sign out
     window.location.href = '/';
   };
 
   const handleUpgrade = async () => {
-    const result = await stripeApi.createCheckout();
-    if (result.data?.url) {
-      window.location.href = result.data.url;
-    }
+    // TODO: Implement subscription upgrade
   };
 
   const handleManageSubscription = async () => {
-    const result = await stripeApi.getPortalUrl();
-    if (result.data?.url) {
-      window.location.href = result.data.url;
-    }
+    // TODO: Implement subscription management
   };
 
   if (loading) {

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Video, FileText, Lock, Play, Crown } from 'lucide-react';
-import { authApi, membersApi } from '@/lib/api-client';
 
 interface ContentItem {
   id: string;
@@ -29,22 +28,7 @@ export default function MembersContentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!authApi.isAuthenticated()) {
-        window.location.href = '/api/auth/signin';
-        return;
-      }
-
-      setLoading(true);
-      setError('');
-
-      const result = await membersApi.getContent();
-
-      if (result.error) {
-        setError(result.error);
-      } else if (result.data) {
-        setData(result.data);
-      }
-
+      // TODO: Implement authentication check and content fetching
       setLoading(false);
     };
 

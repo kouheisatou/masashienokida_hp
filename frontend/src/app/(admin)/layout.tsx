@@ -13,7 +13,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { authApi, type User } from '@/lib/api-client';
+import { type User } from '@/lib/api-client';
 import '../(public)/globals.css';
 
 const navigation = [
@@ -36,24 +36,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!authApi.isAuthenticated()) {
-        window.location.href = '/api/auth/signin?callbackUrl=/admin';
-        return;
-      }
-
-      const result = await authApi.getSession();
-
-      if (result.error || !result.data?.user) {
-        window.location.href = '/api/auth/signin?callbackUrl=/admin';
-        return;
-      }
-
-      if (result.data.user.role !== 'ADMIN') {
-        window.location.href = '/';
-        return;
-      }
-
-      setUser(result.data.user);
+      // TODO: Implement authentication check
       setLoading(false);
     };
 
@@ -61,7 +44,7 @@ export default function AdminLayout({
   }, []);
 
   const handleSignOut = async () => {
-    await authApi.signOut();
+    // TODO: Implement sign out
     window.location.href = '/';
   };
 
