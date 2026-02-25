@@ -6,11 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:api": "openapi-typescript ../openapi.yml -o src/generated/api.d.ts"
   },
   "dependencies": {
     "lucide-react": "^0.555.0",
     "next": "^15.0.0",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -21,6 +23,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^10.0.2",
     "eslint-config-next": "^0.2.4",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.3.3"
   }

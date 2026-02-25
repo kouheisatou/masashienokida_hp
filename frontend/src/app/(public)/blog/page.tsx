@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { type BlogPost, getBlogPosts } from '@/lib/api-client';
+import { api, type components } from '@/lib/api';
+
+type BlogPost = components['schemas']['BlogPostSummary'];
 
 // Categories for filtering
 const categories = [
@@ -29,9 +31,13 @@ export default function BlogPage() {
       setError('');
 
       try {
-        const data = await getBlogPosts({ page: currentPage, category: selectedCategory || undefined });
-        setPosts(data.posts);
-        setTotalPages(data.totalPages);
+        const { data } = await api.GET('/blog', {
+          params: { query: { page: currentPage, category: selectedCategory || undefined } },
+        });
+        if (data) {
+          setPosts(data.posts);
+          setTotalPages(data.totalPages);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'エラーが発生しました');
       }

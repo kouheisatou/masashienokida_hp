@@ -3,15 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import {
-  type User as UserType,
-  type Subscription,
-  getMe,
-  getGoogleSignInUrl,
-  updateProfile,
-  createPortalSession,
-  deleteAccount,
-} from '@/lib/api-client';
+import { api, clearToken, getGoogleSignInUrl, type components } from '@/lib/api';
+
+type UserType = components['schemas']['User'];
+type Subscription = components['schemas']['Subscription'];
 
 export default function MembersProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -24,7 +19,7 @@ export default function MembersProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getMe();
+      const { data } = await api.GET('/auth/me');
       if (!data) {
         window.location.href = getGoogleSignInUrl();
         return;
@@ -44,34 +39,35 @@ export default function MembersProfilePage() {
     setError('');
     setSuccess('');
 
-    try {
-      const updated = await updateProfile(name);
+    const { data: updated, error: apiErr } = await api.PUT('/members/me', { body: { name } });
+    if (apiErr || !updated) {
+      setError('エラーが発生しました');
+    } else {
       setUser(updated);
       setSuccess('プロフィールを更新しました');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     }
 
     setSaving(false);
   };
 
   const handleManageSubscription = async () => {
-    try {
-      const { url } = await createPortalSession();
-      if (url) window.location.href = url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    const { data, error: err } = await api.GET('/stripe/portal');
+    if (err || !data) {
+      setError('エラーが発生しました');
+      return;
     }
+    if (data.url) window.location.href = data.url;
   };
 
   const handleDeleteAccount = async () => {
     if (!confirm('アカウントを削除しますか？この操作は取り消せません。')) return;
-    try {
-      await deleteAccount();
-      window.location.href = '/';
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    const { error: err } = await api.DELETE('/auth/account');
+    if (err) {
+      setError('エラーが発生しました');
+      return;
     }
+    clearToken();
+    window.location.href = '/';
   };
 
   if (loading) {

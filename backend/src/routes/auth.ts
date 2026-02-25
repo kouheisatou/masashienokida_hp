@@ -15,6 +15,36 @@ interface DbUser {
   role: string;
 }
 
+async function upsertGoogleUser(profile: Profile): Promise<DbUser> {
+  const email = profile.emails?.[0]?.value;
+  if (!email) throw new Error('No email from Google');
+
+  const image = profile.photos?.[0]?.value ?? null;
+  const name = profile.displayName ?? email;
+
+  const rows = await query<DbUser>(
+    `INSERT INTO users (email, name, image, google_id)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (google_id) DO UPDATE
+       SET name = EXCLUDED.name,
+           image = EXCLUDED.image,
+           updated_at = NOW()
+     RETURNING id, email, name, image, role`,
+    [email, name, image, profile.id]
+  );
+
+  const user = rows[0];
+
+  await query(
+    `INSERT INTO subscriptions (user_id)
+     VALUES ($1)
+     ON CONFLICT (user_id) DO NOTHING`,
+    [user.id]
+  );
+
+  return user;
+}
+
 passport.use(
   new GoogleStrategy(
     {
@@ -29,34 +59,7 @@ passport.use(
       done: (err: unknown, user?: DbUser) => void
     ) => {
       try {
-        const email = profile.emails?.[0]?.value;
-        if (!email) return done(new Error('No email from Google'));
-
-        const image = profile.photos?.[0]?.value ?? null;
-        const name = profile.displayName ?? email;
-
-        // Upsert user
-        const rows = await query<DbUser>(
-          `INSERT INTO users (email, name, image, google_id)
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (google_id) DO UPDATE
-             SET name = EXCLUDED.name,
-                 image = EXCLUDED.image,
-                 updated_at = NOW()
-           RETURNING id, email, name, image, role`,
-          [email, name, image, profile.id]
-        );
-
-        const user = rows[0];
-
-        // Ensure subscription row exists
-        await query(
-          `INSERT INTO subscriptions (user_id)
-           VALUES ($1)
-           ON CONFLICT (user_id) DO NOTHING`,
-          [user.id]
-        );
-
+        const user = await upsertGoogleUser(profile);
         done(null, user);
       } catch (err) {
         done(err);
@@ -65,13 +68,37 @@ passport.use(
   )
 );
 
-// Redirect to Google
+passport.use(
+  'google-admin',
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: process.env.ADMIN_CONSOLE_GOOGLE_CALLBACK_URL!,
+    },
+    async (
+      _accessToken: string,
+      _refreshToken: string,
+      profile: Profile,
+      done: (err: unknown, user?: DbUser) => void
+    ) => {
+      try {
+        const user = await upsertGoogleUser(profile);
+        done(null, user);
+      } catch (err) {
+        done(err);
+      }
+    }
+  )
+);
+
+// Redirect to Google (public frontend)
 router.get(
   '/google',
   passport.authenticate('google', { scope: ['email', 'profile'], session: false })
 );
 
-// OAuth callback
+// OAuth callback (public frontend)
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/?auth=error` }),
@@ -83,6 +110,38 @@ router.get(
       { expiresIn: '30d' }
     );
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  }
+);
+
+// Redirect to Google (admin console)
+router.get(
+  '/admin/google',
+  passport.authenticate('google-admin', { scope: ['email', 'profile'], session: false })
+);
+
+// OAuth callback (admin console) — only ADMIN role may proceed
+router.get(
+  '/admin/google/callback',
+  passport.authenticate('google-admin', {
+    session: false,
+    failureRedirect: `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=auth_failed`,
+  }),
+  (req, res) => {
+    const user = req.user as DbUser;
+    if (user.role !== 'ADMIN') {
+      res.redirect(
+        `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=forbidden`
+      );
+      return;
+    }
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '30d' }
+    );
+    res.redirect(
+      `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?token=${token}`
+    );
   }
 );
 

@@ -13,7 +13,9 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { type User, getMe, signOut } from '@/lib/api-client';
+import { api, clearToken, type components } from '@/lib/api';
+
+type User = components['schemas']['User'];
 import '../(public)/globals.css';
 
 const navigation = [
@@ -36,7 +38,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const data = await getMe();
+      const { data } = await api.GET('/auth/me');
       if (!data || data.user.role !== 'ADMIN') {
         window.location.href = '/';
         return;
@@ -49,7 +51,8 @@ export default function AdminLayout({
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    await api.POST('/auth/signout');
+    clearToken();
     window.location.href = '/';
   };
 

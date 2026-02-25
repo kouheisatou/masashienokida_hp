@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Users, Mail, CreditCard, TrendingUp, ArrowRight, Clock } from 'lucide-react';
-import { getAdminStats } from '@/lib/api-client';
+import { api } from '@/lib/api';
 
 interface StatsData {
   totalMembers: number;
@@ -34,8 +34,9 @@ export default function AdminDashboardPage() {
   const [recentMembers, setRecentMembers] = useState<MemberItem[]>([]);
 
   useEffect(() => {
-    getAdminStats()
-      .then((data) => {
+    api.GET('/admin/stats')
+      .then(({ data }) => {
+        if (!data) return;
         setStats(data.stats);
         setRecentContacts(data.recentContacts as ContactItem[]);
         setRecentMembers(data.recentMembers as MemberItem[]);

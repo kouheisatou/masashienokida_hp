@@ -57,10 +57,15 @@ next-env.d.ts
 # OS
 Thumbs.db
 
-# OCI Config and Credentials
-oci/config/
-*.wallet.zip
-smtp-credentials.txt
+# frontend
 /frontend/.next/
 /frontend/node_modules/
+
+# backend
 /backend/node_modules/
+/backend/dist/
+
+# generated (openapi-typescript output)
+/frontend/src/lib/api.d.ts
+/admin-console/node_modules/
+/admin-console/.next/

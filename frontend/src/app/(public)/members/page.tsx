@@ -3,15 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown } from 'lucide-react';
-import {
-  type User as UserType,
-  type Subscription,
-  getMe,
-  signOut,
-  getGoogleSignInUrl,
-  createCheckoutSession,
-  createPortalSession,
-} from '@/lib/api-client';
+import { api, clearToken, getGoogleSignInUrl, type components } from '@/lib/api';
+
+type UserType = components['schemas']['User'];
+type Subscription = components['schemas']['Subscription'];
 
 export default function MembersDashboardPage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -21,7 +16,7 @@ export default function MembersDashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getMe();
+      const { data } = await api.GET('/auth/me');
       if (!data) {
         window.location.href = getGoogleSignInUrl();
         return;
@@ -35,26 +30,27 @@ export default function MembersDashboardPage() {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    await api.POST('/auth/signout');
+    clearToken();
     window.location.href = '/';
   };
 
   const handleUpgrade = async () => {
-    try {
-      const { url } = await createCheckoutSession();
-      if (url) window.location.href = url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    const { data, error: err } = await api.POST('/stripe/checkout');
+    if (err || !data) {
+      setError('エラーが発生しました');
+      return;
     }
+    if (data.url) window.location.href = data.url;
   };
 
   const handleManageSubscription = async () => {
-    try {
-      const { url } = await createPortalSession();
-      if (url) window.location.href = url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    const { data, error: err } = await api.GET('/stripe/portal');
+    if (err || !data) {
+      setError('エラーが発生しました');
+      return;
     }
+    if (data.url) window.location.href = data.url;
   };
 
   if (loading) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Filter, Mail, MailOpen, Clock, ArrowRight, X, Send } from 'lucide-react';
-import { getAdminContacts, updateContactStatus } from '@/lib/api-client';
+import { api } from '@/lib/api';
 
 interface Contact {
   id: string;
@@ -30,8 +30,10 @@ export default function AdminContactsPage() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   useEffect(() => {
-    getAdminContacts({ status: filterStatus !== 'all' ? filterStatus : undefined, search: search || undefined })
-      .then((data) => setContacts(data.contacts as Contact[]))
+    api.GET('/admin/contacts', {
+      params: { query: { status: (filterStatus !== 'all' ? filterStatus : undefined) as 'unread' | 'read' | 'replied' | 'archived' | undefined, search: search || undefined } },
+    })
+      .then(({ data }) => { if (data) setContacts(data.contacts as Contact[]); })
       .catch(() => {});
   }, [filterStatus, search]);
 
@@ -40,7 +42,7 @@ export default function AdminContactsPage() {
   const handleSelectContact = async (contact: Contact) => {
     setSelectedContact(contact);
     if (contact.status === 'unread') {
-      await updateContactStatus(contact.id, 'read').catch(() => {});
+      await api.PUT('/admin/contacts/{id}', { params: { path: { id: contact.id } }, body: { status: 'read' } }).catch(() => {});
       setContacts((prev) =>
         prev.map((c) => (c.id === contact.id ? { ...c, status: 'read' } : c))
       );
@@ -55,7 +57,7 @@ export default function AdminContactsPage() {
 
   const handleArchive = async () => {
     if (!selectedContact) return;
-    await updateContactStatus(selectedContact.id, 'archived').catch(() => {});
+    await api.PUT('/admin/contacts/{id}', { params: { path: { id: selectedContact.id } }, body: { status: 'archived' } }).catch(() => {});
     setContacts((prev) => prev.filter((c) => c.id !== selectedContact.id));
     setSelectedContact(null);
   };

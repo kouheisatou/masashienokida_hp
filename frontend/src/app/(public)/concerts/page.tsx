@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Clock, Ticket } from 'lucide-react';
-import { getAllConcerts, type Concert } from '@/lib/api-client';
+import { api, type components } from '@/lib/api';
+
+type Concert = components['schemas']['Concert'];
 
 export default function ConcertsPage() {
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAllConcerts()
-      .then(setConcerts)
-      .catch(() => {})
+    api.GET('/concerts')
+      .then(({ data }) => { if (data) setConcerts(data); })
       .finally(() => setLoading(false));
   }, []);
 

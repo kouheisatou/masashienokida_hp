@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Video, FileText, Lock, Play, Crown } from 'lucide-react';
-import { getMemberContent, getGoogleSignInUrl } from '@/lib/api-client';
+import { api, getGoogleSignInUrl } from '@/lib/api';
 
 interface ContentItem {
   id: string;
@@ -29,13 +29,12 @@ export default function MembersContentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const result = await getMemberContent();
-        setData(result as ContentData);
-      } catch {
+      const { data: result, error } = await api.GET('/members/content');
+      if (error || !result) {
         window.location.href = getGoogleSignInUrl();
         return;
       }
+      setData(result as ContentData);
       setLoading(false);
     };
 

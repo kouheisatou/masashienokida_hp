@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Crown, User, Mail, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getAdminMembers } from '@/lib/api-client';
+import { api } from '@/lib/api';
 
 interface Member {
   id: string;
@@ -22,12 +22,17 @@ export default function AdminMembersPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    getAdminMembers({
-      role: filterRole !== 'all' ? filterRole : undefined,
-      search: search || undefined,
-      page: currentPage,
+    api.GET('/admin/members', {
+      params: {
+        query: {
+          role: (filterRole !== 'all' ? filterRole : undefined) as 'USER' | 'MEMBER_FREE' | 'MEMBER_GOLD' | 'ADMIN' | undefined,
+          search: search || undefined,
+          page: currentPage,
+        },
+      },
     })
-      .then((data) => {
+      .then(({ data }) => {
+        if (!data) return;
         setMembers(data.members as Member[]);
         setTotal(data.total);
         setTotalPages(data.totalPages);

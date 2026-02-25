@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, ArrowLeft, Lock, Share2 } from 'lucide-react';
-import { type BlogPost, getBlogPost, getMe, getGoogleSignInUrl } from '@/lib/api-client';
+import { api, getGoogleSignInUrl, type components } from '@/lib/api';
+
+type BlogPost = components['schemas']['BlogPost'];
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -16,7 +18,7 @@ export default function BlogDetailPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    getMe().then((data) => setIsAuthenticated(!!data)).catch(() => {});
+    api.GET('/auth/me').then(({ data }) => setIsAuthenticated(!!data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function BlogDetailPage() {
       setLoading(true);
       setError('');
 
-      const result = await getBlogPost(id);
+      const { data: result } = await api.GET('/blog/{id}', { params: { path: { id } } });
       if (!result) {
         setError('記事が見つかりません');
       } else {

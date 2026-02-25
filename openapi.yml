@@ -1,0 +1,1684 @@
+openapi: 3.1.0
+info:
+  title: Masashi Enokida API
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    OkResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+
+    User:
+      type: object
+      required: [id, email, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN]
+
+    Subscription:
+      type: object
+      required: [hasSubscription, tier]
+      properties:
+        hasSubscription:
+          type: boolean
+        tier:
+          type: string
+          enum: [USER, MEMBER_FREE, MEMBER_GOLD]
+        status:
+          type: string
+          nullable: true
+        currentPeriodEnd:
+          type: string
+          format: date-time
+          nullable: true
+        cancelAtPeriodEnd:
+          type: boolean
+
+    AuthMeResponse:
+      type: object
+      required: [user, subscription]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+
+    NewsItem:
+      type: object
+      required: [id, title, body, published_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        image_url:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    NewsInput:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        image_url:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+        is_published:
+          type: boolean
+          default: true
+
+    Concert:
+      type: object
+      required: [id, title, date, venue, is_upcoming]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+        time:
+          type: string
+          nullable: true
+        venue:
+          type: string
+        address:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        program:
+          type: array
+          items:
+            type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        ticket_url:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        is_upcoming:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ConcertInput:
+      type: object
+      required: [title, date, venue]
+      properties:
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+        time:
+          type: string
+          nullable: true
+        venue:
+          type: string
+        address:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        program:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        ticket_url:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        is_upcoming:
+          type: boolean
+          default: true
+        is_published:
+          type: boolean
+          default: true
+
+    DiscographyItem:
+      type: object
+      required: [id, title, release_year, sort_order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        release_year:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+
+    DiscographyInput:
+      type: object
+      required: [title, release_year]
+      properties:
+        title:
+          type: string
+        release_year:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+          default: 0
+        is_published:
+          type: boolean
+          default: true
+
+    BiographyEntry:
+      type: object
+      required: [id, year, description, sort_order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        year:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+
+    BiographyInput:
+      type: object
+      required: [year, description]
+      properties:
+        year:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+          default: 0
+
+    BlogPostSummary:
+      type: object
+      required: [id, title, publishedAt, membersOnly]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        thumbnail:
+          type: object
+          nullable: true
+          properties:
+            url:
+              type: string
+        category:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        publishedAt:
+          type: string
+          format: date-time
+        membersOnly:
+          type: boolean
+        isLocked:
+          type: boolean
+
+    BlogPost:
+      allOf:
+        - $ref: '#/components/schemas/BlogPostSummary'
+        - type: object
+          properties:
+            content:
+              type: string
+              nullable: true
+
+    BlogPostList:
+      type: object
+      required: [posts, totalPages, total]
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogPostSummary'
+        totalPages:
+          type: integer
+        total:
+          type: integer
+
+    ContactInput:
+      type: object
+      required: [name, email, subject, message]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        subject:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+
+    StripeUrlResponse:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+
+    MemberContentResponse:
+      type: object
+      required: [tier, content]
+      properties:
+        tier:
+          type: string
+          enum: [MEMBER_FREE, MEMBER_GOLD, ADMIN]
+        content:
+          type: object
+          required: [videos, articles]
+          properties:
+            videos:
+              type: array
+              items: {}
+            articles:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  excerpt:
+                    type: string
+                    nullable: true
+                  thumbnail:
+                    type: object
+                    nullable: true
+                    properties:
+                      url:
+                        type: string
+                  category:
+                    type: string
+                    nullable: true
+                  publishedAt:
+                    type: string
+                    format: date-time
+                  locked:
+                    type: boolean
+
+    AdminStats:
+      type: object
+      required: [stats, recentContacts, recentMembers]
+      properties:
+        stats:
+          type: object
+          required: [totalMembers, goldMembers, freeMembers, unreadContacts]
+          properties:
+            totalMembers:
+              type: integer
+            goldMembers:
+              type: integer
+            freeMembers:
+              type: integer
+            unreadContacts:
+              type: integer
+        recentContacts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              email:
+                type: string
+              category:
+                type: string
+                nullable: true
+              subject:
+                type: string
+              status:
+                type: string
+                enum: [unread, read, replied, archived]
+              created_at:
+                type: string
+                format: date-time
+        recentMembers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+                nullable: true
+              email:
+                type: string
+              role:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+
+    AdminContact:
+      type: object
+      required: [id, name, email, subject, message, status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [unread, read, replied, archived]
+        created_at:
+          type: string
+          format: date-time
+
+    AdminContactList:
+      type: object
+      required: [contacts, total, totalPages]
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminContact'
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    AdminMember:
+      type: object
+      required: [id, email, role, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+        email:
+          type: string
+        image:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN]
+        created_at:
+          type: string
+          format: date-time
+        tier:
+          type: string
+          nullable: true
+        subscription_status:
+          type: string
+          nullable: true
+        current_period_end:
+          type: string
+          format: date-time
+          nullable: true
+
+    AdminMemberList:
+      type: object
+      required: [members, total, totalPages]
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminMember'
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    ContactStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [unread, read, replied, archived]
+
+    UpdateNameInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+
+    AdminNewsItem:
+      type: object
+      required: [id, title, body, is_published, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        image_url:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_published:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    AdminConcert:
+      type: object
+      required: [id, title, date, venue, is_upcoming, is_published, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+        time:
+          type: string
+          nullable: true
+        venue:
+          type: string
+        address:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        program:
+          type: array
+          items:
+            type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        ticket_url:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        is_upcoming:
+          type: boolean
+        is_published:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    AdminDiscographyItem:
+      type: object
+      required: [id, title, release_year, sort_order, is_published, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        release_year:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+        is_published:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    AdminBiographyEntry:
+      type: object
+      required: [id, year, description, sort_order, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        year:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    AdminBlogPostSummary:
+      type: object
+      required: [id, title, is_published, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        members_only:
+          type: boolean
+        is_published:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    AdminBlogPost:
+      type: object
+      required: [id, title, content, is_published, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        thumbnail_url:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        members_only:
+          type: boolean
+        is_published:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    AdminBlogPostInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        excerpt:
+          type: string
+          nullable: true
+        thumbnail_url:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        members_only:
+          type: boolean
+          default: false
+        is_published:
+          type: boolean
+          default: false
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AdminBlogPostList:
+      type: object
+      required: [posts, total, totalPages]
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminBlogPostSummary'
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness probe
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      summary: Get current user and subscription
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMeResponse'
+        '401':
+          description: Unauthorized
+
+  /auth/signout:
+    post:
+      operationId: postAuthSignout
+      summary: Sign out
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /auth/account:
+    delete:
+      operationId: deleteAuthAccount
+      summary: Delete account
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /news:
+    get:
+      operationId: getNews
+      summary: List published news
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsItem'
+    post:
+      operationId: createNews
+      summary: Create news (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsItem'
+
+  /news/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getNewsById
+      summary: Get single news item
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsItem'
+        '404':
+          description: Not found
+    put:
+      operationId: updateNews
+      summary: Update news (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsItem'
+        '404':
+          description: Not found
+    delete:
+      operationId: deleteNews
+      summary: Delete news (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /concerts:
+    get:
+      operationId: getConcerts
+      summary: List concerts
+      parameters:
+        - name: upcoming
+          in: query
+          schema:
+            type: string
+            enum: ['true', 'false']
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Concert'
+    post:
+      operationId: createConcert
+      summary: Create concert (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConcertInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+
+  /concerts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getConcertById
+      summary: Get single concert
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+        '404':
+          description: Not found
+    put:
+      operationId: updateConcert
+      summary: Update concert (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConcertInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+    delete:
+      operationId: deleteConcert
+      summary: Delete concert (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /discography:
+    get:
+      operationId: getDiscography
+      summary: List discography
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiscographyItem'
+    post:
+      operationId: createDiscography
+      summary: Create discography item (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscographyInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscographyItem'
+
+  /discography/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getDiscographyById
+      summary: Get single discography item
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscographyItem'
+        '404':
+          description: Not found
+    put:
+      operationId: updateDiscography
+      summary: Update discography item (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscographyInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscographyItem'
+    delete:
+      operationId: deleteDiscography
+      summary: Delete discography item (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /biography:
+    get:
+      operationId: getBiography
+      summary: List biography entries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BiographyEntry'
+    post:
+      operationId: createBiography
+      summary: Create biography entry (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiographyInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiographyEntry'
+
+  /biography/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: updateBiography
+      summary: Update biography entry (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiographyInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiographyEntry'
+    delete:
+      operationId: deleteBiography
+      summary: Delete biography entry (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /blog:
+    get:
+      operationId: getBlog
+      summary: List blog posts (with member gating)
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogPostList'
+
+  /blog/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBlogPost
+      summary: Get single blog post (with member gating)
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogPost'
+        '404':
+          description: Not found
+
+  /members/me:
+    get:
+      operationId: getMembersMe
+      summary: Get member profile and subscription
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMeResponse'
+        '401':
+          description: Unauthorized
+    put:
+      operationId: updateMembersMe
+      summary: Update member name
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNameInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+
+  /members/content:
+    get:
+      operationId: getMembersContent
+      summary: Get member-only content (MEMBER_FREE+)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberContentResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /contact:
+    post:
+      operationId: postContact
+      summary: Submit contact form (rate limited)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Validation error
+        '429':
+          description: Rate limit exceeded
+
+  /stripe/checkout:
+    post:
+      operationId: postStripeCheckout
+      summary: Create Stripe checkout session
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StripeUrlResponse'
+        '401':
+          description: Unauthorized
+
+  /stripe/portal:
+    get:
+      operationId: getStripePortal
+      summary: Create Stripe billing portal session
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StripeUrlResponse'
+        '401':
+          description: Unauthorized
+
+  /stripe/webhook:
+    post:
+      operationId: postStripeWebhook
+      summary: Stripe webhook endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      summary: Get admin dashboard stats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStats'
+
+  /admin/contacts:
+    get:
+      operationId: getAdminContacts
+      summary: List contacts (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [unread, read, replied, archived, all]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminContactList'
+
+  /admin/contacts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: updateAdminContact
+      summary: Update contact status (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactStatusUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminContact'
+        '404':
+          description: Not found
+
+  /admin/members:
+    get:
+      operationId: getAdminMembers
+      summary: List members (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN, all]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMemberList'
+
+  /admin/news:
+    get:
+      operationId: getAdminNews
+      summary: List all news including unpublished (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminNewsItem'
+
+  /admin/news/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAdminNewsById
+      summary: Get single news item (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminNewsItem'
+        '404':
+          description: Not found
+
+  /admin/concerts:
+    get:
+      operationId: getAdminConcerts
+      summary: List all concerts including unpublished (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminConcert'
+
+  /admin/concerts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAdminConcertById
+      summary: Get single concert (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConcert'
+        '404':
+          description: Not found
+
+  /admin/discography:
+    get:
+      operationId: getAdminDiscography
+      summary: List all discography including unpublished (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminDiscographyItem'
+
+  /admin/discography/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAdminDiscographyById
+      summary: Get single discography item (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDiscographyItem'
+        '404':
+          description: Not found
+
+  /admin/biography:
+    get:
+      operationId: getAdminBiography
+      summary: List all biography entries (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminBiographyEntry'
+
+  /admin/biography/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAdminBiographyById
+      summary: Get single biography entry (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBiographyEntry'
+        '404':
+          description: Not found
+
+  /admin/blog:
+    get:
+      operationId: getAdminBlog
+      summary: List all blog posts including unpublished (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogPostList'
+    post:
+      operationId: createAdminBlogPost
+      summary: Create blog post (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBlogPostInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogPost'
+
+  /admin/blog/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAdminBlogPost
+      summary: Get single blog post (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogPost'
+        '404':
+          description: Not found
+    put:
+      operationId: updateAdminBlogPost
+      summary: Update blog post (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBlogPostInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogPost'
+        '404':
+          description: Not found
+    delete:
+      operationId: deleteAdminBlogPost
+      summary: Delete blog post (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'

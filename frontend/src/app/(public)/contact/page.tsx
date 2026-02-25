@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { submitContact } from '@/lib/api-client';
+import { api } from '@/lib/api';
 
 const categories = [
   'リサイタル依頼',
@@ -31,7 +31,8 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      await submitContact(formData);
+      const { error: apiError } = await api.POST('/contact', { body: formData });
+      if (apiError) throw new Error('送信に失敗しました');
       setStatus('success');
       setFormData({
         name: '',

@@ -20,9 +20,20 @@ import adminRouter from './routes/admin';
 const app = express();
 
 app.use(helmet());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL ?? 'http://localhost:3000',
+  process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001',
+];
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );

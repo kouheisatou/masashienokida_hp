@@ -43,5 +43,17 @@ services:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
 
+  admin-console:
+    build: ./admin-console
+    env_file: .env
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+    volumes:
+      - ./admin-console/src:/app/src
+
 volumes:
   postgres_data:

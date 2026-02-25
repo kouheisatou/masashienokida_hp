@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Music, Users } from 'lucide-react';
-import { getNews, getUpcomingConcerts, getDiscography, type NewsItem, type Concert, type DiscographyItem } from '@/lib/api-client';
+import { api, type components } from '@/lib/api';
+
+type NewsItem = components['schemas']['NewsItem'];
+type Concert = components['schemas']['Concert'];
+type DiscographyItem = components['schemas']['DiscographyItem'];
 
 export default function HomePage() {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -11,9 +15,9 @@ export default function HomePage() {
   const [discography, setDiscography] = useState<DiscographyItem[]>([]);
 
   useEffect(() => {
-    getNews(3).then(setNews).catch(() => {});
-    getUpcomingConcerts().then(setConcerts).catch(() => {});
-    getDiscography().then(setDiscography).catch(() => {});
+    api.GET('/news', { params: { query: { limit: 3 } } }).then(({ data }) => { if (data) setNews(data); });
+    api.GET('/concerts', { params: { query: { upcoming: 'true' } } }).then(({ data }) => { if (data) setConcerts(data); });
+    api.GET('/discography').then(({ data }) => { if (data) setDiscography(data); });
   }, []);
 
   return (

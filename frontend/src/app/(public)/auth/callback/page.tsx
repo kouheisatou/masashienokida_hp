@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { setToken } from '@/lib/api-client';
+import { setToken } from '@/lib/api';
 
 function AuthCallbackContent() {
   const params = useSearchParams();
