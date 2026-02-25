@@ -1,7 +1,21 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Music, Users } from 'lucide-react';
+import { getNews, getUpcomingConcerts, getDiscography, type NewsItem, type Concert, type DiscographyItem } from '@/lib/api-client';
 
 export default function HomePage() {
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [discography, setDiscography] = useState<DiscographyItem[]>([]);
+
+  useEffect(() => {
+    getNews(3).then(setNews).catch(() => {});
+    getUpcomingConcerts().then(setConcerts).catch(() => {});
+    getDiscography().then(setDiscography).catch(() => {});
+  }, []);
+
   return (
     <>
       {/* Hero Section */}
@@ -81,75 +95,47 @@ export default function HomePage() {
           <h2 className="text-center mb-16">LATEST NEWS</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* News Card 1 */}
-            <article className="card overflow-hidden group">
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/news-concert/600/338"
-                  alt="東京秋のリサイタル2024"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-taupe text-sm mb-3">
-                  <Calendar size={14} />
-                  <time>2024.12.15</time>
+            {news.length > 0 ? news.map((item) => (
+              <article key={item.id} className="card overflow-hidden group">
+                {item.image_url && (
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div className="p-6">
+                  <div className="flex items-center gap-2 text-taupe text-sm mb-3">
+                    <Calendar size={14} />
+                    <time>{new Date(item.published_at).toLocaleDateString('ja-JP')}</time>
+                  </div>
+                  <h3 className="text-lg mb-3">{item.title}</h3>
+                  {item.body && (
+                    <p className="text-taupe text-sm leading-relaxed line-clamp-3">{item.body}</p>
+                  )}
                 </div>
-                <h3 className="text-lg mb-3">
-                  東京秋のリサイタル2024 開催決定
-                </h3>
-                <p className="text-taupe text-sm leading-relaxed">
-                  2024年秋のリサイタルシリーズ「甘い想い出」の開催が決定しました。
-                  チケットは会員先行予約を開始しています。
-                </p>
-              </div>
-            </article>
-
-            {/* News Card 2 */}
-            <article className="card overflow-hidden group">
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/news-radio/600/338"
-                  alt="ラジオ出演"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-taupe text-sm mb-3">
-                  <Music size={14} />
-                  <time>2024.11.20</time>
-                </div>
-                <h3 className="text-lg mb-3">ラジオ出演情報</h3>
-                <p className="text-taupe text-sm leading-relaxed">
-                  NHK-FM「クラシックカフェ」に出演します。
-                  新作CDの曲目を中心にお話しします。
-                </p>
-              </div>
-            </article>
-
-            {/* News Card 3 */}
-            <article className="card overflow-hidden group">
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/news-supporters/600/338"
-                  alt="サポーターズクラブ"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-taupe text-sm mb-3">
-                  <Users size={14} />
-                  <time>2024.10.01</time>
-                </div>
-                <h3 className="text-lg mb-3">
-                  サポーターズクラブ会員募集中
-                </h3>
-                <p className="text-taupe text-sm leading-relaxed">
-                  榎田まさしの活動を応援してくださる
-                  サポーターズクラブ会員を募集しています。
-                </p>
-              </div>
-            </article>
+              </article>
+            )) : (
+              /* Placeholder cards while loading or when empty */
+              [
+                { seed: 'news-concert', icon: <Calendar size={14} />, title: 'コンサート情報' },
+                { seed: 'news-radio', icon: <Music size={14} />, title: 'メディア情報' },
+                { seed: 'news-supporters', icon: <Users size={14} />, title: 'サポーターズクラブ' },
+              ].map((item) => (
+                <article key={item.seed} className="card overflow-hidden group opacity-50">
+                  <div className="aspect-video overflow-hidden bg-burgundy" />
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 text-taupe text-sm mb-3">
+                      {item.icon}
+                      <span>—</span>
+                    </div>
+                    <h3 className="text-lg mb-3">{item.title}</h3>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
 
           <div className="text-center mt-12">
@@ -190,41 +176,52 @@ export default function HomePage() {
           <h2 className="text-center mb-16">UPCOMING CONCERTS</h2>
 
           <div className="max-w-3xl mx-auto space-y-6">
-            {/* Concert Item */}
-            <div className="card overflow-hidden">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/concert-hall-tokyo/900/400"
-                  alt="東京文化会館"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-burgundy-black/80 to-transparent" />
-                <div className="absolute inset-0 p-8 flex items-center">
-                  <div className="text-center">
-                    <div className="text-4xl text-white font-light">15</div>
-                    <div className="text-taupe text-sm">DEC 2024</div>
+            {concerts.length > 0 ? concerts.slice(0, 2).map((concert) => (
+              <div key={concert.id} className="card overflow-hidden">
+                {concert.image_url && (
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={concert.image_url}
+                      alt={concert.venue}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-burgundy-black/80 to-transparent" />
+                    <div className="absolute inset-0 p-8 flex items-center">
+                      <div className="text-center">
+                        <div className="text-4xl text-white font-light">
+                          {new Date(concert.date).getDate()}
+                        </div>
+                        <div className="text-taupe text-sm">
+                          {new Date(concert.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                )}
+                <div className="p-8">
+                  <h3 className="text-xl mb-2">{concert.title}</h3>
+                  <div className="flex items-center gap-2 text-taupe text-sm mb-4">
+                    <MapPin size={14} />
+                    <span>{concert.venue}</span>
+                  </div>
+                  {concert.program && concert.program.length > 0 && (
+                    <p className="text-sm text-taupe mb-4">
+                      {concert.program.slice(0, 3).join(' / ')} 他
+                    </p>
+                  )}
+                  <Link
+                    href="/concerts/"
+                    className="text-sm text-burgundy-accent hover:text-white transition-colors"
+                  >
+                    詳細を見る →
+                  </Link>
                 </div>
               </div>
-              <div className="p-8">
-                <h3 className="text-xl mb-2">
-                  東京秋のリサイタル2024 「甘い想い出」
-                </h3>
-                <div className="flex items-center gap-2 text-taupe text-sm mb-4">
-                  <MapPin size={14} />
-                  <span>東京文化会館 小ホール</span>
-                </div>
-                <p className="text-sm text-taupe mb-4">
-                  ショパン: ノクターン / リスト: 愛の夢 / ドビュッシー: 月の光 他
-                </p>
-                <Link
-                  href="/concerts/"
-                  className="text-sm text-burgundy-accent hover:text-white transition-colors"
-                >
-                  詳細を見る →
-                </Link>
+            )) : (
+              <div className="card overflow-hidden p-8 text-center text-taupe">
+                近日開催のコンサート情報をお待ちください
               </div>
-            </div>
+            )}
           </div>
 
           <div className="text-center mt-12">
@@ -241,41 +238,34 @@ export default function HomePage() {
           <h2 className="text-center mb-16">DISCOGRAPHY</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Album 1 */}
-            <div className="card overflow-hidden group">
-              <div className="aspect-square overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/album-traumerei/500/500"
-                  alt="トロイメライ"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+            {discography.length > 0 ? discography.slice(0, 4).map((album) => (
+              <div key={album.id} className="card overflow-hidden group">
+                {album.image_url ? (
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={album.image_url}
+                      alt={album.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-square bg-burgundy flex items-center justify-center">
+                    <span className="text-taupe text-4xl">♪</span>
+                  </div>
+                )}
+                <div className="p-6">
+                  <h3 className="text-lg mb-2">{album.title}</h3>
+                  <p className="text-taupe text-sm mb-4">{album.release_year}年発売</p>
+                  {album.description && (
+                    <p className="text-sm text-taupe">{album.description}</p>
+                  )}
+                </div>
               </div>
-              <div className="p-6">
-                <h3 className="text-lg mb-2">トロイメライ</h3>
-                <p className="text-taupe text-sm mb-4">2017年発売</p>
-                <p className="text-sm text-taupe">
-                  シューマン、ブラームス、リストの珠玉の小品集
-                </p>
+            )) : (
+              <div className="col-span-2 text-center text-taupe py-8">
+                ディスコグラフィ情報をお待ちください
               </div>
-            </div>
-
-            {/* Album 2 */}
-            <div className="card overflow-hidden group">
-              <div className="aspect-square overflow-hidden">
-                <img
-                  src="https://picsum.photos/seed/album-casals/500/500"
-                  alt="カザルスへのオマージュ"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg mb-2">カザルスへのオマージュ</h3>
-                <p className="text-taupe text-sm mb-4">2014年発売</p>
-                <p className="text-sm text-taupe">
-                  チェロの巨匠に捧げるピアノ作品集
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

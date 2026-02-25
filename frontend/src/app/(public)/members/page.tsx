@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown } from 'lucide-react';
-import { type User as UserType, type Subscription } from '@/lib/api-client';
+import {
+  type User as UserType,
+  type Subscription,
+  getMe,
+  signOut,
+  getGoogleSignInUrl,
+  createCheckoutSession,
+  createPortalSession,
+} from '@/lib/api-client';
 
 export default function MembersDashboardPage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -13,7 +21,13 @@ export default function MembersDashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // TODO: Implement authentication check
+      const data = await getMe();
+      if (!data) {
+        window.location.href = getGoogleSignInUrl();
+        return;
+      }
+      setUser(data.user);
+      setSubscription(data.subscription);
       setLoading(false);
     };
 
@@ -21,16 +35,26 @@ export default function MembersDashboardPage() {
   }, []);
 
   const handleSignOut = async () => {
-    // TODO: Implement sign out
+    await signOut();
     window.location.href = '/';
   };
 
   const handleUpgrade = async () => {
-    // TODO: Implement subscription upgrade
+    try {
+      const { url } = await createCheckoutSession();
+      if (url) window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    }
   };
 
   const handleManageSubscription = async () => {
-    // TODO: Implement subscription management
+    try {
+      const { url } = await createPortalSession();
+      if (url) window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    }
   };
 
   if (loading) {

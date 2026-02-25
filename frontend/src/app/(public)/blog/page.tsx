@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { type BlogPost } from '@/lib/api-client';
+import { type BlogPost, getBlogPosts } from '@/lib/api-client';
 
 // Categories for filtering
 const categories = [
@@ -28,9 +28,13 @@ export default function BlogPage() {
       setLoading(true);
       setError('');
 
-      // TODO: Implement blog posts fetching
-      setPosts([]);
-      setTotalPages(1);
+      try {
+        const data = await getBlogPosts({ page: currentPage, category: selectedCategory || undefined });
+        setPosts(data.posts);
+        setTotalPages(data.totalPages);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'エラーが発生しました');
+      }
 
       setLoading(false);
     };

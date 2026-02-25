@@ -1,43 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Crown, User, Mail, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getAdminMembers } from '@/lib/api-client';
 
-// Mock data - in production, fetch from API
-const mockMembers = [
-  { id: '1', name: '鈴木美咲', email: 'suzuki@example.com', role: 'MEMBER_GOLD', createdAt: '2024-12-15', status: 'active' },
-  { id: '2', name: '高橋健太', email: 'takahashi@example.com', role: 'MEMBER_FREE', createdAt: '2024-12-14', status: 'active' },
-  { id: '3', name: '伊藤真由', email: 'ito@example.com', role: 'MEMBER_GOLD', createdAt: '2024-12-12', status: 'active' },
-  { id: '4', name: '渡辺大輔', email: 'watanabe@example.com', role: 'MEMBER_FREE', createdAt: '2024-12-10', status: 'active' },
-  { id: '5', name: '山本さくら', email: 'yamamoto@example.com', role: 'MEMBER_GOLD', createdAt: '2024-12-08', status: 'canceled' },
-  { id: '6', name: '中村翔太', email: 'nakamura@example.com', role: 'MEMBER_FREE', createdAt: '2024-12-05', status: 'active' },
-  { id: '7', name: '小林優子', email: 'kobayashi@example.com', role: 'MEMBER_GOLD', createdAt: '2024-12-03', status: 'active' },
-  { id: '8', name: '加藤拓也', email: 'kato@example.com', role: 'MEMBER_FREE', createdAt: '2024-12-01', status: 'active' },
-];
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+  subscription_status?: string;
+}
 
 export default function AdminMembersPage() {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  // Filter members
-  const filteredMembers = mockMembers.filter((member) => {
-    const matchesSearch =
-      member.name.toLowerCase().includes(search.toLowerCase()) ||
-      member.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = filterRole === 'all' || member.role === filterRole;
-    return matchesSearch && matchesRole;
-  });
-
-  const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
-  const paginatedMembers = filteredMembers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  useEffect(() => {
+    getAdminMembers({
+      role: filterRole !== 'all' ? filterRole : undefined,
+      search: search || undefined,
+      page: currentPage,
+    })
+      .then((data) => {
+        setMembers(data.members as Member[]);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      })
+      .catch(() => {});
+  }, [filterRole, search, currentPage]);
 
   const handleExport = () => {
-    // In production, implement CSV export
     alert('CSVエクスポート機能は実装中です');
   };
 
@@ -97,7 +95,7 @@ export default function AdminMembersPage() {
           </div>
           <div>
             <p className="text-taupe text-sm">総会員数</p>
-            <p className="text-xl text-white">{mockMembers.length}</p>
+            <p className="text-xl text-white">{total}</p>
           </div>
         </div>
         <div className="card p-4 flex items-center gap-4">
@@ -107,7 +105,7 @@ export default function AdminMembersPage() {
           <div>
             <p className="text-taupe text-sm">ゴールド会員</p>
             <p className="text-xl text-white">
-              {mockMembers.filter((m) => m.role === 'MEMBER_GOLD').length}
+              {members.filter((m) => m.role === 'MEMBER_GOLD').length}
             </p>
           </div>
         </div>
@@ -118,7 +116,7 @@ export default function AdminMembersPage() {
           <div>
             <p className="text-taupe text-sm">メール会員</p>
             <p className="text-xl text-white">
-              {mockMembers.filter((m) => m.role === 'MEMBER_FREE').length}
+              {members.filter((m) => m.role === 'MEMBER_FREE').length}
             </p>
           </div>
         </div>
@@ -138,7 +136,7 @@ export default function AdminMembersPage() {
               </tr>
             </thead>
             <tbody>
-              {paginatedMembers.map((member) => (
+              {members.map((member) => (
                 <tr
                   key={member.id}
                   className="border-b border-burgundy-border hover:bg-burgundy/50 transition-colors cursor-pointer"
@@ -166,18 +164,18 @@ export default function AdminMembersPage() {
                   <td className="px-6 py-4 text-taupe">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} />
-                      {new Date(member.createdAt).toLocaleDateString('ja-JP')}
+                      {new Date(member.created_at).toLocaleDateString('ja-JP')}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`text-xs px-2 py-1 rounded ${
-                        member.status === 'active'
+                        member.subscription_status !== 'CANCELED'
                           ? 'bg-green-900/20 text-green-400'
                           : 'bg-red-900/20 text-red-400'
                       }`}
                     >
-                      {member.status === 'active' ? '有効' : '解約'}
+                      {member.subscription_status !== 'CANCELED' ? '有効' : '解約'}
                     </span>
                   </td>
                 </tr>
@@ -190,8 +188,8 @@ export default function AdminMembersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-burgundy-border">
             <p className="text-taupe text-sm">
-              {filteredMembers.length} 件中 {(currentPage - 1) * itemsPerPage + 1} -{' '}
-              {Math.min(currentPage * itemsPerPage, filteredMembers.length)} 件を表示
+              {total} 件中 {(currentPage - 1) * 20 + 1} -{' '}
+              {Math.min(currentPage * 20, total)} 件を表示
             </p>
             <div className="flex items-center gap-2">
               <button

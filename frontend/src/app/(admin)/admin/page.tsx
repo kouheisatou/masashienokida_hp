@@ -3,35 +3,45 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Users, Mail, CreditCard, TrendingUp, ArrowRight, Clock } from 'lucide-react';
+import { getAdminStats } from '@/lib/api-client';
 
-// Placeholder data - in production, fetch from API
-const mockStats = {
-  totalMembers: 156,
-  goldMembers: 42,
-  freeMembers: 114,
-  newMembersThisMonth: 8,
-  totalContacts: 23,
-  unreadContacts: 5,
-  monthlyRevenue: 126000,
-  revenueChange: 12.5,
-};
+interface StatsData {
+  totalMembers: number;
+  goldMembers: number;
+  freeMembers: number;
+  unreadContacts: number;
+}
 
-const mockRecentContacts = [
-  { id: '1', name: '山田太郎', subject: 'コンサート依頼について', date: '2024-12-15', status: 'unread' },
-  { id: '2', name: '佐藤花子', subject: 'サポーターズクラブについて', date: '2024-12-14', status: 'read' },
-  { id: '3', name: '田中一郎', subject: '取材のお願い', date: '2024-12-13', status: 'read' },
-];
+interface ContactItem {
+  id: string;
+  name: string;
+  subject: string;
+  created_at: string;
+  status: string;
+}
 
-const mockRecentMembers = [
-  { id: '1', name: '鈴木美咲', email: 'suzuki@example.com', tier: 'MEMBER_GOLD', date: '2024-12-15' },
-  { id: '2', name: '高橋健太', email: 'takahashi@example.com', tier: 'MEMBER_FREE', date: '2024-12-14' },
-  { id: '3', name: '伊藤真由', email: 'ito@example.com', tier: 'MEMBER_GOLD', date: '2024-12-12' },
-];
+interface MemberItem {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState(mockStats);
-  const [recentContacts, setRecentContacts] = useState(mockRecentContacts);
-  const [recentMembers, setRecentMembers] = useState(mockRecentMembers);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [recentContacts, setRecentContacts] = useState<ContactItem[]>([]);
+  const [recentMembers, setRecentMembers] = useState<MemberItem[]>([]);
+
+  useEffect(() => {
+    getAdminStats()
+      .then((data) => {
+        setStats(data.stats);
+        setRecentContacts(data.recentContacts as ContactItem[]);
+        setRecentMembers(data.recentMembers as MemberItem[]);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="p-6 lg:p-8">
@@ -48,10 +58,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-taupe text-sm mb-1">総会員数</p>
-              <p className="text-3xl text-white">{stats.totalMembers}</p>
-              <p className="text-burgundy-accent text-sm mt-1">
-                +{stats.newMembersThisMonth} 今月
-              </p>
+              <p className="text-3xl text-white">{stats?.totalMembers ?? '—'}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
               <Users size={20} className="text-burgundy-accent" />
@@ -64,10 +71,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-taupe text-sm mb-1">ゴールド会員</p>
-              <p className="text-3xl text-white">{stats.goldMembers}</p>
-              <p className="text-taupe text-sm mt-1">
-                {Math.round((stats.goldMembers / stats.totalMembers) * 100)}% of total
-              </p>
+              <p className="text-3xl text-white">{stats?.goldMembers ?? '—'}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
               <CreditCard size={20} className="text-burgundy-accent" />
@@ -80,10 +84,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-taupe text-sm mb-1">未読お問い合わせ</p>
-              <p className="text-3xl text-white">{stats.unreadContacts}</p>
-              <p className="text-taupe text-sm mt-1">
-                {stats.totalContacts} 件中
-              </p>
+              <p className="text-3xl text-white">{stats?.unreadContacts ?? '—'}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
               <Mail size={20} className="text-burgundy-accent" />
@@ -91,18 +92,12 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Monthly Revenue */}
+        {/* Free Members */}
         <div className="card p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-taupe text-sm mb-1">月間売上</p>
-              <p className="text-3xl text-white">
-                ¥{stats.monthlyRevenue.toLocaleString()}
-              </p>
-              <p className="text-burgundy-accent text-sm mt-1 flex items-center gap-1">
-                <TrendingUp size={14} />
-                +{stats.revenueChange}%
-              </p>
+              <p className="text-taupe text-sm mb-1">メール会員</p>
+              <p className="text-3xl text-white">{stats?.freeMembers ?? '—'}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-burgundy flex items-center justify-center">
               <TrendingUp size={20} className="text-burgundy-accent" />
@@ -143,7 +138,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="flex items-center gap-1 text-taupe text-xs flex-shrink-0">
                   <Clock size={12} />
-                  {new Date(contact.date).toLocaleDateString('ja-JP', {
+                  {new Date(contact.created_at).toLocaleDateString('ja-JP', {
                     month: 'short',
                     day: 'numeric',
                   })}
@@ -182,15 +177,15 @@ export default function AdminDashboardPage() {
                 <div className="flex flex-col items-end flex-shrink-0">
                   <span
                     className={`text-xs px-2 py-0.5 rounded ${
-                      member.tier === 'MEMBER_GOLD'
+                      member.role === 'MEMBER_GOLD'
                         ? 'bg-burgundy-accent/20 text-burgundy-accent'
                         : 'bg-burgundy-light text-taupe'
                     }`}
                   >
-                    {member.tier === 'MEMBER_GOLD' ? 'ゴールド' : 'メール'}
+                    {member.role === 'MEMBER_GOLD' ? 'ゴールド' : 'メール'}
                   </span>
                   <span className="text-taupe text-xs mt-1">
-                    {new Date(member.date).toLocaleDateString('ja-JP', {
+                    {new Date(member.created_at).toLocaleDateString('ja-JP', {
                       month: 'short',
                       day: 'numeric',
                     })}

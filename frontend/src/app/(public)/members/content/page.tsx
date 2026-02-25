@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Video, FileText, Lock, Play, Crown } from 'lucide-react';
+import { getMemberContent, getGoogleSignInUrl } from '@/lib/api-client';
 
 interface ContentItem {
   id: string;
@@ -28,7 +29,13 @@ export default function MembersContentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // TODO: Implement authentication check and content fetching
+      try {
+        const result = await getMemberContent();
+        setData(result as ContentData);
+      } catch {
+        window.location.href = getGoogleSignInUrl();
+        return;
+      }
       setLoading(false);
     };
 

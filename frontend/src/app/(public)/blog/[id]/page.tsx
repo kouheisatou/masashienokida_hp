@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, ArrowLeft, Lock, Share2 } from 'lucide-react';
-import { type BlogPost } from '@/lib/api-client';
+import { type BlogPost, getBlogPost, getMe, getGoogleSignInUrl } from '@/lib/api-client';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -16,8 +16,7 @@ export default function BlogDetailPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // TODO: Implement authentication check
-    setIsAuthenticated(false);
+    getMe().then((data) => setIsAuthenticated(!!data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -27,8 +26,12 @@ export default function BlogDetailPage() {
       setLoading(true);
       setError('');
 
-      // TODO: Implement blog post fetching
-      setError('ブログ機能は準備中です');
+      const result = await getBlogPost(id);
+      if (!result) {
+        setError('記事が見つかりません');
+      } else {
+        setPost(result);
+      }
 
       setLoading(false);
     };
@@ -155,9 +158,9 @@ export default function BlogDetailPage() {
                     </Link>
                   ) : (
                     <>
-                      <Link href="/api/auth/signin" className="btn btn-primary">
+                      <a href={getGoogleSignInUrl()} className="btn btn-primary">
                         ログイン
-                      </Link>
+                      </a>
                       <Link href="/supporters/" className="btn btn-outline">
                         会員登録について
                       </Link>

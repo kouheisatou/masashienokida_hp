@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -62,3 +63,4 @@ oci/config/
 smtp-credentials.txt
 /frontend/.next/
 /frontend/node_modules/
+/backend/node_modules/

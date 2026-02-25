@@ -68,12 +68,12 @@ export default function SupportersPage() {
                 ))}
               </ul>
 
-              <Link
-                href="/api/auth/signin"
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/auth/google`}
                 className="btn btn-outline w-full justify-center"
               >
                 無料で登録する
-              </Link>
+              </a>
             </div>
 
             {/* Gold Member */}
@@ -102,12 +102,12 @@ export default function SupportersPage() {
                 ))}
               </ul>
 
-              <Link
-                href="/api/auth/signin"
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}/auth/google`}
                 className="btn btn-primary w-full justify-center"
               >
                 ゴールド会員になる
-              </Link>
+              </a>
             </div>
           </div>
         </div>

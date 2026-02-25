@@ -1,82 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Mail, MailOpen, Clock, ArrowRight, X, Send } from 'lucide-react';
+import { getAdminContacts, updateContactStatus } from '@/lib/api-client';
 
-// Mock data - in production, fetch from API
-const mockContacts = [
-  {
-    id: '1',
-    name: '山田太郎',
-    email: 'yamada@example.com',
-    phone: '090-1234-5678',
-    category: 'リサイタル依頼',
-    subject: 'コンサート依頼について',
-    message: '来年春にリサイタルを企画しております。ご出演いただけないでしょうか。詳細をお伝えしたく、ご連絡をお待ちしております。',
-    createdAt: '2024-12-15T10:30:00',
-    status: 'unread',
-  },
-  {
-    id: '2',
-    name: '佐藤花子',
-    email: 'sato@example.com',
-    phone: '',
-    category: 'サポーターズクラブ',
-    subject: 'サポーターズクラブについて',
-    message: 'ゴールド会員について質問があります。年会費の支払い方法を教えてください。',
-    createdAt: '2024-12-14T14:20:00',
-    status: 'read',
-  },
-  {
-    id: '3',
-    name: '田中一郎',
-    email: 'tanaka@example.com',
-    phone: '03-1234-5678',
-    category: '取材・メディア',
-    subject: '取材のお願い',
-    message: '音楽雑誌の編集部です。次号の特集でインタビューをお願いしたく、ご連絡いたしました。',
-    createdAt: '2024-12-13T09:15:00',
-    status: 'replied',
-  },
-  {
-    id: '4',
-    name: '鈴木美咲',
-    email: 'suzuki@example.com',
-    phone: '',
-    category: 'ボランティア公演',
-    subject: '福祉施設でのコンサートについて',
-    message: '当施設でのボランティア公演をお願いできないでしょうか。入居者の皆様が楽しみにしております。',
-    createdAt: '2024-12-12T16:45:00',
-    status: 'unread',
-  },
-];
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  category?: string;
+  subject: string;
+  message: string;
+  created_at: string;
+  status: string;
+}
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   unread: { label: '未読', color: 'bg-burgundy-accent text-white' },
   read: { label: '既読', color: 'bg-burgundy text-taupe' },
   replied: { label: '返信済み', color: 'bg-green-900/20 text-green-400' },
+  archived: { label: 'アーカイブ', color: 'bg-burgundy-light text-taupe' },
 };
 
 export default function AdminContactsPage() {
-  const [contacts, setContacts] = useState(mockContacts);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [selectedContact, setSelectedContact] = useState<typeof mockContacts[0] | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
-  // Filter contacts
-  const filteredContacts = contacts.filter((contact) => {
-    const matchesSearch =
-      contact.name.toLowerCase().includes(search.toLowerCase()) ||
-      contact.email.toLowerCase().includes(search.toLowerCase()) ||
-      contact.subject.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || contact.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    getAdminContacts({ status: filterStatus !== 'all' ? filterStatus : undefined, search: search || undefined })
+      .then((data) => setContacts(data.contacts as Contact[]))
+      .catch(() => {});
+  }, [filterStatus, search]);
 
-  const handleSelectContact = (contact: typeof mockContacts[0]) => {
+  const filteredContacts = contacts;
+
+  const handleSelectContact = async (contact: Contact) => {
     setSelectedContact(contact);
-    // Mark as read
     if (contact.status === 'unread') {
+      await updateContactStatus(contact.id, 'read').catch(() => {});
       setContacts((prev) =>
         prev.map((c) => (c.id === contact.id ? { ...c, status: 'read' } : c))
       );
@@ -87,6 +51,13 @@ export default function AdminContactsPage() {
     if (selectedContact) {
       window.location.href = `mailto:${selectedContact.email}?subject=Re: ${selectedContact.subject}`;
     }
+  };
+
+  const handleArchive = async () => {
+    if (!selectedContact) return;
+    await updateContactStatus(selectedContact.id, 'archived').catch(() => {});
+    setContacts((prev) => prev.filter((c) => c.id !== selectedContact.id));
+    setSelectedContact(null);
   };
 
   const unreadCount = contacts.filter((c) => c.status === 'unread').length;
@@ -168,7 +139,7 @@ export default function AdminContactsPage() {
                         <span className="text-taupe text-xs">{contact.category}</span>
                         <span className="text-taupe text-xs flex items-center gap-1">
                           <Clock size={12} />
-                          {new Date(contact.createdAt).toLocaleDateString('ja-JP', {
+                          {new Date(contact.created_at).toLocaleDateString('ja-JP', {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
@@ -247,7 +218,7 @@ export default function AdminContactsPage() {
                 <div className="flex gap-4">
                   <span className="text-taupe text-sm w-24">受信日時</span>
                   <span className="text-beige">
-                    {new Date(selectedContact.createdAt).toLocaleString('ja-JP')}
+                    {new Date(selectedContact.created_at).toLocaleString('ja-JP')}
                   </span>
                 </div>
               </div>
@@ -264,7 +235,7 @@ export default function AdminContactsPage() {
                   <Send size={16} />
                   返信する
                 </button>
-                <button className="btn btn-outline">アーカイブ</button>
+                <button onClick={handleArchive} className="btn btn-outline">アーカイブ</button>
               </div>
             </div>
           ) : (

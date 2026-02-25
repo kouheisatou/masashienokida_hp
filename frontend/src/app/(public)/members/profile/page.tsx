@@ -3,7 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import { type User as UserType, type Subscription } from '@/lib/api-client';
+import {
+  type User as UserType,
+  type Subscription,
+  getMe,
+  getGoogleSignInUrl,
+  updateProfile,
+  createPortalSession,
+  deleteAccount,
+} from '@/lib/api-client';
 
 export default function MembersProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -16,7 +24,14 @@ export default function MembersProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // TODO: Implement authentication check and profile fetching
+      const data = await getMe();
+      if (!data) {
+        window.location.href = getGoogleSignInUrl();
+        return;
+      }
+      setUser(data.user);
+      setSubscription(data.subscription);
+      setName(data.user.name ?? '');
       setLoading(false);
     };
 
@@ -29,17 +44,34 @@ export default function MembersProfilePage() {
     setError('');
     setSuccess('');
 
-    // TODO: Implement profile update
-    setSuccess('プロフィールを更新しました');
-    if (user) {
-      setUser({ ...user, name });
+    try {
+      const updated = await updateProfile(name);
+      setUser(updated);
+      setSuccess('プロフィールを更新しました');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
     }
 
     setSaving(false);
   };
 
   const handleManageSubscription = async () => {
-    // TODO: Implement subscription management
+    try {
+      const { url } = await createPortalSession();
+      if (url) window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('アカウントを削除しますか？この操作は取り消せません。')) return;
+    try {
+      await deleteAccount();
+      window.location.href = '/';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+    }
   };
 
   if (loading) {
@@ -200,7 +232,10 @@ export default function MembersProfilePage() {
                 アカウントを削除すると、すべてのデータが完全に削除されます。
                 この操作は取り消せません。
               </p>
-              <button className="text-red-400 hover:text-red-300 text-sm transition-colors">
+              <button
+                onClick={handleDeleteAccount}
+                className="text-red-400 hover:text-red-300 text-sm transition-colors"
+              >
                 アカウントを削除する
               </button>
             </div>

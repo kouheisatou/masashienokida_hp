@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { submitContact } from '@/lib/api-client';
 
 const categories = [
   'リサイタル依頼',
@@ -30,10 +31,7 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      // TODO: Implement contact form submission
-      // For now, simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      await submitContact(formData);
       setStatus('success');
       setFormData({
         name: '',

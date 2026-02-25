@@ -5,93 +5,93 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Masashi Enokida Pianist website — a professional portfolio and membership platform. The architecture is a monorepo with:
-- **Frontend**: Next.js 15 static export hosted on OCI Object Storage
-- **Backend**: Node.js serverless functions on OCI Functions, routed via OCI API Gateway
-- **Database**: Oracle Autonomous Database (with oracledb DRCP connection pooling)
-- **CMS**: MicroCMS for blog content
+- **Frontend**: Next.js 15 (`next dev`, port 3000)
+- **Backend**: Express.js + TypeScript (port 4000)
+- **Database**: PostgreSQL 16
 - **Payments**: Stripe subscriptions (MEMBER_GOLD tier at ¥3,000/year)
-- **Auth**: Google OAuth 2.0 → custom JWT sessions
-- **Email**: OCI Email Delivery (SMTP)
-- **Region**: OCI ap-tokyo-1
+- **Auth**: Google OAuth 2.0 → custom JWT sessions (30-day expiry, stored in localStorage)
+- **Email**: nodemailer (SMTP)
+- **Infrastructure**: Docker Compose (3 containers: db, backend, frontend)
 
 ## Commands
 
+### Start everything
+```bash
+cp .env.example .env   # Fill in credentials first
+docker-compose up --build
+```
+
 ### Frontend (`frontend/`)
 ```bash
-npm run dev      # Development server
-npm run build    # Static export (outputs to out/)
+npm run dev      # Development server (port 3000)
+npm run build    # Production build
 npm run lint     # ESLint
 ```
 
-### Functions (`functions/<name>/`)
-Each function is an independent TypeScript package:
+### Backend (`backend/`)
 ```bash
-npm run build    # tsc compilation
-```
-
-### Shared library (`functions/shared/`)
-```bash
-npm run build    # Build shared utilities before functions that depend on them
-```
-
-### Infrastructure
-```bash
-./oci/setup.sh   # Provision OCI resources (interactive, run once)
-./oci/deploy.sh  # Build and deploy functions + frontend to OCI
+npm run dev      # ts-node-dev watch (port 4000)
+npm run build    # tsc compilation to dist/
 ```
 
 ## Architecture
 
 ### Data Flow
 
-**Auth**: Browser → OCI API Gateway → `functions/auth` (Google OAuth exchange → JWT) → Oracle DB (users/sessions tables)
+**Auth**: Browser → `GET /auth/google` (passport redirect) → Google → `GET /auth/google/callback` → JWT signed → redirect to `FRONTEND_URL/auth/callback?token=<jwt>` → localStorage
 
-**Blog**: Browser → `functions/blog` → MicroCMS API → member-only filtering based on JWT role
+**Blog**: Browser → `GET /blog` or `/blog/:id` → PostgreSQL → member-only gating via `isLocked` field
 
-**Payments**: Browser → `functions/stripe` (create checkout) → Stripe → webhook → update user role to `MEMBER_GOLD` in Oracle DB
+**Payments**: Browser → `POST /stripe/checkout` → Stripe Checkout → webhook `POST /stripe/webhook` → update `users.role` to `MEMBER_GOLD`
 
-**Contact**: Browser → `functions/contact` (reCAPTCHA v3 + rate limit check) → Oracle DB (contacts table) → OCI Email Delivery
+**Contact**: Browser → `POST /contact` (rate limit: 5/hour/IP) → PostgreSQL + nodemailer notification
 
 ### Roles & Access Control
-Four roles enforced in `functions/shared/utils/auth-middleware.ts`:
-- `USER` — authenticated, no subscription
-- `MEMBER_FREE` — free membership
-- `MEMBER_GOLD` — paid subscriber (¥3,000/year via Stripe)
-- `ADMIN` — full admin access
+Four roles in `backend/src/middleware/requireRole.ts`:
+- `USER` — authenticated, no subscription (rank 0)
+- `MEMBER_FREE` — free membership (rank 1)
+- `MEMBER_GOLD` — paid subscriber (rank 2)
+- `ADMIN` — full admin access (rank 99)
 
-The `withAuth` middleware wrapper handles JWT verification and RBAC for all function handlers.
+`requireAuth` middleware rejects unauthenticated requests (401).
+`requireRole(...roles)` checks role rank, rejects with 403.
 
 ### Frontend Structure
-- `src/app/(public)/` — public-facing pages (home, biography, blog, concerts, contact, history, supporters, members)
-- `src/app/(admin)/` — admin dashboard (contacts management, member management)
-- `src/lib/api-client.ts` — typed API client; all backend calls go through this
+- `src/app/(public)/` — public pages (home, biography, blog, concerts, contact, supporters, members, auth/callback)
+- `src/app/(admin)/` — admin dashboard (contacts, member management)
+- `src/lib/api-client.ts` — all backend API calls; token helpers (`getToken`, `setToken`, `clearToken`)
 
-The frontend is **static export** (`output: 'export'` in `next.config.ts`) — no server-side rendering. All dynamic data fetches happen client-side via the OCI API Gateway.
+All dynamic data is fetched client-side. Pages are `'use client'` components.
 
-### Functions Structure
-Each function in `functions/<name>/` is independent with its own `package.json`. They share:
-- `functions/shared/` — DB connection, auth middleware, rate limiter, reCAPTCHA, response helpers
-- Oracle DB connection via `connection.ts` uses DRCP pooling optimized for serverless (min:1, max:5, idle:60s)
+### Backend Structure (`backend/src/`)
+- `index.ts` — Express entry point; Stripe webhook raw body mounted before `express.json()`
+- `db.ts` — `pg.Pool` wrapper (`query<T>`, `queryOne<T>`)
+- `middleware/auth.ts` — `optionalAuth` (global), `requireAuth`
+- `middleware/requireRole.ts` — RBAC factory
+- `routes/` — auth, news, concerts, discography, biography, blog, members, contact, stripe, admin
+- `utils/email.ts` — nodemailer helpers
+- `db/migrations/001_schema.sql` — full PostgreSQL schema (auto-runs on first `db` container start)
 
 ### Database
-Schema defined in `functions/shared/db/migrations/001_initial.sql`. Key tables: `users`, `accounts`, `sessions`, `subscriptions`, `contacts`, `rate_limits`, `audit_logs`, `verification_tokens`.
+Schema in `backend/src/db/migrations/001_schema.sql`. Key tables:
+`users`, `sessions`, `subscriptions`, `contacts`, `rate_limits`, `news`, `concerts`, `discography`, `biography`, `blog_posts`
 
-All DB access goes through the query helpers in `functions/shared/db/connection.ts`: `executeQuery`, `executeInsert`, `executeUpdate`, `executeTransaction`.
-
-### OCI Infrastructure
-Resource IDs are stored in `oci/config/setup-config.json` after running `setup.sh`. The API Gateway routes all `/auth/*`, `/blog/*`, `/stripe/*`, `/contact/*`, `/members/*` paths to their respective OCI Functions.
+### Key Implementation Notes
+- `NEXT_PUBLIC_API_URL` must be `http://localhost:4000` (browser-facing), NOT `http://backend:4000` (Docker internal)
+- OAuth callback page at `/auth/callback` wraps `useSearchParams()` in `<Suspense>` (Next.js 15 requirement)
+- Stripe webhook requires raw body — mounted before `express.json()` in `index.ts`
+- Blog `members_only` posts return `isLocked: true` and `content: null` for unauthenticated/non-member users
 
 ## Environment Variables
 
-All required variables are documented in `.env.example`. Key groups:
-- `DB_*` / `TNS_ADMIN` — Oracle DB credentials and wallet path
-- `OCI_SMTP_*` — OCI Email Delivery SMTP credentials
-- `MICROCMS_*` — MicroCMS service domain and API key
-- `STRIPE_*` — Stripe keys, webhook secret, and `STRIPE_GOLD_PRICE_ID`
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth app credentials
-- `RECAPTCHA_*` — reCAPTCHA v3 site and secret keys
-- `JWT_SECRET` — Must be 32+ characters (generated with OpenSSL)
-- `NEXT_PUBLIC_API_URL` — OCI API Gateway base URL (consumed by frontend build)
+All required variables documented in `.env.example`. Key groups:
+- `POSTGRES_*` / `DATABASE_URL` — PostgreSQL credentials
+- `JWT_SECRET` — Must be 32+ characters
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL`
+- `STRIPE_*` — Stripe keys, webhook secret, `STRIPE_GOLD_PRICE_ID`
+- `SMTP_*` / `MAIL_FROM` / `ADMIN_EMAIL` — nodemailer SMTP settings
+- `NEXT_PUBLIC_API_URL=http://localhost:4000` — browser-facing backend URL
+- `FRONTEND_URL=http://localhost:3000` — for CORS and OAuth redirect
 
 ## Design System
 
