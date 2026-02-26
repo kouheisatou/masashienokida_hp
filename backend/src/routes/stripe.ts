@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { SubscriptionStatus, SubscriptionTier } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
+import { sendGoldWelcomeEmail, sendNewGoldMemberToAdmin } from '../utils/email';
 
 const router = Router();
 
@@ -132,10 +133,17 @@ router.post('/webhook', async (req: Request, res: Response) => {
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
           },
         });
-        await prisma.user.update({
+        const goldUser = await prisma.user.update({
           where: { id: userId },
           data: { role: 'MEMBER_GOLD' },
         });
+
+        sendGoldWelcomeEmail(goldUser.email, goldUser.name ?? goldUser.email).catch(
+          (err) => console.error('Failed to send gold welcome email:', err),
+        );
+        sendNewGoldMemberToAdmin({ name: goldUser.name, email: goldUser.email }).catch(
+          (err) => console.error('Failed to send new gold member admin notification:', err),
+        );
         break;
       }
 

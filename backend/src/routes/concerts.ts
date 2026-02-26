@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
+import { sendConcertNotification } from '../utils/email';
 
 const router = Router();
 
@@ -90,6 +91,15 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
         isPublished: is_published ?? true,
       },
     });
+
+    if (row.isPublished) {
+      sendConcertNotification({
+        id: row.id, title: row.title, date: row.date, venue: row.venue, price: row.price,
+      }).catch(
+        (err) => console.error('Failed to send concert notification:', err),
+      );
+    }
+
     res.status(201).json(serializeConcert(row));
   } catch {
     res.status(500).json({ error: 'Internal server error' });
@@ -99,6 +109,9 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published } = req.body;
+
+    const before = await prisma.concert.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
+
     const row = await prisma.concert.update({
       where: { id: req.params.id },
       data: {
@@ -116,6 +129,15 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
         isPublished: is_published,
       },
     });
+
+    if (!before?.isPublished && row.isPublished) {
+      sendConcertNotification({
+        id: row.id, title: row.title, date: row.date, venue: row.venue, price: row.price,
+      }).catch(
+        (err) => console.error('Failed to send concert notification:', err),
+      );
+    }
+
     res.json(serializeConcert(row));
   } catch (err: unknown) {
     if ((err as { code?: string }).code === 'P2025') {

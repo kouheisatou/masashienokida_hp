@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthPayload } from '../middleware/auth';
+import { sendWelcomeEmail } from '../utils/email';
 
 const router = Router();
 
@@ -14,14 +15,13 @@ async function upsertGoogleUser(profile: Profile): Promise<AuthPayload & { id: s
   const image = profile.photos?.[0]?.value ?? null;
   const name = profile.displayName ?? email;
 
-  // Find by googleId first, then fall back to email (handles pre-seeded admin users)
   const existing = await prisma.user.findFirst({
     where: { OR: [{ googleId: profile.id }, { email }] },
   });
 
   let dbUser;
+  let isNewUser = false;
   if (existing) {
-    // Preserve role — only update profile fields
     dbUser = await prisma.user.update({
       where: { id: existing.id },
       data: { name, image, googleId: profile.id },
@@ -30,6 +30,7 @@ async function upsertGoogleUser(profile: Profile): Promise<AuthPayload & { id: s
     dbUser = await prisma.user.create({
       data: { email, name, image, googleId: profile.id },
     });
+    isNewUser = true;
   }
 
   await prisma.subscription.upsert({
@@ -37,6 +38,12 @@ async function upsertGoogleUser(profile: Profile): Promise<AuthPayload & { id: s
     create: { userId: dbUser.id },
     update: {},
   });
+
+  if (isNewUser) {
+    sendWelcomeEmail(dbUser.email, dbUser.name ?? dbUser.email).catch(
+      (err) => console.error('Failed to send welcome email:', err),
+    );
+  }
 
   return { id: dbUser.id, userId: dbUser.id, email: dbUser.email, role: dbUser.role };
 }

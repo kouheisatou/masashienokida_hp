@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
+import { sendNewsNotification } from '../utils/email';
 
 const router = Router();
 
@@ -72,6 +73,13 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
         isPublished: is_published ?? true,
       },
     });
+
+    if (row.isPublished) {
+      sendNewsNotification({ id: row.id, title: row.title, body: row.body }).catch(
+        (err) => console.error('Failed to send news notification:', err),
+      );
+    }
+
     res.status(201).json(serializeNews(row));
   } catch {
     res.status(500).json({ error: 'Internal server error' });
@@ -81,6 +89,9 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { title, body, image_url, category, published_at, is_published } = req.body;
+
+    const before = await prisma.news.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
+
     const row = await prisma.news.update({
       where: { id: req.params.id },
       data: {
@@ -92,6 +103,13 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
         isPublished: is_published,
       },
     });
+
+    if (!before?.isPublished && row.isPublished) {
+      sendNewsNotification({ id: row.id, title: row.title, body: row.body }).catch(
+        (err) => console.error('Failed to send news notification:', err),
+      );
+    }
+
     res.json(serializeNews(row));
   } catch (err: unknown) {
     if ((err as { code?: string }).code === 'P2025') {

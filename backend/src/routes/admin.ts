@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
 import { uploadImage } from '../lib/storage';
+import { sendBlogPostNotification } from '../utils/email';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -404,6 +405,14 @@ router.post('/blog', async (req, res) => {
         publishedAt: published_at ? new Date(published_at) : null,
       },
     });
+
+    const pubDate = post.publishedAt ? new Date(post.publishedAt) : null;
+    if (post.isPublished && pubDate && pubDate <= new Date()) {
+      sendBlogPostNotification({ id: post.id, title: post.title, excerpt: post.excerpt }).catch(
+        (err) => console.error('Failed to send blog notification:', err),
+      );
+    }
+
     res.status(201).json({
       id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
       thumbnail_url: post.thumbnailUrl, category: post.category,
@@ -418,6 +427,9 @@ router.post('/blog', async (req, res) => {
 router.put('/blog/:id', async (req, res) => {
   try {
     const { title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at } = req.body;
+
+    const before = await prisma.blogPost.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
+
     const post = await prisma.blogPost.update({
       where: { id: req.params.id },
       data: {
@@ -431,6 +443,15 @@ router.put('/blog/:id', async (req, res) => {
         publishedAt: published_at ? new Date(published_at) : null,
       },
     });
+
+    const pubDate = post.publishedAt ? new Date(post.publishedAt) : null;
+    const justPublished = !before?.isPublished && post.isPublished && pubDate && pubDate <= new Date();
+    if (justPublished) {
+      sendBlogPostNotification({ id: post.id, title: post.title, excerpt: post.excerpt }).catch(
+        (err) => console.error('Failed to send blog notification:', err),
+      );
+    }
+
     res.json({
       id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
       thumbnail_url: post.thumbnailUrl, category: post.category,
