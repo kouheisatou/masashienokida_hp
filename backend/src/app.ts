@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
-import path from 'path';
 
 import { optionalAuth } from './middleware/auth';
 import authRouter from './routes/auth';
@@ -65,8 +64,6 @@ app.use('/members', membersRouter);
 app.use('/contact', contactRouter);
 app.use('/stripe', stripeRouter);
 app.use('/admin', adminRouter);
-
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

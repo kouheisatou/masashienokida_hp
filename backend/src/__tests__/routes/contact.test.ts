@@ -50,7 +50,7 @@ describe('POST /contact', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ ok: true });
-    validateResponse('submitContact', 201, res.body);
+    validateResponse('postContact', 201, res.body);
   });
 
   it('name が空 → 400', async () => {

@@ -57,7 +57,7 @@ describe('GET /blog', () => {
     expect(res.body.posts).toHaveLength(1);
     expect(res.body.total).toBe(1);
     expect(res.body.totalPages).toBe(1);
-    validateResponse('getBlogPosts', 200, res.body);
+    validateResponse('getBlog', 200, res.body);
   });
 
   it('未認証ユーザーにはメンバー限定記事が isLocked: true で返る', async () => {
@@ -133,7 +133,7 @@ describe('GET /blog/:id', () => {
     expect(res.body.id).toBe(FAKE_POST_PUBLIC.id);
     expect(res.body.content).toBe(FAKE_POST_PUBLIC.content);
     expect(res.body.isLocked).toBe(false);
-    validateResponse('getBlogPostById', 200, res.body);
+    validateResponse('getBlogPost', 200, res.body);
   });
 
   it('存在しない ID → 404', async () => {

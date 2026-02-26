@@ -2,13 +2,9 @@ import { Router } from 'express';
 import { Prisma, ContactStatus } from '@prisma/client';
 import multer from 'multer';
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
-
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'images');
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+import { uploadImage } from '../lib/storage';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -321,12 +317,12 @@ router.post('/upload/image', upload.single('image'), async (req, res) => {
       return;
     }
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-    const filepath = path.join(UPLOADS_DIR, filename);
-    await sharp(req.file.buffer)
+    const webpBuffer = await sharp(req.file.buffer)
       .resize(1200, null, { withoutEnlargement: true })
       .webp({ quality: 85 })
-      .toFile(filepath);
-    res.json({ url: `/uploads/images/${filename}` });
+      .toBuffer();
+    const url = await uploadImage(webpBuffer, filename);
+    res.json({ url });
   } catch {
     res.status(500).json({ error: 'Upload failed' });
   }

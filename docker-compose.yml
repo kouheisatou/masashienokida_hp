@@ -18,6 +18,38 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    env_file: .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    env_file: .env
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+        mc mb --ignore-existing local/${MINIO_BUCKET};
+        mc anonymous set download local/${MINIO_BUCKET};
+        exit 0;
+      "
+
   backend:
     build: ./backend
     env_file: .env
@@ -26,9 +58,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - ./backend/src:/app/src
-      - uploads:/app/uploads
 
   frontend:
     build: ./frontend
@@ -57,4 +90,4 @@ services:
 
 volumes:
   postgres_data:
-  uploads:
+  minio_data:
