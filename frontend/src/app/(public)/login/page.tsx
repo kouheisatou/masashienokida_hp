@@ -8,7 +8,7 @@ import { getToken, getGoogleSignInUrl } from '@/lib/api';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') ?? '/members';
+  const redirect = searchParams.get('redirect') ?? '/';
 
   useEffect(() => {
     if (getToken()) {

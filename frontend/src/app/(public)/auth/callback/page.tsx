@@ -12,7 +12,7 @@ function AuthCallbackContent() {
     const token = params.get('token');
     if (token) {
       setToken(token);
-      router.replace('/members');
+      router.replace('/');
     } else {
       router.replace('/');
     }

@@ -99,7 +99,7 @@ export default function SupportersPage() {
                 ))}
               </ul>
 
-              <Link href="/login" className="btn btn-primary w-full justify-center">
+              <Link href="/subscription" className="btn btn-primary w-full justify-center">
                 ゴールド会員になる
               </Link>
             </div>
