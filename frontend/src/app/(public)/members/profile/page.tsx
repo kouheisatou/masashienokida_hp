@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, User, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Save, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { api, clearToken, type components } from '@/lib/api';
 
@@ -18,6 +18,8 @@ export default function MembersProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [name, setName] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,14 +64,16 @@ export default function MembersProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('アカウントを削除しますか？この操作は取り消せません。')) return;
+    setDeleting(true);
+    setError('');
     const { error: err } = await api.DELETE('/auth/account');
     if (err) {
-      setError('エラーが発生しました');
+      setError('退会処理中にエラーが発生しました');
+      setDeleting(false);
       return;
     }
     clearToken();
-    window.location.href = '/';
+    window.location.href = '/?withdrawn=true';
   };
 
   if (loading) {
@@ -223,19 +227,51 @@ export default function MembersProfilePage() {
               )}
             </div>
 
-            {/* Danger Zone */}
+            {/* 退会セクション */}
             <div className="card p-8 border-red-900/30">
-              <h2 className="text-lg mb-4 text-red-400">アカウント削除</h2>
-              <p className="text-taupe text-sm mb-6">
-                アカウントを削除すると、すべてのデータが完全に削除されます。
-                この操作は取り消せません。
+              <h2 className="text-lg mb-4 text-red-400">退会する</h2>
+              <p className="text-taupe text-sm mb-2">
+                退会すると、以下の内容が適用されます。
               </p>
-              <button
-                onClick={handleDeleteAccount}
-                className="text-red-400 hover:text-red-300 text-sm transition-colors"
-              >
-                アカウントを削除する
-              </button>
+              <ul className="text-taupe text-sm mb-6 space-y-1 list-disc list-inside">
+                <li>アカウント情報がすべて削除されます</li>
+                <li>会員特典がご利用いただけなくなります</li>
+                {isGoldMember && <li>ゴールド会員のサブスクリプションが解約されます</li>}
+                <li>この操作は取り消せません</li>
+              </ul>
+
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="inline-flex items-center gap-2 border border-red-900/50 text-red-400 hover:bg-red-900/20 hover:text-red-300 rounded px-4 py-2.5 text-sm transition-colors"
+                >
+                  <Trash2 size={16} />
+                  退会手続きへ進む
+                </button>
+              ) : (
+                <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-6">
+                  <p className="text-red-300 text-sm font-medium mb-4">
+                    本当に退会しますか？この操作は取り消せません。
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
+                      className="inline-flex items-center gap-2 bg-red-700 hover:bg-red-600 text-white rounded px-4 py-2.5 text-sm transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                      {deleting ? '処理中...' : '退会する'}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={deleting}
+                      className="text-taupe hover:text-beige text-sm transition-colors"
+                    >
+                      キャンセル
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
