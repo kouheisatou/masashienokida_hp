@@ -1,33 +1,42 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { query, queryOne } from '../db';
+import { SubscriptionStatus, SubscriptionTier } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
+  apiVersion: '2023-10-16',
 });
 
-// Create Stripe Checkout session for MEMBER_GOLD
+const STRIPE_STATUS_MAP: Record<string, SubscriptionStatus> = {
+  active: 'ACTIVE',
+  trialing: 'TRIALING',
+  canceled: 'CANCELED',
+  past_due: 'PAST_DUE',
+};
+
+function toSubscriptionStatus(stripeStatus: string): SubscriptionStatus {
+  return STRIPE_STATUS_MAP[stripeStatus] ?? 'ACTIVE';
+}
+
 router.post('/checkout', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
 
-    // Get or create Stripe customer
-    let stripeCustomerId: string | null = null;
-    const sub = await queryOne<{ stripe_customer_id: string | null }>(
-      'SELECT stripe_customer_id FROM subscriptions WHERE user_id = $1',
-      [userId]
-    );
+    const sub = await prisma.subscription.findUnique({
+      where: { userId },
+      select: { stripeCustomerId: true },
+    });
 
-    if (sub?.stripe_customer_id) {
-      stripeCustomerId = sub.stripe_customer_id;
-    } else {
-      const user = await queryOne<{ email: string; name: string | null }>(
-        'SELECT email, name FROM users WHERE id = $1',
-        [userId]
-      );
+    let stripeCustomerId = sub?.stripeCustomerId ?? null;
+
+    if (!stripeCustomerId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true },
+      });
       if (!user) {
         res.status(404).json({ error: 'User not found' });
         return;
@@ -38,22 +47,17 @@ router.post('/checkout', requireAuth, async (req: Request, res: Response) => {
         metadata: { userId },
       });
       stripeCustomerId = customer.id;
-      await query(
-        'UPDATE subscriptions SET stripe_customer_id=$1, updated_at=NOW() WHERE user_id=$2',
-        [stripeCustomerId, userId]
-      );
+      await prisma.subscription.update({
+        where: { userId },
+        data: { stripeCustomerId },
+      });
     }
 
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
       mode: 'subscription',
-      line_items: [
-        {
-          price: process.env.STRIPE_GOLD_PRICE_ID!,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: process.env.STRIPE_GOLD_PRICE_ID!, quantity: 1 }],
       success_url: `${process.env.FRONTEND_URL}/members?checkout=success`,
       cancel_url: `${process.env.FRONTEND_URL}/supporters`,
       metadata: { userId },
@@ -65,21 +69,20 @@ router.post('/checkout', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Stripe customer portal
 router.get('/portal', requireAuth, async (req: Request, res: Response) => {
   try {
-    const sub = await queryOne<{ stripe_customer_id: string | null }>(
-      'SELECT stripe_customer_id FROM subscriptions WHERE user_id = $1',
-      [req.user!.userId]
-    );
+    const sub = await prisma.subscription.findUnique({
+      where: { userId: req.user!.userId },
+      select: { stripeCustomerId: true },
+    });
 
-    if (!sub?.stripe_customer_id) {
+    if (!sub?.stripeCustomerId) {
       res.status(400).json({ error: 'No Stripe customer found' });
       return;
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
+      customer: sub.stripeCustomerId,
       return_url: `${process.env.FRONTEND_URL}/members/profile`,
     });
 
@@ -89,7 +92,6 @@ router.get('/portal', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Stripe webhook
 router.post('/webhook', async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   if (!sig) {
@@ -120,22 +122,20 @@ router.post('/webhook', async (req: Request, res: Response) => {
           session.subscription as string
         );
 
-        await query(
-          `UPDATE subscriptions
-           SET stripe_subscription_id=$1, tier='MEMBER_GOLD', status='ACTIVE',
-               current_period_end=$2, cancel_at_period_end=$3, updated_at=NOW()
-           WHERE user_id=$4`,
-          [
-            subscription.id,
-            new Date(subscription.current_period_end * 1000),
-            subscription.cancel_at_period_end,
-            userId,
-          ]
-        );
-        await query(
-          `UPDATE users SET role='MEMBER_GOLD', updated_at=NOW() WHERE id=$1`,
-          [userId]
-        );
+        await prisma.subscription.update({
+          where: { userId },
+          data: {
+            stripeSubscriptionId: subscription.id,
+            tier: SubscriptionTier.MEMBER_GOLD,
+            status: SubscriptionStatus.ACTIVE,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          },
+        });
+        await prisma.user.update({
+          where: { id: userId },
+          data: { role: 'MEMBER_GOLD' },
+        });
         break;
       }
 
@@ -143,30 +143,28 @@ router.post('/webhook', async (req: Request, res: Response) => {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
         const active = sub.status === 'active' || sub.status === 'trialing';
+        const tier: SubscriptionTier = active ? 'MEMBER_GOLD' : 'MEMBER_FREE';
+        const status = toSubscriptionStatus(sub.status);
 
-        await query(
-          `UPDATE subscriptions
-           SET status=$1, tier=$2, current_period_end=$3, cancel_at_period_end=$4, updated_at=NOW()
-           WHERE stripe_customer_id=$5`,
-          [
-            sub.status.toUpperCase(),
-            active ? 'MEMBER_GOLD' : 'MEMBER_FREE',
-            new Date(sub.current_period_end * 1000),
-            sub.cancel_at_period_end,
-            customerId,
-          ]
-        );
+        await prisma.subscription.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: {
+            status,
+            tier,
+            currentPeriodEnd: new Date(sub.current_period_end * 1000),
+            cancelAtPeriodEnd: sub.cancel_at_period_end,
+          },
+        });
 
-        // Sync user role
-        const userRow = await queryOne<{ user_id: string }>(
-          'SELECT user_id FROM subscriptions WHERE stripe_customer_id = $1',
-          [customerId]
-        );
-        if (userRow) {
-          await query(
-            `UPDATE users SET role=$1, updated_at=NOW() WHERE id=$2`,
-            [active ? 'MEMBER_GOLD' : 'MEMBER_FREE', userRow.user_id]
-          );
+        const userSub = await prisma.subscription.findFirst({
+          where: { stripeCustomerId: customerId },
+          select: { userId: true },
+        });
+        if (userSub) {
+          await prisma.user.update({
+            where: { id: userSub.userId },
+            data: { role: active ? 'MEMBER_GOLD' : 'MEMBER_FREE' },
+          });
         }
         break;
       }
@@ -175,21 +173,24 @@ router.post('/webhook', async (req: Request, res: Response) => {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
 
-        await query(
-          `UPDATE subscriptions
-           SET status='CANCELED', tier='MEMBER_FREE', cancel_at_period_end=FALSE, updated_at=NOW()
-           WHERE stripe_customer_id=$1`,
-          [customerId]
-        );
-        const userRow = await queryOne<{ user_id: string }>(
-          'SELECT user_id FROM subscriptions WHERE stripe_customer_id = $1',
-          [customerId]
-        );
-        if (userRow) {
-          await query(
-            `UPDATE users SET role='MEMBER_FREE', updated_at=NOW() WHERE id=$1`,
-            [userRow.user_id]
-          );
+        await prisma.subscription.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: {
+            status: SubscriptionStatus.CANCELED,
+            tier: SubscriptionTier.MEMBER_FREE,
+            cancelAtPeriodEnd: false,
+          },
+        });
+
+        const userSub = await prisma.subscription.findFirst({
+          where: { stripeCustomerId: customerId },
+          select: { userId: true },
+        });
+        if (userSub) {
+          await prisma.user.update({
+            where: { id: userSub.userId },
+            data: { role: 'MEMBER_FREE' },
+          });
         }
         break;
       }

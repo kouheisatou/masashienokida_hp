@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  MEMBER_FREE
+  MEMBER_GOLD
+  ADMIN
+}
+
+enum SubscriptionTier {
+  MEMBER_FREE
+  MEMBER_GOLD
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+enum ContactStatus {
+  unread
+  read
+  replied
+  archived
+}
+
+// ── Models ───────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  name      String?
+  image     String?
+  googleId  String?  @unique @map("google_id")
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  sessions     Session[]
+  subscription Subscription?
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Subscription {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  stripeSubscriptionId String?            @map("stripe_subscription_id")
+  tier                 SubscriptionTier   @default(MEMBER_FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd     DateTime?          @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Contact {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  email     String
+  phone     String?
+  category  String?
+  subject   String
+  message   String
+  status    ContactStatus @default(unread)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)], map: "idx_contacts_created_at")
+  @@map("contacts")
+}
+
+model News {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  body        String?
+  imageUrl    String?  @map("image_url")
+  category    String?
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([publishedAt(sort: Desc)], map: "idx_news_published_at")
+  @@map("news")
+}
+
+model Concert {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  date        DateTime @db.Date
+  time        String?
+  venue       String
+  address     String?
+  imageUrl    String?  @map("image_url")
+  program     String[]
+  price       String?
+  ticketUrl   String?  @map("ticket_url")
+  note        String?
+  isUpcoming  Boolean  @default(true) @map("is_upcoming")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([date(sort: Desc)], map: "idx_concerts_date")
+  @@index([isUpcoming], map: "idx_concerts_is_upcoming")
+  @@map("concerts")
+}
+
+model Discography {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  releaseYear Int      @map("release_year")
+  description String?
+  imageUrl    String?  @map("image_url")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("discography")
+}
+
+model Biography {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  year        String
+  description String
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("biography")
+}
+
+model BlogPost {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  content      String?
+  excerpt      String?
+  thumbnailUrl String?   @map("thumbnail_url")
+  category     String?
+  membersOnly  Boolean   @default(false) @map("members_only")
+  isPublished  Boolean   @default(false) @map("is_published")
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([publishedAt(sort: Desc)], map: "idx_blog_published_at")
+  @@index([category], map: "idx_blog_category")
+  @@map("blog_posts")
+}
+
+model RateLimit {
+  key       String
+  count     Int      @default(1)
+  windowEnd DateTime @map("window_end") @db.Timestamptz
+
+  @@id([key, windowEnd])
+  @@map("rate_limits")
+}

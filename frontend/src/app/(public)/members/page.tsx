@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown } from 'lucide-react';
-import { api, clearToken, getGoogleSignInUrl, type components } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { api, clearToken, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 type Subscription = components['schemas']['Subscription'];
 
 export default function MembersDashboardPage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserType | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ export default function MembersDashboardPage() {
     const fetchData = async () => {
       const { data } = await api.GET('/auth/me');
       if (!data) {
-        window.location.href = getGoogleSignInUrl();
+        router.replace('/login');
         return;
       }
       setUser(data.user);
@@ -27,7 +29,7 @@ export default function MembersDashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [router]);
 
   const handleSignOut = async () => {
     await api.POST('/auth/signout');

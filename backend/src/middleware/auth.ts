@@ -7,6 +7,12 @@ export interface AuthPayload {
   role: string;
 }
 
+declare global {
+  namespace Express {
+    interface User extends AuthPayload {}
+  }
+}
+
 // Attaches req.user if a valid Bearer JWT is present. Does NOT reject.
 export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;

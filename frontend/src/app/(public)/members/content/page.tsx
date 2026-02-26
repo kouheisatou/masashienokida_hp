@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Video, FileText, Lock, Play, Crown } from 'lucide-react';
-import { api, getGoogleSignInUrl } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 
 interface ContentItem {
   id: string;
@@ -22,6 +23,7 @@ interface ContentData {
 }
 
 export default function MembersContentPage() {
+  const router = useRouter();
   const [data, setData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +33,7 @@ export default function MembersContentPage() {
     const fetchData = async () => {
       const { data: result, error } = await api.GET('/members/content');
       if (error || !result) {
-        window.location.href = getGoogleSignInUrl();
+        router.replace('/login');
         return;
       }
       setData(result as ContentData);
@@ -39,7 +41,7 @@ export default function MembersContentPage() {
     };
 
     fetchData();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

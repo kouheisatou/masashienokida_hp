@@ -10,10 +10,13 @@
     "generate:api": "openapi-typescript ../openapi.yml -o src/generated/api.d.ts"
   },
   "dependencies": {
+    "@uiw/react-md-editor": "^4.0.11",
     "next": "^15.1.6",
     "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.6",

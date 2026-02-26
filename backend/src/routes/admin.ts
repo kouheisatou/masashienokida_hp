@@ -1,53 +1,67 @@
 import { Router } from 'express';
-import { query, queryOne } from '../db';
+import { Prisma, ContactStatus } from '@prisma/client';
+import multer from 'multer';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
+import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
+
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'images');
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Images only'));
+  },
+});
 
 const router = Router();
 
-// All admin routes require ADMIN role
 router.use(requireRole('ADMIN'));
 
-// Dashboard stats
+// ── Dashboard stats ──────────────────────────────────────────────
+
 router.get('/stats', async (_req, res) => {
   try {
     const [totalMembers, goldMembers, freeMembers, unreadContacts, recentContacts, recentMembers] =
       await Promise.all([
-        queryOne<{ count: string }>('SELECT COUNT(*) AS count FROM users'),
-        queryOne<{ count: string }>(
-          "SELECT COUNT(*) AS count FROM users WHERE role = 'MEMBER_GOLD'"
-        ),
-        queryOne<{ count: string }>(
-          "SELECT COUNT(*) AS count FROM users WHERE role = 'MEMBER_FREE'"
-        ),
-        queryOne<{ count: string }>(
-          "SELECT COUNT(*) AS count FROM contacts WHERE status = 'unread'"
-        ),
-        query(
-          `SELECT id, name, email, category, subject, status, created_at
-           FROM contacts ORDER BY created_at DESC LIMIT 5`
-        ),
-        query(
-          `SELECT id, name, email, role, created_at
-           FROM users ORDER BY created_at DESC LIMIT 5`
-        ),
+        prisma.user.count(),
+        prisma.user.count({ where: { role: 'MEMBER_GOLD' } }),
+        prisma.user.count({ where: { role: 'MEMBER_FREE' } }),
+        prisma.contact.count({ where: { status: 'unread' } }),
+        prisma.contact.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: { id: true, name: true, email: true, category: true, subject: true, status: true, createdAt: true },
+        }),
+        prisma.user.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: { id: true, name: true, email: true, role: true, createdAt: true },
+        }),
       ]);
 
     res.json({
-      stats: {
-        totalMembers: Number(totalMembers?.count ?? 0),
-        goldMembers: Number(goldMembers?.count ?? 0),
-        freeMembers: Number(freeMembers?.count ?? 0),
-        unreadContacts: Number(unreadContacts?.count ?? 0),
-      },
-      recentContacts,
-      recentMembers,
+      stats: { totalMembers, goldMembers, freeMembers, unreadContacts },
+      recentContacts: recentContacts.map((c) => ({
+        id: c.id, name: c.name, email: c.email, category: c.category,
+        subject: c.subject, status: c.status, created_at: c.createdAt,
+      })),
+      recentMembers: recentMembers.map((u) => ({
+        id: u.id, name: u.name, email: u.email, role: u.role, created_at: u.createdAt,
+      })),
     });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// List contacts
+// ── Contacts ──────────────────────────────────────────────────────
+
 router.get('/contacts', async (req, res) => {
   try {
     const status = req.query.status as string | undefined;
@@ -56,63 +70,71 @@ router.get('/contacts', async (req, res) => {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const params: unknown[] = [];
-    let where = 'WHERE 1=1';
+    const where: Prisma.ContactWhereInput = {
+      ...(status && status !== 'all' ? { status: status as ContactStatus } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { subject: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
 
-    if (status && status !== 'all') {
-      params.push(status);
-      where += ` AND status = $${params.length}`;
-    }
-    if (search) {
-      params.push(`%${search}%`);
-      where += ` AND (name ILIKE $${params.length} OR email ILIKE $${params.length} OR subject ILIKE $${params.length})`;
-    }
+    const [total, contacts] = await prisma.$transaction([
+      prisma.contact.count({ where }),
+      prisma.contact.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+    ]);
 
-    const countRow = await queryOne<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM contacts ${where}`,
-      params
-    );
-    const total = Number(countRow?.count ?? 0);
-
-    params.push(limit, offset);
-    const contacts = await query(
-      `SELECT id, name, email, phone, category, subject, message, status, created_at
-       FROM contacts ${where}
-       ORDER BY created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
-    );
-
-    res.json({ contacts, total, totalPages: Math.ceil(total / limit) });
+    res.json({
+      contacts: contacts.map((c) => ({
+        id: c.id, name: c.name, email: c.email, phone: c.phone,
+        category: c.category, subject: c.subject, message: c.message,
+        status: c.status, created_at: c.createdAt,
+      })),
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Update contact status
 router.put('/contacts/:id', async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ['unread', 'read', 'replied', 'archived'];
+    const validStatuses: ContactStatus[] = ['unread', 'read', 'replied', 'archived'];
     if (!validStatuses.includes(status)) {
       res.status(400).json({ error: 'Invalid status' });
       return;
     }
-    const rows = await query(
-      'UPDATE contacts SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING *',
-      [status, req.params.id]
-    );
-    if (!rows.length) {
+    const contact = await prisma.contact.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
+    res.json({
+      id: contact.id, name: contact.name, email: contact.email, phone: contact.phone,
+      category: contact.category, subject: contact.subject, message: contact.message,
+      status: contact.status, created_at: contact.createdAt, updated_at: contact.updatedAt,
+    });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(rows[0]);
-  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// List members
+// ── Members ───────────────────────────────────────────────────────
+
 router.get('/members', async (req, res) => {
   try {
     const role = req.query.role as string | undefined;
@@ -121,51 +143,57 @@ router.get('/members', async (req, res) => {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const params: unknown[] = [];
-    let where = 'WHERE 1=1';
+    const where: Prisma.UserWhereInput = {
+      ...(role && role !== 'all' ? { role: role as Prisma.EnumRoleFilter } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
 
-    if (role && role !== 'all') {
-      params.push(role);
-      where += ` AND u.role = $${params.length}`;
-    }
-    if (search) {
-      params.push(`%${search}%`);
-      where += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;
-    }
+    const [total, members] = await prisma.$transaction([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        include: { subscription: true },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+    ]);
 
-    const countRow = await queryOne<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM users u ${where}`,
-      params
-    );
-    const total = Number(countRow?.count ?? 0);
-
-    params.push(limit, offset);
-    const members = await query(
-      `SELECT u.id, u.name, u.email, u.image, u.role, u.created_at,
-              s.tier, s.status AS subscription_status, s.current_period_end
-       FROM users u
-       LEFT JOIN subscriptions s ON s.user_id = u.id
-       ${where}
-       ORDER BY u.created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
-    );
-
-    res.json({ members, total, totalPages: Math.ceil(total / limit) });
+    res.json({
+      members: members.map((u) => ({
+        id: u.id, name: u.name, email: u.email, image: u.image, role: u.role,
+        created_at: u.createdAt,
+        tier: u.subscription?.tier ?? null,
+        subscription_status: u.subscription?.status ?? null,
+        current_period_end: u.subscription?.currentPeriodEnd ?? null,
+      })),
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── News admin read (includes unpublished) ────────────────────────
+// ── News (admin read, includes unpublished) ───────────────────────
 
 router.get('/news', async (_req, res) => {
   try {
-    const rows = await query(
-      `SELECT id, title, body, image_url, category, published_at, is_published, created_at
-       FROM news ORDER BY created_at DESC`
+    const rows = await prisma.news.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(
+      rows.map((n) => ({
+        id: n.id, title: n.title, body: n.body, image_url: n.imageUrl,
+        category: n.category, published_at: n.publishedAt, is_published: n.isPublished,
+        created_at: n.createdAt,
+      }))
     );
-    res.json(rows);
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -173,27 +201,31 @@ router.get('/news', async (_req, res) => {
 
 router.get('/news/:id', async (req, res) => {
   try {
-    const row = await queryOne(
-      'SELECT * FROM news WHERE id = $1',
-      [req.params.id]
-    );
+    const row = await prisma.news.findUnique({ where: { id: req.params.id } });
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json(row);
+    res.json({
+      id: row.id, title: row.title, body: row.body, image_url: row.imageUrl,
+      category: row.category, published_at: row.publishedAt, is_published: row.isPublished,
+      created_at: row.createdAt, updated_at: row.updatedAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── Concerts admin read (includes unpublished) ────────────────────
+// ── Concerts (admin read, includes unpublished) ───────────────────
 
 router.get('/concerts', async (_req, res) => {
   try {
-    const rows = await query(
-      `SELECT id, title, date, time, venue, address, image_url, program,
-              price, ticket_url, note, is_upcoming, is_published, created_at
-       FROM concerts ORDER BY date DESC`
+    const rows = await prisma.concert.findMany({ orderBy: { date: 'desc' } });
+    res.json(
+      rows.map((c) => ({
+        id: c.id, title: c.title, date: c.date, time: c.time, venue: c.venue,
+        address: c.address, image_url: c.imageUrl, program: c.program,
+        price: c.price, ticket_url: c.ticketUrl, note: c.note,
+        is_upcoming: c.isUpcoming, is_published: c.isPublished, created_at: c.createdAt,
+      }))
     );
-    res.json(rows);
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -201,26 +233,34 @@ router.get('/concerts', async (_req, res) => {
 
 router.get('/concerts/:id', async (req, res) => {
   try {
-    const row = await queryOne(
-      'SELECT * FROM concerts WHERE id = $1',
-      [req.params.id]
-    );
+    const row = await prisma.concert.findUnique({ where: { id: req.params.id } });
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json(row);
+    res.json({
+      id: row.id, title: row.title, date: row.date, time: row.time, venue: row.venue,
+      address: row.address, image_url: row.imageUrl, program: row.program,
+      price: row.price, ticket_url: row.ticketUrl, note: row.note,
+      is_upcoming: row.isUpcoming, is_published: row.isPublished,
+      created_at: row.createdAt, updated_at: row.updatedAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── Discography admin read (includes unpublished) ─────────────────
+// ── Discography (admin read, includes unpublished) ────────────────
 
 router.get('/discography', async (_req, res) => {
   try {
-    const rows = await query(
-      `SELECT id, title, release_year, description, image_url, sort_order, is_published, created_at
-       FROM discography ORDER BY sort_order DESC, release_year DESC`
+    const rows = await prisma.discography.findMany({
+      orderBy: [{ sortOrder: 'desc' }, { releaseYear: 'desc' }],
+    });
+    res.json(
+      rows.map((d) => ({
+        id: d.id, title: d.title, release_year: d.releaseYear,
+        description: d.description, image_url: d.imageUrl,
+        sort_order: d.sortOrder, is_published: d.isPublished, created_at: d.createdAt,
+      }))
     );
-    res.json(rows);
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -228,25 +268,32 @@ router.get('/discography', async (_req, res) => {
 
 router.get('/discography/:id', async (req, res) => {
   try {
-    const row = await queryOne(
-      'SELECT * FROM discography WHERE id = $1',
-      [req.params.id]
-    );
+    const row = await prisma.discography.findUnique({ where: { id: req.params.id } });
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json(row);
+    res.json({
+      id: row.id, title: row.title, release_year: row.releaseYear,
+      description: row.description, image_url: row.imageUrl,
+      sort_order: row.sortOrder, is_published: row.isPublished,
+      created_at: row.createdAt, updated_at: row.updatedAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── Biography admin read ──────────────────────────────────────────
+// ── Biography (admin read) ────────────────────────────────────────
 
 router.get('/biography', async (_req, res) => {
   try {
-    const rows = await query(
-      'SELECT id, year, description, sort_order, created_at FROM biography ORDER BY sort_order ASC, year ASC'
+    const rows = await prisma.biography.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { year: 'asc' }],
+    });
+    res.json(
+      rows.map((b) => ({
+        id: b.id, year: b.year, description: b.description,
+        sort_order: b.sortOrder, created_at: b.createdAt,
+      }))
     );
-    res.json(rows);
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -254,20 +301,39 @@ router.get('/biography', async (_req, res) => {
 
 router.get('/biography/:id', async (req, res) => {
   try {
-    const row = await queryOne(
-      'SELECT * FROM biography WHERE id = $1',
-      [req.params.id]
-    );
+    const row = await prisma.biography.findUnique({ where: { id: req.params.id } });
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json(row);
+    res.json({
+      id: row.id, year: row.year, description: row.description,
+      sort_order: row.sortOrder, created_at: row.createdAt, updated_at: row.updatedAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── Blog admin CRUD ──────────────────────────────────────────────
+// ── Image upload ──────────────────────────────────────────────────
 
-// List all blog posts (including unpublished)
+router.post('/upload/image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+    const filepath = path.join(UPLOADS_DIR, filename);
+    await sharp(req.file.buffer)
+      .resize(1200, null, { withoutEnlargement: true })
+      .webp({ quality: 85 })
+      .toFile(filepath);
+    res.json({ url: `/uploads/images/${filename}` });
+  } catch {
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// ── Blog admin CRUD ───────────────────────────────────────────────
+
 router.get('/blog', async (req, res) => {
   try {
     const search = req.query.search as string | undefined;
@@ -275,105 +341,124 @@ router.get('/blog', async (req, res) => {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const params: unknown[] = [];
-    let where = 'WHERE 1=1';
+    const where: Prisma.BlogPostWhereInput = search
+      ? {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' } },
+            { category: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
 
-    if (search) {
-      params.push(`%${search}%`);
-      where += ` AND (title ILIKE $${params.length} OR category ILIKE $${params.length})`;
-    }
+    const [total, posts] = await prisma.$transaction([
+      prisma.blogPost.count({ where }),
+      prisma.blogPost.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+        select: {
+          id: true, title: true, excerpt: true, category: true,
+          membersOnly: true, isPublished: true, publishedAt: true, createdAt: true,
+        },
+      }),
+    ]);
 
-    const countRow = await queryOne<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM blog_posts ${where}`,
-      params
-    );
-    const total = Number(countRow?.count ?? 0);
-
-    params.push(limit, offset);
-    const posts = await query(
-      `SELECT id, title, excerpt, category, members_only, is_published, published_at, created_at
-       FROM blog_posts ${where}
-       ORDER BY created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
-    );
-
-    res.json({ posts, total, totalPages: Math.ceil(total / limit) });
+    res.json({
+      posts: posts.map((p) => ({
+        id: p.id, title: p.title, excerpt: p.excerpt, category: p.category,
+        members_only: p.membersOnly, is_published: p.isPublished,
+        published_at: p.publishedAt, created_at: p.createdAt,
+      })),
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get single blog post
 router.get('/blog/:id', async (req, res) => {
   try {
-    const post = await queryOne(
-      'SELECT * FROM blog_posts WHERE id = $1',
-      [req.params.id]
-    );
-    if (!post) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-    res.json(post);
+    const post = await prisma.blogPost.findUnique({ where: { id: req.params.id } });
+    if (!post) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({
+      id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
+      thumbnail_url: post.thumbnailUrl, category: post.category,
+      members_only: post.membersOnly, is_published: post.isPublished,
+      published_at: post.publishedAt, created_at: post.createdAt, updated_at: post.updatedAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Create blog post
 router.post('/blog', async (req, res) => {
   try {
     const { title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at } = req.body;
-    const rows = await query(
-      `INSERT INTO blog_posts (title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
-      [title, content, excerpt ?? null, thumbnail_url ?? null, category ?? null,
-       members_only ?? false, is_published ?? false, published_at ?? null]
-    );
-    res.status(201).json(rows[0]);
+    const post = await prisma.blogPost.create({
+      data: {
+        title,
+        content: content ?? null,
+        excerpt: excerpt ?? null,
+        thumbnailUrl: thumbnail_url ?? null,
+        category: category ?? null,
+        membersOnly: members_only ?? false,
+        isPublished: is_published ?? false,
+        publishedAt: published_at ? new Date(published_at) : null,
+      },
+    });
+    res.status(201).json({
+      id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
+      thumbnail_url: post.thumbnailUrl, category: post.category,
+      members_only: post.membersOnly, is_published: post.isPublished,
+      published_at: post.publishedAt, created_at: post.createdAt,
+    });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Update blog post
 router.put('/blog/:id', async (req, res) => {
   try {
     const { title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at } = req.body;
-    const rows = await query(
-      `UPDATE blog_posts
-       SET title=$1, content=$2, excerpt=$3, thumbnail_url=$4, category=$5,
-           members_only=$6, is_published=$7, published_at=$8, updated_at=NOW()
-       WHERE id=$9
-       RETURNING *`,
-      [title, content, excerpt ?? null, thumbnail_url ?? null, category ?? null,
-       members_only ?? false, is_published ?? false, published_at ?? null, req.params.id]
-    );
-    if (!rows.length) {
+    const post = await prisma.blogPost.update({
+      where: { id: req.params.id },
+      data: {
+        title,
+        content: content ?? null,
+        excerpt: excerpt ?? null,
+        thumbnailUrl: thumbnail_url ?? null,
+        category: category ?? null,
+        membersOnly: members_only ?? false,
+        isPublished: is_published ?? false,
+        publishedAt: published_at ? new Date(published_at) : null,
+      },
+    });
+    res.json({
+      id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
+      thumbnail_url: post.thumbnailUrl, category: post.category,
+      members_only: post.membersOnly, is_published: post.isPublished,
+      published_at: post.publishedAt, created_at: post.createdAt, updated_at: post.updatedAt,
+    });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(rows[0]);
-  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Delete blog post
 router.delete('/blog/:id', async (req, res) => {
   try {
-    const rows = await query(
-      'DELETE FROM blog_posts WHERE id=$1 RETURNING id',
-      [req.params.id]
-    );
-    if (!rows.length) {
+    await prisma.blogPost.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json({ ok: true });
-  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });

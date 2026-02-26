@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Masashi Enokida Pianist website — a professional portfolio and membership platform. The architecture is a monorepo with:
 - **Frontend**: Next.js 15 (`next dev`, port 3000)
 - **Backend**: Express.js + TypeScript (port 4000)
-- **Database**: PostgreSQL 16
+- **Database**: PostgreSQL 16 + Prisma ORM
 - **Payments**: Stripe subscriptions (MEMBER_GOLD tier at ¥3,000/year)
 - **Auth**: Google OAuth 2.0 → custom JWT sessions (30-day expiry, stored in localStorage)
 - **Email**: nodemailer (SMTP)
@@ -65,16 +65,22 @@ All dynamic data is fetched client-side. Pages are `'use client'` components.
 
 ### Backend Structure (`backend/src/`)
 - `index.ts` — Express entry point; Stripe webhook raw body mounted before `express.json()`
-- `db.ts` — `pg.Pool` wrapper (`query<T>`, `queryOne<T>`)
-- `middleware/auth.ts` — `optionalAuth` (global), `requireAuth`
+- `lib/prisma.ts` — Prisma Client singleton (reused across hot reloads)
+- `middleware/auth.ts` — `optionalAuth` (global), `requireAuth`; augments `Express.User` with `AuthPayload`
 - `middleware/requireRole.ts` — RBAC factory
 - `routes/` — auth, news, concerts, discography, biography, blog, members, contact, stripe, admin
 - `utils/email.ts` — nodemailer helpers
-- `db/migrations/001_schema.sql` — full PostgreSQL schema (auto-runs on first `db` container start)
+
+### Schema & API Single Sources of Truth
+- **`prisma/schema.prisma`** — canonical DB schema; run `npm run prisma:migrate` to apply
+- **`openapi.yml`** — canonical API contract (request/response shapes)
+- All route files map Prisma camelCase fields to openapi.yml snake_case names explicitly
 
 ### Database
-Schema in `backend/src/db/migrations/001_schema.sql`. Key tables:
-`users`, `sessions`, `subscriptions`, `contacts`, `rate_limits`, `news`, `concerts`, `discography`, `biography`, `blog_posts`
+Schema in `backend/prisma/schema.prisma` (single source of truth). Key models:
+`User`, `Session`, `Subscription`, `Contact`, `News`, `Concert`, `Discography`, `Biography`, `BlogPost`, `RateLimit`
+
+Migrations live in `backend/prisma/migrations/`. On container start the backend runs `prisma migrate deploy` automatically.
 
 ### Key Implementation Notes
 - `NEXT_PUBLIC_API_URL` must be `http://localhost:4000` (browser-facing), NOT `http://backend:4000` (Docker internal)

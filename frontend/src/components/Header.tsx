@@ -11,6 +11,7 @@ const navigation = [
   { name: 'SUPPORTERS', href: '/supporters/' },
   { name: 'BLOG', href: '/blog/' },
   { name: 'CONTACT', href: '/contact/' },
+  { name: 'MEMBERS', href: '/members/' },
 ];
 
 export function Header() {

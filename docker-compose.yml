@@ -10,7 +10,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/src/db/migrations/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -29,6 +28,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/src:/app/src
+      - uploads:/app/uploads
 
   frontend:
     build: ./frontend
@@ -57,3 +57,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads:

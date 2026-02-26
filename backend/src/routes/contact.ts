@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { query } from '../db';
+import { prisma } from '../lib/prisma';
 import { sendContactNotification, sendContactConfirmation } from '../utils/email';
 
 const router = Router();
 
 const contactLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
   max: 5,
   message: { error: '送信回数の上限に達しました。しばらくしてから再度お試しください。' },
 });
@@ -26,13 +26,17 @@ router.post('/', contactLimiter, async (req, res) => {
       return;
     }
 
-    await query(
-      `INSERT INTO contacts (name, email, phone, category, subject, message)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [name, email, phone ?? null, category ?? null, subject, message]
-    );
+    await prisma.contact.create({
+      data: {
+        name,
+        email,
+        phone: phone ?? null,
+        category: category ?? null,
+        subject,
+        message,
+      },
+    });
 
-    // Send emails (non-blocking — errors are logged but don't fail the request)
     sendContactNotification({ name, email, phone, category, subject, message }).catch(
       (err) => console.error('Failed to send admin notification:', err)
     );

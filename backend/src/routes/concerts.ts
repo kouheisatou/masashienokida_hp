@@ -1,90 +1,134 @@
 import { Router } from 'express';
-import { query, queryOne } from '../db';
+import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
 
 const router = Router();
 
-// List concerts
+function serializeConcert(c: {
+  id: string;
+  title: string;
+  date: Date;
+  time: string | null;
+  venue: string;
+  address: string | null;
+  imageUrl: string | null;
+  program: string[];
+  price: string | null;
+  ticketUrl: string | null;
+  note: string | null;
+  isUpcoming: boolean;
+  isPublished: boolean;
+  createdAt: Date;
+}) {
+  return {
+    id: c.id,
+    title: c.title,
+    date: c.date,
+    time: c.time,
+    venue: c.venue,
+    address: c.address,
+    image_url: c.imageUrl,
+    program: c.program,
+    price: c.price,
+    ticket_url: c.ticketUrl,
+    note: c.note,
+    is_upcoming: c.isUpcoming,
+    is_published: c.isPublished,
+    created_at: c.createdAt,
+  };
+}
+
 router.get('/', async (req, res) => {
   try {
     const upcomingParam = req.query.upcoming;
-    let sql = `SELECT id, title, date, time, venue, address, image_url, program,
-                      price, ticket_url, note, is_upcoming, created_at
-               FROM concerts WHERE is_published = TRUE`;
-    const params: unknown[] = [];
+    const where: { isPublished: boolean; isUpcoming?: boolean } = { isPublished: true };
+    if (upcomingParam === 'true') where.isUpcoming = true;
+    else if (upcomingParam === 'false') where.isUpcoming = false;
 
-    if (upcomingParam === 'true') {
-      sql += ' AND is_upcoming = TRUE';
-    } else if (upcomingParam === 'false') {
-      sql += ' AND is_upcoming = FALSE';
-    }
+    const rows = await prisma.concert.findMany({
+      where,
+      orderBy: { date: 'desc' },
+    });
 
-    sql += ' ORDER BY date DESC';
-    const rows = await query(sql, params);
-    res.json(rows);
+    res.json(rows.map(serializeConcert));
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Single concert
 router.get('/:id', async (req, res) => {
   try {
-    const row = await queryOne(
-      `SELECT id, title, date, time, venue, address, image_url, program,
-              price, ticket_url, note, is_upcoming
-       FROM concerts WHERE id = $1 AND is_published = TRUE`,
-      [req.params.id]
-    );
+    const row = await prisma.concert.findFirst({
+      where: { id: req.params.id, isPublished: true },
+    });
     if (!row) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(row);
+    res.json(serializeConcert(row));
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Create (ADMIN)
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const { title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published } = req.body;
-    const rows = await query(
-      `INSERT INTO concerts (title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-      [title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming ?? true, is_published ?? true]
-    );
-    res.status(201).json(rows[0]);
+    const row = await prisma.concert.create({
+      data: {
+        title,
+        date: new Date(date),
+        time,
+        venue,
+        address,
+        imageUrl: image_url,
+        program: Array.isArray(program) ? program : program ? [program] : [],
+        price,
+        ticketUrl: ticket_url,
+        note,
+        isUpcoming: is_upcoming ?? true,
+        isPublished: is_published ?? true,
+      },
+    });
+    res.status(201).json(serializeConcert(row));
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Update (ADMIN)
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published } = req.body;
-    const rows = await query(
-      `UPDATE concerts SET title=$1, date=$2, time=$3, venue=$4, address=$5, image_url=$6,
-       program=$7, price=$8, ticket_url=$9, note=$10, is_upcoming=$11, is_published=$12, updated_at=NOW()
-       WHERE id=$13 RETURNING *`,
-      [title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published, req.params.id]
-    );
-    if (!rows.length) {
+    const row = await prisma.concert.update({
+      where: { id: req.params.id },
+      data: {
+        title,
+        date: date ? new Date(date) : undefined,
+        time,
+        venue,
+        address,
+        imageUrl: image_url,
+        program: Array.isArray(program) ? program : program ? [program] : undefined,
+        price,
+        ticketUrl: ticket_url,
+        note,
+        isUpcoming: is_upcoming,
+        isPublished: is_published,
+      },
+    });
+    res.json(serializeConcert(row));
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(rows[0]);
-  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Delete (ADMIN)
 router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    await query('DELETE FROM concerts WHERE id = $1', [req.params.id]);
+    await prisma.concert.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Internal server error' });

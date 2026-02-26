@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, User, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import { api, clearToken, getGoogleSignInUrl, type components } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { api, clearToken, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 type Subscription = components['schemas']['Subscription'];
 
 export default function MembersProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState<UserType | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ export default function MembersProfilePage() {
     const fetchData = async () => {
       const { data } = await api.GET('/auth/me');
       if (!data) {
-        window.location.href = getGoogleSignInUrl();
+        router.replace('/login');
         return;
       }
       setUser(data.user);
@@ -31,7 +33,7 @@ export default function MembersProfilePage() {
     };
 
     fetchData();
-  }, []);
+  }, [router]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

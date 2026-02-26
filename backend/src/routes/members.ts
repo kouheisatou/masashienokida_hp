@@ -1,40 +1,33 @@
 import { Router } from 'express';
-import { query, queryOne } from '../db';
+import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 
 const router = Router();
 
-// Profile + subscription info
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const user = await queryOne<{
-      id: string; email: string; name: string | null; image: string | null; role: string;
-    }>(
-      'SELECT id, email, name, image, role FROM users WHERE id = $1',
-      [req.user!.userId]
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    });
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    const sub = await queryOne<{
-      tier: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean;
-    }>(
-      'SELECT tier, status, current_period_end, cancel_at_period_end FROM subscriptions WHERE user_id = $1',
-      [user.id]
-    );
+    const sub = await prisma.subscription.findUnique({
+      where: { userId: user.id },
+    });
 
     res.json({
-      user,
+      user: { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role },
       subscription: sub
         ? {
             hasSubscription: sub.tier === 'MEMBER_GOLD',
             tier: sub.tier,
             status: sub.status,
-            currentPeriodEnd: sub.current_period_end,
-            cancelAtPeriodEnd: sub.cancel_at_period_end,
+            currentPeriodEnd: sub.currentPeriodEnd,
+            cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
           }
         : { hasSubscription: false, tier: 'USER' },
     });
@@ -43,7 +36,6 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-// Update name
 router.put('/me', requireAuth, async (req, res) => {
   try {
     const { name } = req.body;
@@ -51,42 +43,50 @@ router.put('/me', requireAuth, async (req, res) => {
       res.status(400).json({ error: 'name is required' });
       return;
     }
-    const rows = await query<{ id: string; email: string; name: string; image: string | null; role: string }>(
-      'UPDATE users SET name=$1, updated_at=NOW() WHERE id=$2 RETURNING id, email, name, image, role',
-      [name.trim(), req.user!.userId]
-    );
-    res.json(rows[0]);
+    const user = await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { name: name.trim() },
+    });
+    res.json({ id: user.id, email: user.email, name: user.name, image: user.image, role: user.role });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Member-only content (MEMBER_FREE and above)
 router.get('/content', requireRole('MEMBER_FREE'), async (req, res) => {
   try {
     const role = req.user!.role;
-    const isGold = ['MEMBER_GOLD', 'ADMIN'].includes(role);
 
-    // Fetch members-only blog posts as articles
-    const articles = await query(
-      `SELECT id, title, excerpt, thumbnail_url, category, published_at
-       FROM blog_posts
-       WHERE is_published = TRUE AND members_only = TRUE AND published_at <= NOW()
-       ORDER BY published_at DESC LIMIT 20`
-    );
+    const articles = await prisma.blogPost.findMany({
+      where: {
+        isPublished: true,
+        membersOnly: true,
+        publishedAt: { lte: new Date() },
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        excerpt: true,
+        thumbnailUrl: true,
+        category: true,
+        publishedAt: true,
+      },
+    });
 
     res.json({
       tier: role,
       content: {
-        videos: [], // future: video content table
-        articles: articles.map((a: Record<string, unknown>) => ({
+        videos: [],
+        articles: articles.map((a) => ({
           id: a.id,
           title: a.title,
           excerpt: a.excerpt,
-          thumbnail: a.thumbnail_url ? { url: a.thumbnail_url } : undefined,
+          thumbnail: a.thumbnailUrl ? { url: a.thumbnailUrl } : undefined,
           category: a.category,
-          publishedAt: a.published_at,
-          locked: !isGold && false, // all MEMBER_FREE+ can read members_only posts
+          publishedAt: a.publishedAt,
+          locked: false,
         })),
       },
     });
