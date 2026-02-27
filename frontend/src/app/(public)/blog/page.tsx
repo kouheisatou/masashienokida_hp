@@ -68,10 +68,18 @@ export default function BlogPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="section-padding">
-        <div className="container">
-          <h1 className="text-center mb-6">BLOG</h1>
-          <p className="text-taupe text-center max-w-2xl mx-auto">
+      <section className="relative h-80 flex items-end pb-16 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(https://picsum.photos/seed/blog-hero/1600/600)',
+            filter: 'brightness(0.45)',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-burgundy-black via-burgundy-black/20 to-transparent" />
+        <div className="relative z-10 container">
+          <h1 className="mb-4">BLOG</h1>
+          <p className="text-taupe max-w-2xl">
             コンサートの舞台裏、日々の練習、旅の記録など、
             <br />
             演奏活動の様子をお伝えします。
@@ -79,61 +87,11 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Login Banner — shown for non-authenticated users */}
-      {authChecked && !isAuthenticated && (
-        <section className="pb-8">
-          <div className="container">
-            <div className="max-w-3xl mx-auto">
-              <div className="card px-6 py-4 flex flex-col sm:flex-row items-center gap-4 border-burgundy-accent/40">
-                <div className="flex items-center gap-3 flex-grow text-center sm:text-left">
-                  <Lock size={18} className="text-burgundy-accent hidden sm:block flex-shrink-0" />
-                  <p className="text-taupe text-sm">
-                    <span className="text-beige">ログイン</span>すると会員限定の記事をお読みいただけます。
-                    初めての方は自動的に無料会員として登録されます。
-                  </p>
-                </div>
-                <a
-                  href={getGoogleSignInUrl()}
-                  className="btn btn-primary text-sm py-2 px-6 flex items-center gap-2 flex-shrink-0"
-                >
-                  <LogIn size={14} />
-                  ログイン
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Upgrade Banner — shown for authenticated non-gold members when viewing member-only content */}
-      {authChecked && isAuthenticated && !isGoldMember && (
-        <section className="pb-8">
-          <div className="container">
-            <div className="max-w-3xl mx-auto">
-              <div className="card px-6 py-4 flex flex-col sm:flex-row items-center gap-4 border-burgundy-accent/40">
-                <div className="flex items-center gap-3 flex-grow text-center sm:text-left">
-                  <Crown size={18} className="text-burgundy-accent hidden sm:block flex-shrink-0" />
-                  <p className="text-taupe text-sm">
-                    <span className="text-beige">ゴールド会員</span>になると、すべての限定記事をお読みいただけます。
-                  </p>
-                </div>
-                <Link
-                  href="/supporters/"
-                  className="btn btn-primary text-sm py-2 px-6 flex items-center gap-2 flex-shrink-0"
-                >
-                  <Crown size={14} />
-                  詳しく見る
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Category Filter */}
-      <section className="pb-8">
+      {/* Blog Content Section */}
+      <section className="section-padding bg-burgundy">
         <div className="container">
-          <div className="flex flex-wrap justify-center gap-2">
+          {/* Category Filter */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
             <button
               onClick={() => handleCategoryChange('')}
               className={`px-4 py-2 rounded text-sm transition-colors ${
@@ -158,12 +116,51 @@ export default function BlogPage() {
               </button>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Blog Posts Grid */}
-      <section className="section-padding bg-burgundy">
-        <div className="container">
+          {/* Login Banner — shown for non-authenticated users */}
+          {authChecked && !isAuthenticated && (
+            <div className="max-w-3xl mx-auto mb-12">
+              <div className="card px-6 py-4 flex flex-col sm:flex-row items-center gap-4 border-burgundy-accent/40">
+                <div className="flex items-center gap-3 flex-grow text-center sm:text-left">
+                  <Lock size={18} className="text-burgundy-accent hidden sm:block flex-shrink-0" />
+                  <p className="text-taupe text-sm">
+                    <span className="text-beige">ログイン</span>すると会員限定の記事をお読みいただけます。
+                    初めての方は自動的に無料会員として登録されます。
+                  </p>
+                </div>
+                <a
+                  href={getGoogleSignInUrl()}
+                  className="btn btn-primary text-sm py-2 px-6 flex items-center gap-2 flex-shrink-0"
+                >
+                  <LogIn size={14} />
+                  ログイン
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Upgrade Banner — shown for authenticated non-gold members when viewing member-only content */}
+          {authChecked && isAuthenticated && !isGoldMember && (
+            <div className="max-w-3xl mx-auto mb-12">
+              <div className="card px-6 py-4 flex flex-col sm:flex-row items-center gap-4 border-burgundy-accent/40">
+                <div className="flex items-center gap-3 flex-grow text-center sm:text-left">
+                  <Crown size={18} className="text-burgundy-accent hidden sm:block flex-shrink-0" />
+                  <p className="text-taupe text-sm">
+                    <span className="text-beige">ゴールド会員</span>になると、すべての限定記事をお読みいただけます。
+                  </p>
+                </div>
+                <Link
+                  href="/supporters/"
+                  className="btn btn-primary text-sm py-2 px-6 flex items-center gap-2 flex-shrink-0"
+                >
+                  <Crown size={14} />
+                  詳しく見る
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Blog Posts Grid */}
           {loading ? (
             <div className="text-center py-16">
               <p className="text-taupe">読み込み中...</p>

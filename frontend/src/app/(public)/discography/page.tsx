@@ -30,13 +30,6 @@ export default function DiscographyPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-burgundy-black via-burgundy-black/20 to-transparent" />
         <div className="relative z-10 container">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-taupe hover:text-white transition-colors text-sm mb-6"
-          >
-            <ArrowLeft size={16} />
-            ホームに戻る
-          </Link>
           <h1 className="mb-4">DISCOGRAPHY</h1>
           <p className="text-taupe max-w-2xl">
             榎田まさしの音源作品をご紹介します。
