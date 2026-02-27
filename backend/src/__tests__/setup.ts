@@ -1,7 +1,7 @@
 // テスト環境変数の設定（全テストの前に読み込まれる）
 process.env.JWT_SECRET = 'test-secret-32-chars-minimum-ok!!';
 process.env.FRONTEND_URL = 'http://localhost:3000';
-process.env.ADMIN_CONSOLE_URL = 'http://localhost:3001';
+process.env.ADMIN_CONSOLE_URL = 'http://localhost:3001/admin';
 process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
 process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
 process.env.GOOGLE_CALLBACK_URL = 'http://localhost:4000/auth/google/callback';
