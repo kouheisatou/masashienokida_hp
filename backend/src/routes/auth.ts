@@ -95,7 +95,7 @@ router.get(
       if (err || !user) {
         if (isAdmin) {
           return res.redirect(
-            `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=auth_failed`,
+            `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001/admin'}/auth/callback?error=auth_failed`,
           );
         }
         return res.redirect(`${process.env.FRONTEND_URL}/?auth=error`);
@@ -109,7 +109,7 @@ router.get(
     const isAdmin = req.query.state === 'admin';
 
     if (isAdmin) {
-      const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001';
+      const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001/admin';
       const allowedEmails = getAdminEmails();
 
       if (allowedEmails.length === 0 || !allowedEmails.includes(user.email.toLowerCase())) {

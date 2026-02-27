@@ -20,9 +20,12 @@ const app = express();
 
 app.use(helmet());
 
+const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001/admin';
+const adminConsoleOrigin = new URL(adminConsoleUrl).origin; // CORS は scheme+host+port のみ
 const allowedOrigins = [
   process.env.FRONTEND_URL ?? 'http://localhost:3000',
-  process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001',
+  adminConsoleUrl,
+  adminConsoleOrigin,
 ];
 app.use(
   cors({

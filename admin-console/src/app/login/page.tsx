@@ -16,8 +16,7 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-10 w-full max-w-sm text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">管理コンソール</h1>
-        <p className="text-gray-500 text-sm mb-8">榎田まさし ピアニスト</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">榎田まさしHP管理コンソール</h1>
         {error === 'forbidden' && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
             <p className="text-red-700 text-sm font-medium">アクセスが拒否されました</p>

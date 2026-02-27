@@ -45,7 +45,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <p className="text-sm font-semibold">榎田まさし</p>
+        <p className="text-sm font-semibold">榎田まさしHP管理コンソール</p>
         <div className="w-10" aria-hidden />
       </header>
 
@@ -68,7 +68,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <div className="px-6 py-5 border-b border-gray-700 flex items-center justify-between lg:block">
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-widest">Admin</p>
-            <p className="text-sm font-semibold text-white mt-1">榎田まさし</p>
+            <p className="text-sm font-semibold text-white mt-1">榎田まさしHP管理コンソール</p>
           </div>
           <button
             type="button"

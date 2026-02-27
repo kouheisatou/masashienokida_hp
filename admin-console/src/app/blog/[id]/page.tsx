@@ -150,7 +150,7 @@ export default function BlogEditPage() {
     return (
       <AuthGuard>
         <AdminShell>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             <p className="text-gray-500 text-sm">読み込み中...</p>
           </div>
         </AdminShell>
@@ -161,25 +161,25 @@ export default function BlogEditPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* ヘッダー */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">ブログ 編集</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ブログ 編集</h1>
               {form.is_published && (
                 <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                   公開中
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <span className={`text-sm ${statusColor[saveStatus]}`}>
                 {statusLabel[saveStatus]}
               </span>
               <button
                 type="button"
                 onClick={() => router.push('/blog')}
-                className="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="text-sm text-gray-500 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors min-h-[44px] touch-manipulation"
               >
                 一覧へ戻る
               </button>
@@ -187,7 +187,7 @@ export default function BlogEditPage() {
                 <button
                   type="button"
                   onClick={handleUnpublish}
-                  className="border border-gray-300 text-gray-700 text-sm px-5 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="border border-gray-300 text-gray-700 text-sm px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px] touch-manipulation"
                 >
                   非公開にする
                 </button>
@@ -196,7 +196,7 @@ export default function BlogEditPage() {
                   type="button"
                   onClick={handlePublish}
                   disabled={publishing || (publishMode === 'scheduled' && !form.published_at)}
-                  className="bg-gray-900 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                  className="bg-gray-900 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-h-[44px] touch-manipulation"
                 >
                   {publishing ? '公開中...' : isScheduledFuture ? '予約公開する' : '公開する'}
                 </button>
@@ -220,7 +220,7 @@ export default function BlogEditPage() {
             />
 
             {/* メタデータ */}
-            <div className="bg-white rounded-xl shadow-sm p-5 grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">抜粋</label>
                 <textarea
@@ -286,7 +286,7 @@ export default function BlogEditPage() {
                   />
                 )}
               </div>
-              <div className="col-span-2 flex gap-6 pt-1">
+              <div className="sm:col-span-2 flex gap-6 pt-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"

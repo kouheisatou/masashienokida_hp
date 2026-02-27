@@ -45,9 +45,9 @@ export default function HomePage() {
             PIANIST
           </p>
           <p className="text-taupe max-w-2xl mx-auto leading-relaxed mb-12 animate-fade-in">
-            音楽は言葉を超えて心に響く。
+            キャッチコピー、なにか一言。
             <br />
-            一音一音に魂を込めて、皆様の心に届く演奏を。
+            ここに書く予定です。
           </p>
           <div className="flex justify-center gap-4 animate-fade-in">
             <Link href="/concerts/" className="btn btn-primary">
