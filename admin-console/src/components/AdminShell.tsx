@@ -7,6 +7,7 @@ import { clearToken } from '@/lib/api';
 const navItems = [
   { href: '/dashboard', label: 'ダッシュボード', icon: '📊' },
   { href: '/blog', label: 'ブログ', icon: '✍️' },
+  { href: '/blog/categories', label: 'カテゴリ管理', icon: '🏷️' },
   { href: '/concerts', label: 'コンサート', icon: '🎵' },
   { href: '/discography', label: 'ディスコグラフィー', icon: '💿' },
   { href: '/biography', label: '経歴', icon: '📝' },
@@ -33,7 +34,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
           {navItems.map(({ href, label, icon }) => {
-            const active = pathname === href || pathname.startsWith(href + '/');
+            const active = href === '/blog'
+              ? pathname === '/blog' || (pathname.startsWith('/blog/') && !pathname.startsWith('/blog/categories'))
+              : pathname === href || pathname.startsWith(href + '/');
             return (
               <Link
                 key={href}

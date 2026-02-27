@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getToken, getAdminGoogleSignInUrl } from '@/lib/api';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const params = useSearchParams();
+  const error = params.get('error');
 
   useEffect(() => {
     if (getToken()) router.replace('/dashboard');
@@ -16,6 +18,20 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-sm text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">管理コンソール</h1>
         <p className="text-gray-500 text-sm mb-8">榎田まさし ピアニスト</p>
+        {error === 'forbidden' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+            <p className="text-red-700 text-sm font-medium">アクセスが拒否されました</p>
+            <p className="text-red-500 text-xs mt-1">
+              このアカウントには管理者権限がありません。許可されたメールアドレスでログインしてください。
+            </p>
+          </div>
+        )}
+        {error === 'auth_failed' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+            <p className="text-red-700 text-sm font-medium">認証に失敗しました</p>
+            <p className="text-red-500 text-xs mt-1">もう一度お試しください。</p>
+          </div>
+        )}
         <a
           href={getAdminGoogleSignInUrl()}
           className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
@@ -31,5 +47,17 @@ export default function LoginPage() {
         <p className="text-xs text-gray-400 mt-6">管理者権限を持つアカウントのみ利用できます</p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-500">読み込み中...</p>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

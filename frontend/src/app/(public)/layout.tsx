@@ -48,8 +48,10 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Header />
-        <main>{children}</main>
+        <div className="relative z-10">
+          <Header />
+          <main>{children}</main>
+        </div>
       </body>
     </html>
   );

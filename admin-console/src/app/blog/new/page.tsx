@@ -9,28 +9,27 @@ import { api } from '@/lib/api';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 type PublishMode = 'now' | 'scheduled';
-
-const CATEGORY_OPTIONS = [
-  { value: '', label: '選択してください' },
-  { value: 'news', label: 'お知らせ' },
-  { value: 'concert', label: 'コンサート' },
-  { value: 'daily', label: '日常' },
-  { value: 'practice', label: '練習・レッスン' },
-  { value: 'travel', label: '旅' },
-];
+type Category = { id: string; name: string; slug: string };
 
 export default function BlogNewPage() {
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState({
     title: '',
     content: '',
     excerpt: '',
     thumbnail_url: '',
-    category: '',
+    category_id: '',
     members_only: false,
     is_published: false,
     published_at: '',
   });
+
+  useEffect(() => {
+    api.GET('/admin/blog/categories').then(({ data }) => {
+      if (data) setCategories(data as Category[]);
+    });
+  }, []);
   const [publishMode, setPublishMode] = useState<PublishMode>('now');
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -55,7 +54,7 @@ export default function BlogNewPage() {
               content: data.content,
               excerpt: data.excerpt || null,
               thumbnail_url: data.thumbnail_url || null,
-              category: data.category || null,
+              category_id: data.category_id || null,
               members_only: data.members_only,
               is_published: false,
               published_at: null,
@@ -73,7 +72,7 @@ export default function BlogNewPage() {
               content: data.content,
               excerpt: data.excerpt || null,
               thumbnail_url: data.thumbnail_url || null,
-              category: data.category || null,
+              category_id: data.category_id || null,
               members_only: data.members_only,
               is_published: false,
               published_at: null,
@@ -102,7 +101,7 @@ export default function BlogNewPage() {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.title, form.content, form.excerpt, form.category, form.members_only]);
+  }, [form.title, form.content, form.excerpt, form.category_id, form.members_only]);
 
   async function handlePublish() {
     if (publishMode === 'scheduled' && !form.published_at) return;
@@ -126,7 +125,7 @@ export default function BlogNewPage() {
           content: form.content,
           excerpt: form.excerpt || null,
           thumbnail_url: form.thumbnail_url || null,
-          category: form.category || null,
+          category_id: form.category_id || null,
           members_only: form.members_only,
           is_published: true,
           published_at: publishedAt,
@@ -221,12 +220,13 @@ export default function BlogNewPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">カテゴリ</label>
                 <select
-                  value={form.category}
-                  onChange={(e) => set('category', e.target.value)}
+                  value={form.category_id}
+                  onChange={(e) => set('category_id', e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
                 >
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option value="">選択してください</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>

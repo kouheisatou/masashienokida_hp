@@ -252,12 +252,12 @@ router.get('/discography/:id', async (req, res) => {
 router.get('/biography', async (_req, res) => {
   try {
     const rows = await prisma.biography.findMany({
-      orderBy: { year: 'asc' },
+      orderBy: { sortOrder: 'asc' },
     });
     res.json(
       rows.map((b) => ({
         id: b.id, year: b.year, description: b.description,
-        created_at: b.createdAt,
+        sort_order: b.sortOrder, created_at: b.createdAt,
       }))
     );
   } catch {
@@ -271,7 +271,7 @@ router.get('/biography/:id', async (req, res) => {
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
     res.json({
       id: row.id, year: row.year, description: row.description,
-      created_at: row.createdAt, updated_at: row.updatedAt,
+      sort_order: row.sortOrder, created_at: row.createdAt, updated_at: row.updatedAt,
     });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
@@ -298,6 +298,99 @@ router.post('/upload/image', upload.single('image'), async (req, res) => {
   }
 });
 
+// ── Blog categories admin CRUD ────────────────────────────────────
+
+router.get('/blog/categories', async (_req, res) => {
+  try {
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { sortOrder: 'asc' },
+      include: { _count: { select: { posts: true } } },
+    });
+    res.json(
+      categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        sort_order: c.sortOrder,
+        post_count: c._count.posts,
+        created_at: c.createdAt,
+      }))
+    );
+  } catch {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/blog/categories', async (req, res) => {
+  try {
+    const { name, slug, sort_order } = req.body;
+    if (!name || !slug) {
+      res.status(400).json({ error: 'name and slug are required' });
+      return;
+    }
+    const cat = await prisma.blogCategory.create({
+      data: { name, slug, sortOrder: sort_order ?? 0 },
+    });
+    res.status(201).json({
+      id: cat.id, name: cat.name, slug: cat.slug,
+      sort_order: cat.sortOrder, post_count: 0, created_at: cat.createdAt,
+    });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2002') {
+      res.status(409).json({ error: 'Category with this name or slug already exists' });
+      return;
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.put('/blog/categories/:id', async (req, res) => {
+  try {
+    const { name, slug, sort_order } = req.body;
+    const cat = await prisma.blogCategory.update({
+      where: { id: req.params.id },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(slug !== undefined ? { slug } : {}),
+        ...(sort_order !== undefined ? { sortOrder: sort_order } : {}),
+      },
+      include: { _count: { select: { posts: true } } },
+    });
+    res.json({
+      id: cat.id, name: cat.name, slug: cat.slug,
+      sort_order: cat.sortOrder, post_count: cat._count.posts, created_at: cat.createdAt,
+    });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+    if ((err as { code?: string }).code === 'P2002') {
+      res.status(409).json({ error: 'Category with this name or slug already exists' });
+      return;
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/blog/categories/:id', async (req, res) => {
+  try {
+    const postCount = await prisma.blogPost.count({ where: { categoryId: req.params.id } });
+    if (postCount > 0) {
+      res.status(409).json({ error: 'Cannot delete category with associated posts', post_count: postCount });
+      return;
+    }
+    await prisma.blogCategory.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'P2025') {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── Blog admin CRUD ───────────────────────────────────────────────
 
 router.get('/blog', async (req, res) => {
@@ -311,7 +404,7 @@ router.get('/blog', async (req, res) => {
       ? {
           OR: [
             { title: { contains: search, mode: 'insensitive' } },
-            { category: { contains: search, mode: 'insensitive' } },
+            { category: { name: { contains: search, mode: 'insensitive' } } },
           ],
         }
       : {};
@@ -324,7 +417,8 @@ router.get('/blog', async (req, res) => {
         skip: offset,
         take: limit,
         select: {
-          id: true, title: true, excerpt: true, category: true,
+          id: true, title: true, excerpt: true,
+          category: { select: { id: true, name: true, slug: true } },
           membersOnly: true, isPublished: true, publishedAt: true, createdAt: true,
         },
       }),
@@ -332,7 +426,9 @@ router.get('/blog', async (req, res) => {
 
     res.json({
       posts: posts.map((p) => ({
-        id: p.id, title: p.title, excerpt: p.excerpt, category: p.category,
+        id: p.id, title: p.title, excerpt: p.excerpt,
+        category: p.category?.name ?? null,
+        category_id: p.category?.id ?? null,
         members_only: p.membersOnly, is_published: p.isPublished,
         published_at: p.publishedAt, created_at: p.createdAt,
       })),
@@ -346,11 +442,15 @@ router.get('/blog', async (req, res) => {
 
 router.get('/blog/:id', async (req, res) => {
   try {
-    const post = await prisma.blogPost.findUnique({ where: { id: req.params.id } });
+    const post = await prisma.blogPost.findUnique({
+      where: { id: req.params.id },
+      include: { category: { select: { id: true, name: true, slug: true } } },
+    });
     if (!post) { res.status(404).json({ error: 'Not found' }); return; }
     res.json({
       id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
-      thumbnail_url: post.thumbnailUrl, category: post.category,
+      thumbnail_url: post.thumbnailUrl, category: post.category?.name ?? null,
+      category_id: post.categoryId,
       members_only: post.membersOnly, is_published: post.isPublished,
       published_at: post.publishedAt, created_at: post.createdAt, updated_at: post.updatedAt,
     });
@@ -361,18 +461,19 @@ router.get('/blog/:id', async (req, res) => {
 
 router.post('/blog', async (req, res) => {
   try {
-    const { title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at } = req.body;
+    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = req.body;
     const post = await prisma.blogPost.create({
       data: {
         title,
         content: content ?? null,
         excerpt: excerpt ?? null,
         thumbnailUrl: thumbnail_url ?? null,
-        category: category ?? null,
+        categoryId: category_id ?? null,
         membersOnly: members_only ?? false,
         isPublished: is_published ?? false,
         publishedAt: published_at ? new Date(published_at) : null,
       },
+      include: { category: { select: { id: true, name: true, slug: true } } },
     });
 
     const pubDate = post.publishedAt ? new Date(post.publishedAt) : null;
@@ -384,7 +485,8 @@ router.post('/blog', async (req, res) => {
 
     res.status(201).json({
       id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
-      thumbnail_url: post.thumbnailUrl, category: post.category,
+      thumbnail_url: post.thumbnailUrl, category: post.category?.name ?? null,
+      category_id: post.categoryId,
       members_only: post.membersOnly, is_published: post.isPublished,
       published_at: post.publishedAt, created_at: post.createdAt,
     });
@@ -395,7 +497,7 @@ router.post('/blog', async (req, res) => {
 
 router.put('/blog/:id', async (req, res) => {
   try {
-    const { title, content, excerpt, thumbnail_url, category, members_only, is_published, published_at } = req.body;
+    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = req.body;
 
     const before = await prisma.blogPost.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
 
@@ -406,11 +508,12 @@ router.put('/blog/:id', async (req, res) => {
         content: content ?? null,
         excerpt: excerpt ?? null,
         thumbnailUrl: thumbnail_url ?? null,
-        category: category ?? null,
+        categoryId: category_id ?? null,
         membersOnly: members_only ?? false,
         isPublished: is_published ?? false,
         publishedAt: published_at ? new Date(published_at) : null,
       },
+      include: { category: { select: { id: true, name: true, slug: true } } },
     });
 
     const pubDate = post.publishedAt ? new Date(post.publishedAt) : null;
@@ -423,7 +526,8 @@ router.put('/blog/:id', async (req, res) => {
 
     res.json({
       id: post.id, title: post.title, content: post.content, excerpt: post.excerpt,
-      thumbnail_url: post.thumbnailUrl, category: post.category,
+      thumbnail_url: post.thumbnailUrl, category: post.category?.name ?? null,
+      category_id: post.categoryId,
       members_only: post.membersOnly, is_published: post.isPublished,
       published_at: post.publishedAt, created_at: post.createdAt, updated_at: post.updatedAt,
     });

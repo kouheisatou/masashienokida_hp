@@ -188,6 +188,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/biography/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder biography entries (admin) */
+        put: operations["reorderBiography"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/blog/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List blog categories (public) */
+        get: operations["getBlogCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/blog": {
         parameters: {
             query?: never;
@@ -505,6 +539,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/blog/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List blog categories (admin) */
+        get: operations["getAdminBlogCategories"];
+        put?: never;
+        /** Create blog category (admin) */
+        post: operations["createAdminBlogCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/blog/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update blog category (admin) */
+        put: operations["updateAdminBlogCategory"];
+        post?: never;
+        /** Delete blog category (admin) */
+        delete: operations["deleteAdminBlogCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/blog": {
         parameters: {
             query?: never;
@@ -616,6 +688,7 @@ export interface components {
             release_year: number;
             description?: string | null;
             image_url?: string | null;
+            purchase_url?: string | null;
             sort_order: number;
         };
         DiscographyInput: {
@@ -623,6 +696,7 @@ export interface components {
             release_year: number;
             description?: string | null;
             image_url?: string | null;
+            purchase_url?: string | null;
             /** @default 0 */
             sort_order: number;
             /** @default true */
@@ -633,10 +707,12 @@ export interface components {
             id: string;
             year: string;
             description: string;
+            sort_order: number;
         };
         BiographyInput: {
             year: string;
             description: string;
+            sort_order?: number;
         };
         BlogPostSummary: {
             /** Format: uuid */
@@ -794,6 +870,7 @@ export interface components {
             release_year: number;
             description?: string | null;
             image_url?: string | null;
+            purchase_url?: string | null;
             sort_order: number;
             is_published: boolean;
             /** Format: date-time */
@@ -804,8 +881,31 @@ export interface components {
             id: string;
             year: string;
             description: string;
+            sort_order: number;
             /** Format: date-time */
             created_at: string;
+        };
+        BlogCategory: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            sort_order: number;
+        };
+        AdminBlogCategory: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            sort_order: number;
+            post_count: number;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AdminBlogCategoryInput: {
+            name: string;
+            slug: string;
+            sort_order?: number;
         };
         AdminBlogPostSummary: {
             /** Format: uuid */
@@ -813,6 +913,8 @@ export interface components {
             title: string;
             excerpt?: string | null;
             category?: string | null;
+            /** Format: uuid */
+            category_id?: string | null;
             members_only?: boolean;
             is_published: boolean;
             /** Format: date-time */
@@ -828,6 +930,8 @@ export interface components {
             excerpt?: string | null;
             thumbnail_url?: string | null;
             category?: string | null;
+            /** Format: uuid */
+            category_id?: string | null;
             members_only?: boolean;
             is_published: boolean;
             /** Format: date-time */
@@ -840,7 +944,8 @@ export interface components {
             content: string;
             excerpt?: string | null;
             thumbnail_url?: string | null;
-            category?: string | null;
+            /** Format: uuid */
+            category_id?: string | null;
             /** @default false */
             members_only: boolean;
             /** @default false */
@@ -1281,6 +1386,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+        };
+    };
+    reorderBiography: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    sort_order: number;
+                }[];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+        };
+    };
+    getBlogCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlogCategory"][];
                 };
             };
         };
@@ -1788,6 +1941,133 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminBlogCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminBlogCategory"][];
+                };
+            };
+        };
+    };
+    createAdminBlogCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminBlogCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminBlogCategory"];
+                };
+            };
+            /** @description Conflict (duplicate name or slug) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateAdminBlogCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminBlogCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminBlogCategory"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteAdminBlogCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict (category has associated posts) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -10,20 +10,13 @@ import { api, type components } from '@/lib/api';
 type BlogPost = components['schemas']['AdminBlogPost'];
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 type PublishMode = 'now' | 'scheduled';
-
-const CATEGORY_OPTIONS = [
-  { value: '', label: '選択してください' },
-  { value: 'news', label: 'お知らせ' },
-  { value: 'concert', label: 'コンサート' },
-  { value: 'daily', label: '日常' },
-  { value: 'practice', label: '練習・レッスン' },
-  { value: 'travel', label: '旅' },
-];
+type Category = { id: string; name: string; slug: string };
 
 export default function BlogEditPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
 
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState<Partial<BlogPost & { published_at: string }>>({});
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -35,6 +28,10 @@ export default function BlogEditPage() {
   latestForm.current = form;
 
   useEffect(() => {
+    api.GET('/admin/blog/categories').then(({ data }) => {
+      if (data) setCategories(data as Category[]);
+    });
+
     api.GET('/admin/blog/{id}', { params: { path: { id } } }).then(({ data }) => {
       if (data) {
         const pa = data.published_at
@@ -62,7 +59,7 @@ export default function BlogEditPage() {
             content: (data.content as string) ?? null,
             excerpt: (data.excerpt as string) || null,
             thumbnail_url: (data.thumbnail_url as string) || null,
-            category: (data.category as string) || null,
+            category_id: (data.category_id as string) || null,
             members_only: data.members_only ?? false,
             is_published: data.is_published ?? false,
             published_at: (data.published_at as string) || null,
@@ -87,7 +84,7 @@ export default function BlogEditPage() {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.title, form.content, form.excerpt, form.category, form.members_only, loading]);
+  }, [form.title, form.content, form.excerpt, form.category_id, form.members_only, loading]);
 
   async function handlePublish() {
     if (publishMode === 'scheduled' && !form.published_at) return;
@@ -104,7 +101,7 @@ export default function BlogEditPage() {
           content: (form.content as string) ?? null,
           excerpt: (form.excerpt as string) || null,
           thumbnail_url: (form.thumbnail_url as string) || null,
-          category: (form.category as string) || null,
+          category_id: (form.category_id as string) || null,
           members_only: form.members_only ?? false,
           is_published: true,
           published_at: publishedAt,
@@ -124,7 +121,7 @@ export default function BlogEditPage() {
         content: (form.content as string) ?? null,
         excerpt: (form.excerpt as string) || null,
         thumbnail_url: (form.thumbnail_url as string) || null,
-        category: (form.category as string) || null,
+        category_id: (form.category_id as string) || null,
         members_only: form.members_only ?? false,
         is_published: false,
         published_at: (form.published_at as string) || null,
@@ -246,12 +243,13 @@ export default function BlogEditPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">カテゴリ</label>
                 <select
-                  value={(form.category as string) ?? ''}
-                  onChange={(e) => set('category', e.target.value)}
+                  value={(form.category_id as string) ?? ''}
+                  onChange={(e) => set('category_id', e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
                 >
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option value="">選択してください</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>

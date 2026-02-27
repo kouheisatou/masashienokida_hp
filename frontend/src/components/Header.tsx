@@ -18,6 +18,7 @@ const navigation = [
   { name: 'HOME', href: '/' },
   { name: 'BIOGRAPHY', href: '/biography/' },
   { name: 'CONCERT', href: '/concerts/' },
+  { name: 'DISCOGRAPHY', href: '/discography/' },
   { name: 'BLOG', href: '/blog/' },
   { name: 'CONTACT', href: '/contact/' },
 ];

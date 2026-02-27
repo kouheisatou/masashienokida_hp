@@ -170,6 +170,9 @@ components:
         image_url:
           type: string
           nullable: true
+        purchase_url:
+          type: string
+          nullable: true
         sort_order:
           type: integer
 
@@ -187,6 +190,9 @@ components:
         image_url:
           type: string
           nullable: true
+        purchase_url:
+          type: string
+          nullable: true
         sort_order:
           type: integer
           default: 0
@@ -196,7 +202,7 @@ components:
 
     BiographyEntry:
       type: object
-      required: [id, year, description]
+      required: [id, year, description, sort_order]
       properties:
         id:
           type: string
@@ -205,6 +211,8 @@ components:
           type: string
         description:
           type: string
+        sort_order:
+          type: integer
 
     BiographyInput:
       type: object
@@ -214,6 +222,8 @@ components:
           type: string
         description:
           type: string
+        sort_order:
+          type: integer
 
     BlogPostSummary:
       type: object
@@ -563,6 +573,9 @@ components:
         image_url:
           type: string
           nullable: true
+        purchase_url:
+          type: string
+          nullable: true
         sort_order:
           type: integer
         is_published:
@@ -573,7 +586,7 @@ components:
 
     AdminBiographyEntry:
       type: object
-      required: [id, year, description, created_at]
+      required: [id, year, description, sort_order, created_at]
       properties:
         id:
           type: string
@@ -582,9 +595,55 @@ components:
           type: string
         description:
           type: string
+        sort_order:
+          type: integer
         created_at:
           type: string
           format: date-time
+
+    BlogCategory:
+      type: object
+      required: [id, name, slug, sort_order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        sort_order:
+          type: integer
+
+    AdminBlogCategory:
+      type: object
+      required: [id, name, slug, sort_order, post_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        sort_order:
+          type: integer
+        post_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    AdminBlogCategoryInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        sort_order:
+          type: integer
 
     AdminBlogPostSummary:
       type: object
@@ -600,6 +659,10 @@ components:
           nullable: true
         category:
           type: string
+          nullable: true
+        category_id:
+          type: string
+          format: uuid
           nullable: true
         members_only:
           type: boolean
@@ -633,6 +696,10 @@ components:
         category:
           type: string
           nullable: true
+        category_id:
+          type: string
+          format: uuid
+          nullable: true
         members_only:
           type: boolean
         is_published:
@@ -659,8 +726,9 @@ components:
         thumbnail_url:
           type: string
           nullable: true
-        category:
+        category_id:
           type: string
+          format: uuid
           nullable: true
         members_only:
           type: boolean
@@ -982,6 +1050,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OkResponse'
+
+  /biography/reorder:
+    put:
+      operationId: reorderBiography
+      summary: Reorder biography entries (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required: [id, sort_order]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  sort_order:
+                    type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /blog/categories:
+    get:
+      operationId: getBlogCategories
+      summary: List blog categories (public)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlogCategory'
 
   /blog:
     get:
@@ -1373,6 +1484,88 @@ paths:
                 $ref: '#/components/schemas/AdminBiographyEntry'
         '404':
           description: Not found
+
+  /admin/blog/categories:
+    get:
+      operationId: getAdminBlogCategories
+      summary: List blog categories (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminBlogCategory'
+    post:
+      operationId: createAdminBlogCategory
+      summary: Create blog category (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBlogCategoryInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogCategory'
+        '409':
+          description: Conflict (duplicate name or slug)
+
+  /admin/blog/categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: updateAdminBlogCategory
+      summary: Update blog category (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBlogCategoryInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBlogCategory'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+    delete:
+      operationId: deleteAdminBlogCategory
+      summary: Delete blog category (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (category has associated posts)
 
   /admin/blog:
     get:

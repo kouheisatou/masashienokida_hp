@@ -9,7 +9,7 @@ import { api } from '@/lib/api';
 
 export default function DiscographyNewPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: '', release_year: '', description: '', image_url: '', sort_order: '0', is_published: false });
+  const [form, setForm] = useState({ title: '', release_year: '', description: '', image_url: '', purchase_url: '', sort_order: '0', is_published: false });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,6 +28,7 @@ export default function DiscographyNewPage() {
           release_year: Number(form.release_year),
           description: form.description || null,
           image_url: form.image_url || null,
+          purchase_url: form.purchase_url || null,
           sort_order: Number(form.sort_order),
           is_published: form.is_published,
         },
@@ -68,6 +69,12 @@ export default function DiscographyNewPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
               <textarea rows={4} value={form.description} onChange={(e) => set('description', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">購入URL</label>
+              <input type="url" value={form.purchase_url} onChange={(e) => set('purchase_url', e.target.value)}
+                placeholder="https://..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
             </div>
             <ImageUploader
               value={form.image_url || null}

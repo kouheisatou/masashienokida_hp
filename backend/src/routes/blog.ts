@@ -6,16 +6,30 @@ const router = Router();
 
 const ITEMS_PER_PAGE = 9;
 
+// ── Public: list blog categories ─────────────────────────────────
+router.get('/categories', async (_req, res) => {
+  try {
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, name: true, slug: true, sortOrder: true },
+    });
+    res.json(categories);
+  } catch {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Public: list blog posts ──────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const page = Math.max(Number(req.query.page ?? 1), 1);
-    const category = req.query.category as string | undefined;
+    const categorySlug = req.query.category as string | undefined;
     const offset = (page - 1) * ITEMS_PER_PAGE;
 
     const where: Prisma.BlogPostWhereInput = {
       isPublished: true,
       publishedAt: { lte: new Date() },
-      ...(category ? { category } : {}),
+      ...(categorySlug ? { category: { slug: categorySlug } } : {}),
     };
 
     const [total, posts] = await prisma.$transaction([
@@ -30,7 +44,7 @@ router.get('/', async (req, res) => {
           title: true,
           excerpt: true,
           thumbnailUrl: true,
-          category: true,
+          category: { select: { id: true, name: true, slug: true } },
           membersOnly: true,
           publishedAt: true,
         },
@@ -47,7 +61,7 @@ router.get('/', async (req, res) => {
         title: p.title,
         excerpt: p.excerpt,
         thumbnail: p.thumbnailUrl ? { url: p.thumbnailUrl } : undefined,
-        category: p.category ? { id: p.category, name: p.category } : undefined,
+        category: p.category ? { id: p.category.slug, name: p.category.name } : undefined,
         publishedAt: p.publishedAt,
         membersOnly: p.membersOnly,
         isLocked: p.membersOnly && !isMember,
@@ -60,6 +74,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ── Public: get single blog post ─────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
     const post = await prisma.blogPost.findFirst({
@@ -67,6 +82,9 @@ router.get('/:id', async (req, res) => {
         id: req.params.id,
         isPublished: true,
         publishedAt: { lte: new Date() },
+      },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
       },
     });
 
@@ -85,7 +103,7 @@ router.get('/:id', async (req, res) => {
       content: isLocked ? null : post.content,
       excerpt: post.excerpt,
       thumbnail: post.thumbnailUrl ? { url: post.thumbnailUrl } : undefined,
-      category: post.category ? { id: post.category, name: post.category } : undefined,
+      category: post.category ? { id: post.category.slug, name: post.category.name } : undefined,
       publishedAt: post.publishedAt,
       membersOnly: post.membersOnly,
       isLocked,

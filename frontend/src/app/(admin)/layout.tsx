@@ -77,7 +77,8 @@ export default function AdminLayout({
         />
       </head>
       <body className="min-h-screen bg-burgundy-black">
-        {/* Mobile sidebar backdrop */}
+        <div className="relative z-10">
+          {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -183,6 +184,7 @@ export default function AdminLayout({
             <X size={24} />
           </button>
         )}
+        </div>
       </body>
     </html>
   );

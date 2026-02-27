@@ -65,7 +65,7 @@ export default function ConcertsPage() {
               </div>
             ) : (
               upcomingConcerts.map((concert) => (
-                <article key={concert.id} className="card overflow-hidden">
+                <article key={concert.id} className="card overflow-hidden group">
                   {/* Venue Photo */}
                   <div className="relative h-56 overflow-hidden">
                     {concert.image_url ? (
@@ -93,7 +93,9 @@ export default function ConcertsPage() {
 
                   {/* Content */}
                   <div className="p-8">
-                    <h3 className="text-xl mb-4">{concert.title}</h3>
+                    <Link href={`/concerts/${concert.id}/`} className="block group-hover:text-burgundy-accent transition-colors">
+                      <h3 className="text-xl mb-4">{concert.title}</h3>
+                    </Link>
 
                     <div className="space-y-2 mb-6">
                       {concert.time && (
@@ -143,9 +145,12 @@ export default function ConcertsPage() {
                     )}
 
                     <div className="flex flex-wrap gap-4">
+                      <Link href={`/concerts/${concert.id}/`} className="btn btn-outline">
+                        詳細を見る
+                      </Link>
                       {concert.ticket_url && (
                         <a href={concert.ticket_url} className="btn btn-primary">
-                          チケットを購入
+                          チケットを購入する
                         </a>
                       )}
                       <Link href="/supporters/" className="btn btn-outline">
@@ -230,9 +235,10 @@ export default function ConcertsPage() {
 
                     <div className="space-y-4">
                       {yearConcerts.map((concert) => (
-                        <div
+                        <Link
                           key={concert.id}
-                          className="flex gap-6 pb-4 border-b border-burgundy-border last:border-0"
+                          href={`/concerts/${concert.id}/`}
+                          className="flex gap-6 pb-4 border-b border-burgundy-border last:border-0 hover:opacity-80 transition-opacity"
                         >
                           <div className="w-24 flex-shrink-0 text-taupe text-sm">
                             {new Date(concert.date).toLocaleDateString('ja-JP', {
@@ -244,7 +250,7 @@ export default function ConcertsPage() {
                             <p className="text-beige mb-1">{concert.title}</p>
                             <p className="text-taupe text-sm">{concert.venue}</p>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>

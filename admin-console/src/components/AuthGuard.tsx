@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, api } from '@/lib/api';
+import { getToken, clearToken, api } from '@/lib/api';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,12 +17,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     api.GET('/auth/me')
       .then(({ data }) => {
         if (!data || data.user.role !== 'ADMIN') {
+          clearToken();
           router.replace('/login?error=forbidden');
         } else {
           setChecking(false);
         }
       })
       .catch(() => {
+        clearToken();
         router.replace('/login');
       });
   }, [router]);

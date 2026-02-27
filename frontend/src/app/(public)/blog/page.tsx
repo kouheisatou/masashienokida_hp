@@ -6,18 +6,11 @@ import { Calendar, Lock, ChevronLeft, ChevronRight, Crown, LogIn } from 'lucide-
 import { api, getGoogleSignInUrl, type components } from '@/lib/api';
 
 type BlogPost = components['schemas']['BlogPostSummary'];
-
-const categories = [
-  { id: '', name: 'すべて' },
-  { id: 'news', name: 'お知らせ' },
-  { id: 'concert', name: 'コンサート' },
-  { id: 'daily', name: '日常' },
-  { id: 'practice', name: '練習・レッスン' },
-  { id: 'travel', name: '旅' },
-];
+type BlogCategory = components['schemas']['BlogCategory'];
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +28,10 @@ export default function BlogPage() {
       }
       setAuthChecked(true);
     }).catch(() => setAuthChecked(true));
+
+    api.GET('/blog/categories').then(({ data }) => {
+      if (data) setCategories(data);
+    });
   }, []);
 
   useEffect(() => {
@@ -137,12 +134,22 @@ export default function BlogPage() {
       <section className="pb-8">
         <div className="container">
           <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => handleCategoryChange('')}
+              className={`px-4 py-2 rounded text-sm transition-colors ${
+                selectedCategory === ''
+                  ? 'bg-burgundy-accent text-white'
+                  : 'bg-burgundy-light text-taupe hover:text-beige'
+              }`}
+            >
+              すべて
+            </button>
             {categories.map((cat) => (
               <button
-                key={cat.id}
-                onClick={() => handleCategoryChange(cat.id)}
+                key={cat.slug}
+                onClick={() => handleCategoryChange(cat.slug)}
                 className={`px-4 py-2 rounded text-sm transition-colors ${
-                  selectedCategory === cat.id
+                  selectedCategory === cat.slug
                     ? 'bg-burgundy-accent text-white'
                     : 'bg-burgundy-light text-taupe hover:text-beige'
                 }`}

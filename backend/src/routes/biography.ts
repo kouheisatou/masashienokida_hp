@@ -8,12 +8,14 @@ function serializeBiography(b: {
   id: string;
   year: string;
   description: string;
+  sortOrder: number;
   createdAt: Date;
 }) {
   return {
     id: b.id,
     year: b.year,
     description: b.description,
+    sort_order: b.sortOrder,
     created_at: b.createdAt,
   };
 }
@@ -21,7 +23,7 @@ function serializeBiography(b: {
 router.get('/', async (_req, res) => {
   try {
     const rows = await prisma.biography.findMany({
-      orderBy: { year: 'asc' },
+      orderBy: { sortOrder: 'asc' },
     });
     res.json(rows.map(serializeBiography));
   } catch {
@@ -31,9 +33,9 @@ router.get('/', async (_req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description } = req.body;
+    const { year, description, sort_order } = req.body;
     const row = await prisma.biography.create({
-      data: { year, description },
+      data: { year, description, sortOrder: sort_order ?? 0 },
     });
     res.status(201).json(serializeBiography(row));
   } catch {
@@ -41,12 +43,33 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
+router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
+  try {
+    const items: { id: string; sort_order: number }[] = req.body;
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.biography.update({
+          where: { id: item.id },
+          data: { sortOrder: item.sort_order },
+        })
+      )
+    );
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description } = req.body;
+    const { year, description, sort_order } = req.body;
+    const data: { year?: string; description?: string; sortOrder?: number } = {};
+    if (year !== undefined) data.year = year;
+    if (description !== undefined) data.description = description;
+    if (sort_order !== undefined) data.sortOrder = sort_order;
     const row = await prisma.biography.update({
       where: { id: req.params.id },
-      data: { year, description },
+      data,
     });
     res.json(serializeBiography(row));
   } catch (err: unknown) {

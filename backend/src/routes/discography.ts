@@ -10,6 +10,7 @@ function serializeDiscography(d: {
   releaseYear: number;
   description: string | null;
   imageUrl: string | null;
+  purchaseUrl: string | null;
   sortOrder: number;
   isPublished: boolean;
   createdAt: Date;
@@ -20,6 +21,7 @@ function serializeDiscography(d: {
     release_year: d.releaseYear,
     description: d.description,
     image_url: d.imageUrl,
+    purchase_url: d.purchaseUrl,
     sort_order: d.sortOrder,
     is_published: d.isPublished,
     created_at: d.createdAt,
@@ -55,13 +57,14 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, release_year, description, image_url, sort_order, is_published } = req.body;
+    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = req.body;
     const row = await prisma.discography.create({
       data: {
         title,
         releaseYear: release_year,
         description,
         imageUrl: image_url,
+        purchaseUrl: purchase_url,
         sortOrder: sort_order ?? 0,
         isPublished: is_published ?? true,
       },
@@ -74,7 +77,7 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, release_year, description, image_url, sort_order, is_published } = req.body;
+    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = req.body;
     const row = await prisma.discography.update({
       where: { id: req.params.id },
       data: {
@@ -82,6 +85,7 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
         releaseYear: release_year,
         description,
         imageUrl: image_url,
+        purchaseUrl: purchase_url,
         sortOrder: sort_order,
         isPublished: is_published,
       },

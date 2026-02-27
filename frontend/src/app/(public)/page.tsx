@@ -15,7 +15,7 @@ export default function HomePage() {
   const [discography, setDiscography] = useState<DiscographyItem[]>([]);
 
   useEffect(() => {
-    api.GET('/blog', { params: { query: { category: 'news' } } }).then(({ data }) => { if (data) setNews(data.posts.slice(0, 3)); });
+    api.GET('/blog').then(({ data }) => { if (data) setNews(data.posts.slice(0, 3)); });
     api.GET('/concerts', { params: { query: { upcoming: 'true' } } }).then(({ data }) => { if (data) setConcerts(data); });
     api.GET('/discography').then(({ data }) => { if (data) setDiscography(data); });
   }, []);
@@ -184,7 +184,7 @@ export default function HomePage() {
 
           <div className="max-w-3xl mx-auto space-y-6">
             {concerts.length > 0 ? concerts.slice(0, 2).map((concert) => (
-              <div key={concert.id} className="card overflow-hidden">
+              <Link key={concert.id} href={`/concerts/${concert.id}/`} className="card overflow-hidden block group hover:shadow-card transition-shadow">
                 {concert.image_url && (
                   <div className="relative h-48 overflow-hidden">
                     <img
@@ -216,14 +216,11 @@ export default function HomePage() {
                       {concert.program.slice(0, 3).join(' / ')} 他
                     </p>
                   )}
-                  <Link
-                    href="/concerts/"
-                    className="text-sm text-burgundy-accent hover:text-white transition-colors"
-                  >
+                  <span className="text-sm text-burgundy-accent group-hover:text-white transition-colors">
                     詳細を見る →
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             )) : (
               <div className="card overflow-hidden p-8 text-center text-taupe">
                 近日開催のコンサート情報をお待ちください
@@ -246,7 +243,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {discography.length > 0 ? discography.slice(0, 4).map((album) => (
-              <div key={album.id} className="card overflow-hidden group">
+              <Link key={album.id} href={`/discography/${album.id}/`} className="card overflow-hidden group block hover:shadow-card transition-shadow">
                 {album.image_url ? (
                   <div className="aspect-square overflow-hidden">
                     <img
@@ -261,18 +258,27 @@ export default function HomePage() {
                   </div>
                 )}
                 <div className="p-6">
-                  <h3 className="text-lg mb-2">{album.title}</h3>
+                  <h3 className="text-lg mb-2 group-hover:text-burgundy-accent transition-colors">{album.title}</h3>
                   <p className="text-taupe text-sm mb-4">{album.release_year}年発売</p>
                   {album.description && (
-                    <p className="text-sm text-taupe">{album.description}</p>
+                    <p className="text-sm text-taupe line-clamp-2">{album.description}</p>
                   )}
+                  <span className="text-sm text-burgundy-accent group-hover:text-white transition-colors mt-2 inline-block">
+                    詳細を見る →
+                  </span>
                 </div>
-              </div>
+              </Link>
             )) : (
               <div className="col-span-2 text-center text-taupe py-8">
                 ディスコグラフィ情報をお待ちください
               </div>
             )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link href="/discography/" className="btn btn-outline">
+              全てのDISCOGRAPHYを見る
+            </Link>
           </div>
         </div>
       </section>

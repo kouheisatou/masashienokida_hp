@@ -112,7 +112,7 @@ router.get(
       const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001';
       const allowedEmails = getAdminEmails();
 
-      if (allowedEmails.length > 0 && !allowedEmails.includes(user.email.toLowerCase())) {
+      if (allowedEmails.length === 0 || !allowedEmails.includes(user.email.toLowerCase())) {
         res.redirect(`${adminConsoleUrl}/auth/callback?error=forbidden`);
         return;
       }
