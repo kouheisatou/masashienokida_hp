@@ -12,10 +12,10 @@ function AuthCallbackContent() {
     const token = params.get('token');
     if (token) {
       setToken(token);
-      router.replace('/');
-    } else {
-      router.replace('/');
+      // 他コンポーネント（Header等）にログイン完了を通知し、/auth/me を再フェッチさせる
+      window.dispatchEvent(new CustomEvent('auth:login'));
     }
+    router.replace('/');
   }, [params, router]);
 
   return (
