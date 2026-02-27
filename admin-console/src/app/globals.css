@@ -1,1 +1,71 @@
 @import "tailwindcss";
+
+/* Curtain-like textured background */
+body {
+  background-color: #1a0a0a;
+  position: relative;
+  min-height: 100vh;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Curtain folds — overlapping vertical gradients at slightly varied angles */
+body::before {
+  background:
+    repeating-linear-gradient(
+      88deg,
+      rgba(139, 69, 69, 0.07) 0px,
+      transparent 18px,
+      rgba(45, 22, 22, 0.10) 36px,
+      transparent 54px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      rgba(212, 196, 176, 0.03) 0px,
+      transparent 22px,
+      rgba(139, 69, 69, 0.06) 44px,
+      transparent 66px
+    ),
+    repeating-linear-gradient(
+      87deg,
+      rgba(45, 22, 22, 0.12) 0px,
+      transparent 30px,
+      rgba(212, 196, 176, 0.04) 60px,
+      transparent 90px
+    ),
+    repeating-linear-gradient(
+      93deg,
+      transparent 0px,
+      rgba(139, 69, 69, 0.05) 14px,
+      transparent 28px,
+      rgba(26, 10, 10, 0.08) 42px
+    ),
+    repeating-linear-gradient(
+      89deg,
+      rgba(26, 10, 10, 0.06) 0px,
+      rgba(80, 35, 35, 0.08) 20px,
+      transparent 40px,
+      rgba(45, 22, 22, 0.10) 60px
+    );
+}
+
+/* Grain / noise texture via SVG filter */
+body::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+/* Ensure content sits above the texture layers */
+body > * {
+  position: relative;
+  z-index: 1;
+}

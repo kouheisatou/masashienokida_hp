@@ -1,0 +1,68 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Pull latest code
+        run: |
+          cd ~/masashienokida_hp
+          git fetch origin production
+          git checkout production
+          git reset --hard origin/production
+
+      - name: Generate .env from secrets
+        run: |
+          cat > ~/masashienokida_hp/.env << 'ENVEOF'
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_GOLD_PRICE_ID=${{ secrets.STRIPE_GOLD_PRICE_ID }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          MAIL_FROM=${{ secrets.MAIL_FROM }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+          MINIO_BUCKET=${{ secrets.MINIO_BUCKET }}
+          MINIO_PUBLIC_URL=${{ secrets.MINIO_PUBLIC_URL }}
+          ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
+          NODE_ENV=production
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          ADMIN_CONSOLE_URL=${{ secrets.ADMIN_CONSOLE_URL }}
+          ENVEOF
+          # Remove leading whitespace from heredoc indentation
+          sed -i 's/^          //' ~/masashienokida_hp/.env
+
+      - name: Deploy with Docker Compose
+        run: |
+          cd ~/masashienokida_hp
+          docker compose -f docker-compose.prod.yml up --build -d
+
+      - name: Clean up old images
+        run: docker image prune -f
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -sf http://localhost/health || echo "Health check failed - check logs"
