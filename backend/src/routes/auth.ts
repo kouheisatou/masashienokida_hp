@@ -65,73 +65,85 @@ passport.use(
   )
 );
 
-passport.use(
-  'google-admin',
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.ADMIN_CONSOLE_GOOGLE_CALLBACK_URL!,
-    },
-    async (_accessToken, _refreshToken, profile, done) => {
-      try {
-        done(null, await upsertGoogleUser(profile));
-      } catch (err) {
-        done(err);
-      }
-    }
-  )
-);
-
 router.get(
   '/google',
   passport.authenticate('google', { scope: ['email', 'profile'], session: false })
 );
 
 router.get(
-  '/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/?auth=error`,
-  }),
-  (req, res) => {
-    const user = req.user!;
-    const token = jwt.sign(
-      { userId: user.userId, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: '30d' }
-    );
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
-  }
-);
-
-router.get(
   '/admin/google',
-  passport.authenticate('google-admin', { scope: ['email', 'profile'], session: false })
+  passport.authenticate('google', {
+    scope: ['email', 'profile'],
+    session: false,
+    state: 'admin',
+  } as object)
 );
 
+function getAdminEmails(): string[] {
+  const raw = process.env.ADMIN_EMAILS ?? '';
+  return raw
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 router.get(
-  '/admin/google/callback',
-  passport.authenticate('google-admin', {
-    session: false,
-    failureRedirect: `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=auth_failed`,
-  }),
-  (req, res) => {
+  '/google/callback',
+  (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err: unknown, user: (AuthPayload & { id: string }) | false) => {
+      const isAdmin = req.query.state === 'admin';
+      if (err || !user) {
+        if (isAdmin) {
+          return res.redirect(
+            `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=auth_failed`,
+          );
+        }
+        return res.redirect(`${process.env.FRONTEND_URL}/?auth=error`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
+  async (req, res) => {
     const user = req.user!;
-    if (user.role !== 'ADMIN') {
-      res.redirect(
-        `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?error=forbidden`
+    const isAdmin = req.query.state === 'admin';
+
+    if (isAdmin) {
+      const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001';
+      const allowedEmails = getAdminEmails();
+
+      if (allowedEmails.length > 0 && !allowedEmails.includes(user.email.toLowerCase())) {
+        res.redirect(`${adminConsoleUrl}/auth/callback?error=forbidden`);
+        return;
+      }
+
+      if (user.role !== 'ADMIN') {
+        if (allowedEmails.includes(user.email.toLowerCase())) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: 'ADMIN' },
+          });
+          user.role = 'ADMIN';
+        } else {
+          res.redirect(`${adminConsoleUrl}/auth/callback?error=forbidden`);
+          return;
+        }
+      }
+
+      const token = jwt.sign(
+        { userId: user.userId, email: user.email, role: user.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: '30d' }
       );
-      return;
+      res.redirect(`${adminConsoleUrl}/auth/callback?token=${token}`);
+    } else {
+      const token = jwt.sign(
+        { userId: user.userId, email: user.email, role: user.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: '30d' }
+      );
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
     }
-    const token = jwt.sign(
-      { userId: user.userId, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: '30d' }
-    );
-    res.redirect(
-      `${process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001'}/auth/callback?token=${token}`
-    );
   }
 );
 

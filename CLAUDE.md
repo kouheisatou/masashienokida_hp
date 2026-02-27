@@ -96,6 +96,7 @@ All required variables documented in `.env.example`. Key groups:
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL`
 - `STRIPE_*` — Stripe keys, webhook secret, `STRIPE_GOLD_PRICE_ID`
 - `SMTP_*` / `MAIL_FROM` / `ADMIN_EMAIL` — nodemailer SMTP settings
+- `ADMIN_EMAILS` — 管理コンソールにログイン可能な Gmail アドレス（カンマ区切り）。該当メールで管理コンソールにログインすると自動的に ADMIN ロールに昇格
 - `NEXT_PUBLIC_API_URL=http://localhost:4000` — browser-facing backend URL
 - `FRONTEND_URL=http://localhost:3000` — for CORS and OAuth redirect
 
