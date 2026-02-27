@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Workflow
+
+- **main** — 開発作業は常に main ブランチで行う
+- **production** — デプロイ用。main からマージするのみ。**production で直接作業・コミット・プッシュは禁止**
+- デプロイ手順: main で作業 → コミット・プッシュ → main を production にマージ → production をプッシュ → GitHub Actions で VPS デプロイ
+
 ## Project Overview
 
 Masashi Enokida Pianist website — a professional portfolio and membership platform. The architecture is a monorepo with:
