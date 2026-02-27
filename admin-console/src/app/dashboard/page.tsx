@@ -29,29 +29,29 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h1>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h1>
 
           {error && <p className="text-red-600 mb-4">{error}</p>}
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
               { label: '総会員数', value: stats?.totalMembers ?? '—' },
               { label: 'ゴールド会員', value: stats?.goldMembers ?? '—' },
               { label: 'フリー会員', value: stats?.freeMembers ?? '—' },
               { label: '未読問い合わせ', value: stats?.unreadContacts ?? '—' },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-xl shadow-sm p-6">
+              <div key={label} className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <p className="text-sm text-gray-500">{label}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{value}</p>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Recent contacts */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-4">最近のお問い合わせ</h2>
               {recentContacts.length === 0 ? (
                 <p className="text-sm text-gray-400">なし</p>
@@ -68,7 +68,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent members */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-4">最近の会員登録</h2>
               {recentMembers.length === 0 ? (
                 <p className="text-sm text-gray-400">なし</p>

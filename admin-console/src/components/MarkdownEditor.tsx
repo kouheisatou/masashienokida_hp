@@ -74,7 +74,7 @@ export default function MarkdownEditor({ value, onChange, height = 520 }: Props)
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 text-xs bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-md border border-gray-300 transition-colors"
+          className="flex items-center gap-1.5 text-xs bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-md border border-gray-300 transition-colors min-h-[44px] touch-manipulation"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -86,7 +86,7 @@ export default function MarkdownEditor({ value, onChange, height = 520 }: Props)
           </svg>
           画像を挿入
         </button>
-        <span className="text-xs text-gray-400">JPG / PNG / WebP（最大10MB）→ WebP に自動変換・1200px にリサイズ</span>
+        <span className="text-xs text-gray-400 hidden sm:inline">JPG / PNG / WebP（最大10MB）→ WebP に自動変換・1200px にリサイズ</span>
       </div>
 
       <input

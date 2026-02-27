@@ -55,24 +55,24 @@ export default function MembersPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">会員管理</h1>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">会員管理</h1>
             <p className="text-sm text-gray-500">全 {total} 件</p>
           </div>
 
-          <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-4">
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="名前・メールで検索"
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-gray-400" />
+              className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-gray-400 min-h-[44px]" />
             <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); load(1, search, e.target.value); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+              className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 min-h-[44px] w-full sm:w-auto">
               <option value="all">すべてのロール</option>
               <option value="MEMBER_GOLD">ゴールド会員</option>
               <option value="MEMBER_FREE">フリー会員</option>
               <option value="USER">ユーザー</option>
               <option value="ADMIN">管理者</option>
             </select>
-            <button type="submit" className="bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">検索</button>
+            <button type="submit" className="bg-gray-200 text-gray-700 text-sm px-4 py-2.5 rounded-lg hover:bg-gray-300 transition-colors min-h-[44px] touch-manipulation">検索</button>
           </form>
 
           {loading ? (
@@ -81,8 +81,8 @@ export default function MembersPage() {
             <p className="text-gray-400 text-sm">会員がいません</p>
           ) : (
             <>
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+                <table className="w-full text-sm min-w-[600px]">
                   <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
                     <tr>
                       <th className="px-6 py-3 text-left">会員</th>
@@ -133,7 +133,7 @@ export default function MembersPage() {
                 </table>
               </div>
               {totalPages > 1 && (
-                <div className="flex gap-2 mt-4 justify-end">
+                <div className="flex flex-wrap gap-2 mt-4 justify-end">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                     <button key={p} onClick={() => { setPage(p); load(p, search, roleFilter); }}
                       className={`px-3 py-1 rounded text-sm ${p === page ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}>

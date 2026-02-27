@@ -109,22 +109,22 @@ export default function BiographyListPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">経歴</h1>
               {saving && <span className="text-xs text-gray-400">保存中...</span>}
             </div>
-            <Link href="/biography/new" className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+            <Link href="/biography/new" className="bg-gray-900 text-white text-sm px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors min-h-[44px] inline-flex items-center justify-center touch-manipulation w-fit">
               + 新規作成
             </Link>
           </div>
           {loading ? <p className="text-gray-500 text-sm">読み込み中...</p> : items.length === 0 ? (
             <p className="text-gray-400 text-sm">経歴がありません</p>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <table className="w-full text-sm">
+                <table className="w-full text-sm min-w-[400px]">
                   <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
                     <tr>
                       <th className="px-3 py-3 w-10"></th>

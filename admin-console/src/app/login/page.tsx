@@ -14,8 +14,8 @@ function LoginContent() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-sm text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-10 w-full max-w-sm text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">管理コンソール</h1>
         <p className="text-gray-500 text-sm mb-8">榎田まさし ピアニスト</p>
         {error === 'forbidden' && (
@@ -34,7 +34,7 @@ function LoginContent() {
         )}
         <a
           href={getAdminGoogleSignInUrl()}
-          className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg px-4 py-3.5 text-gray-700 font-medium hover:bg-gray-50 transition-colors min-h-[48px] touch-manipulation"
         >
           <svg width="20" height="20" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
