@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/Header';
+import { SnackBarProvider } from '@/components/SnackBar';
 
 export const metadata: Metadata = {
   title: {
@@ -48,10 +49,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <div className="relative z-10">
-          <Header />
-          <main>{children}</main>
-        </div>
+        <SnackBarProvider>
+          <div className="relative z-10">
+            <Header />
+            <main>{children}</main>
+          </div>
+        </SnackBarProvider>
       </body>
     </html>
   );

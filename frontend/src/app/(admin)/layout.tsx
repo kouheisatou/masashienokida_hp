@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { api, clearToken, type components } from '@/lib/api';
+import { SnackBarProvider } from '@/components/SnackBar';
 
 type User = components['schemas']['User'];
 import '../(public)/globals.css';
@@ -77,6 +78,7 @@ export default function AdminLayout({
         />
       </head>
       <body className="min-h-screen bg-burgundy-black">
+        <SnackBarProvider>
         <div className="relative z-10">
           {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
@@ -185,6 +187,7 @@ export default function AdminLayout({
           </button>
         )}
         </div>
+        </SnackBarProvider>
       </body>
     </html>
   );
