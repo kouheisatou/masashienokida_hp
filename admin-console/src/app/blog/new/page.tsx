@@ -155,18 +155,18 @@ export default function BlogNewPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* ヘッダー */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">ブログ 新規作成</h1>
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ブログ 新規作成</h1>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <span className={`text-sm ${statusColor[saveStatus]}`}>
                 {statusLabel[saveStatus]}
               </span>
               <button
                 type="button"
                 onClick={() => router.push('/blog')}
-                className="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="text-sm text-gray-500 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors min-h-[44px] touch-manipulation"
               >
                 キャンセル
               </button>
@@ -174,7 +174,7 @@ export default function BlogNewPage() {
                 type="button"
                 onClick={handlePublish}
                 disabled={publishing || (publishMode === 'scheduled' && !form.published_at)}
-                className="bg-gray-900 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                className="bg-gray-900 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-h-[44px] touch-manipulation"
               >
                 {publishing ? '公開中...' : isScheduledFuture ? '予約公開する' : '公開する'}
               </button>
@@ -197,7 +197,7 @@ export default function BlogNewPage() {
             />
 
             {/* メタデータ */}
-            <div className="bg-white rounded-xl shadow-sm p-5 grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">抜粋</label>
                 <textarea
@@ -263,7 +263,7 @@ export default function BlogNewPage() {
                   />
                 )}
               </div>
-              <div className="col-span-2 flex gap-6 pt-1">
+              <div className="sm:col-span-2 flex gap-6 pt-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"

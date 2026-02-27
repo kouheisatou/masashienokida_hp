@@ -3,6 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: '榎田まさし — 管理コンソール',
+  viewport: { width: 'device-width', initialScale: 1 },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

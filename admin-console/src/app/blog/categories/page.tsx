@@ -76,13 +76,13 @@ export default function BlogCategoriesPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">ブログカテゴリ管理</h1>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">ブログカテゴリ管理</h1>
 
           {/* Add form */}
-          <form onSubmit={handleCreate} className="bg-white rounded-xl shadow-sm p-5 mb-8">
+          <form onSubmit={handleCreate} className="bg-white rounded-xl shadow-sm p-4 sm:p-5 mb-8">
             <h2 className="text-sm font-semibold text-gray-700 mb-4">新しいカテゴリを追加</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">カテゴリ名</label>
                 <input
@@ -103,17 +103,17 @@ export default function BlogCategoriesPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">表示順</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="number"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(Number(e.target.value))}
-                    className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    className="w-full sm:w-24 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 min-h-[44px]"
                   />
                   <button
                     type="submit"
                     disabled={creating || !name.trim() || !slug.trim()}
-                    className="bg-gray-900 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                    className="bg-gray-900 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-h-[44px] touch-manipulation"
                   >
                     {creating ? '追加中...' : '追加'}
                   </button>
@@ -127,8 +127,8 @@ export default function BlogCategoriesPage() {
           {loading ? (
             <p className="text-gray-500 text-sm">読み込み中...</p>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+              <table className="w-full text-sm min-w-[400px]">
                 <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
                   <tr>
                     <th className="text-left px-5 py-3">カテゴリ名</th>

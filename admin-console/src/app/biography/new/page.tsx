@@ -33,10 +33,10 @@ export default function BiographyNewPage() {
   return (
     <AuthGuard>
       <AdminShell>
-        <div className="p-8 max-w-2xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">経歴 新規作成</h1>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-2xl">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">経歴 新規作成</h1>
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">年 *</label>
               <input required type="number" value={form.year} onChange={(e) => set('year', e.target.value)}
@@ -47,13 +47,13 @@ export default function BiographyNewPage() {
               <textarea required rows={5} value={form.description} onChange={(e) => set('description', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y" />
             </div>
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <button type="submit" disabled={saving}
-                className="bg-gray-900 text-white text-sm px-6 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors">
+                className="bg-gray-900 text-white text-sm px-6 py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-h-[44px] touch-manipulation">
                 {saving ? '保存中...' : '保存'}
               </button>
               <button type="button" onClick={() => router.push('/biography')}
-                className="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                className="text-sm text-gray-500 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors min-h-[44px] touch-manipulation">
                 キャンセル
               </button>
             </div>
