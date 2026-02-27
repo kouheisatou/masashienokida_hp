@@ -113,6 +113,13 @@ router.get(
       const allowedEmails = getAdminEmails();
 
       if (allowedEmails.length === 0 || !allowedEmails.includes(user.email.toLowerCase())) {
+        // ADMIN_EMAILS から外れたユーザーは DB の role を即時ダウングレード
+        if (user.role === 'ADMIN') {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: 'USER' },
+          });
+        }
         res.redirect(`${adminConsoleUrl}/auth/callback?error=forbidden`);
         return;
       }
@@ -137,8 +144,21 @@ router.get(
       );
       res.redirect(`${adminConsoleUrl}/auth/callback?token=${token}`);
     } else {
+      // メインサイトフロー: ADMIN ロールでも ADMIN_EMAILS に含まれていなければ
+      // トークン発行時に role を USER に下げる（管理コンソール迂回を防ぐ）
+      let roleForToken = user.role;
+      if (user.role === 'ADMIN') {
+        const allowedEmails = getAdminEmails();
+        if (allowedEmails.length > 0 && !allowedEmails.includes(user.email.toLowerCase())) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: 'USER' },
+          });
+          roleForToken = 'USER';
+        }
+      }
       const token = jwt.sign(
-        { userId: user.userId, email: user.email, role: user.role },
+        { userId: user.userId, email: user.email, role: roleForToken },
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       );
