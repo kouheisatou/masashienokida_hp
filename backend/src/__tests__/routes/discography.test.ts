@@ -16,6 +16,7 @@ const FAKE_DISC = {
   releaseYear: 2023,
   description: 'テスト説明',
   imageUrl: null,
+  purchaseUrl: null,
   sortOrder: 0,
   isPublished: true,
   createdAt: new Date('2024-01-01T00:00:00Z'),

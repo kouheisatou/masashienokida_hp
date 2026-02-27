@@ -105,7 +105,7 @@ router.get(
     })(req, res, next);
   },
   async (req, res) => {
-    const user = req.user!;
+    const user = req.user! as AuthPayload & { id: string };
     const isAdmin = req.query.state === 'admin';
 
     if (isAdmin) {

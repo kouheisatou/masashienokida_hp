@@ -18,6 +18,7 @@ const FAKE_POST_PUBLIC = {
   content: '記事本文',
   excerpt: '記事の要約',
   thumbnailUrl: null,
+  categoryId: null,
   category: null,
   membersOnly: false,
   isPublished: true,

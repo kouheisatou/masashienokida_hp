@@ -42,6 +42,7 @@ const FAKE_ARTICLE = {
   content: '本文',
   excerpt: '要約',
   thumbnailUrl: null,
+  categoryId: null,
   category: null,
   membersOnly: true,
   isPublished: true,

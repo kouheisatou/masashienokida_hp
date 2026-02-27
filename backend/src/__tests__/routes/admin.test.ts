@@ -93,6 +93,7 @@ const FAKE_BLOG_POST = {
   content: '本文',
   excerpt: null,
   thumbnailUrl: null,
+  categoryId: null,
   category: null,
   membersOnly: false,
   isPublished: false,

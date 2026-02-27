@@ -33,7 +33,8 @@ async function main() {
         title: 'P.カザルスへのオマージュ',
         releaseYear: 2014,
         description:
-          'パブロ・カザルスの作品を収録したCD。各地でのリサイタル活動の集大成として制作。\n\n制作・販売：株式会社音楽センター\nご購入：https://www.ongakucenter.co.jp/SHOP/CCD910.html',
+          'パブロ・カザルスの作品を収録したCD。各地でのリサイタル活動の集大成として制作。\n\n制作・販売：株式会社音楽センター',
+        purchaseUrl: 'https://www.ongakucenter.co.jp/SHOP/CCD910.html',
         imageUrl: null,
         sortOrder: 1,
         isPublished: true,
@@ -42,7 +43,8 @@ async function main() {
         title: 'トロイメライ',
         releaseYear: 2017,
         description:
-          'ソロ・アルバムCD。世界初録音を含む全16曲収録。\n\n【収録曲】\n1. 幻想即興曲 … ショパン\n2. 小犬のワルツ … ショパン\n3. お菓子のベルト・コンベヤー … 湯山昭\n4. エリーゼのために … ベートーヴェン\n5. トロイメライ … シューマン\n6. ボレロ … ショパン\n7. 革命のエチュード … ショパン\n8. 舟歌 … チャイコフスキー\n9. もみの木 … シベリウス\n10. 月の光 … ドビュッシー\n11. 夢想 … ドビュッシー\n12. 火祭りの踊り … ファリャ\n13. 親密なページ … カザルス\n14. 盆踊 … 伊福部昭\n15. カノーネ … 吉田隆子\n16. 太鼓 … ダン・フー・ファク（世界初録音）\n\n制作・販売：株式会社音楽センター\nご購入：https://www.ongakucenter.co.jp/SHOP/CCD933.html',
+          'ソロ・アルバムCD。世界初録音を含む全16曲収録。\n\n【収録曲】\n1. 幻想即興曲 … ショパン\n2. 小犬のワルツ … ショパン\n3. お菓子のベルト・コンベヤー … 湯山昭\n4. エリーゼのために … ベートーヴェン\n5. トロイメライ … シューマン\n6. ボレロ … ショパン\n7. 革命のエチュード … ショパン\n8. 舟歌 … チャイコフスキー\n9. もみの木 … シベリウス\n10. 月の光 … ドビュッシー\n11. 夢想 … ドビュッシー\n12. 火祭りの踊り … ファリャ\n13. 親密なページ … カザルス\n14. 盆踊 … 伊福部昭\n15. カノーネ … 吉田隆子\n16. 太鼓 … ダン・フー・ファク（世界初録音）\n\n制作・販売：株式会社音楽センター',
+        purchaseUrl: 'https://www.ongakucenter.co.jp/SHOP/CCD933.html',
         imageUrl: null,
         sortOrder: 2,
         isPublished: true,
