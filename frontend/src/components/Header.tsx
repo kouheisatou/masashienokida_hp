@@ -30,12 +30,24 @@ export function Header() {
   const desktopRef = useRef<HTMLDivElement>(null);
   const mobileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const fetchUser = useCallback(() => {
     api.GET('/auth/me').then(({ data }) => {
       if (data) setUser(data.user);
+      else setUser(null);
       setAuthChecked(true);
     }).catch(() => setAuthChecked(true));
   }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  // 認証コールバック後のログイン完了を検知して再フェッチ
+  useEffect(() => {
+    const handler = () => fetchUser();
+    window.addEventListener('auth:login', handler);
+    return () => window.removeEventListener('auth:login', handler);
+  }, [fetchUser]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
