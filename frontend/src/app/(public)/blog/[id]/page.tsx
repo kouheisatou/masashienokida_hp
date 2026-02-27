@@ -209,7 +209,7 @@ export default function BlogDetailPage() {
                       ピアニスト。宮崎県小林市出身。UCLA にてヴィタリー・マルグリス氏に師事。
                     </p>
                     <Link
-                      href="/biography/"
+                      href="/#intro"
                       className="text-burgundy-accent text-sm hover:text-white transition-colors mt-2 inline-block"
                     >
                       プロフィールを見る →
