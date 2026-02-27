@@ -11,7 +11,7 @@ type BiographyEntry = components['schemas']['AdminBiographyEntry'];
 export default function BiographyEditPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const [form, setForm] = useState<Partial<BiographyEntry & { year_str: string; sort_str: string }>>({});
+  const [form, setForm] = useState<Partial<BiographyEntry & { year_str: string }>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export default function BiographyEditPage() {
   useEffect(() => {
     api.GET('/admin/biography/{id}', { params: { path: { id } } }).then(({ data }) => {
       if (data) {
-        setForm({ ...data, year_str: String(data.year), sort_str: String(data.sort_order) });
+        setForm({ ...data, year_str: String(data.year) });
         setLoading(false);
       }
     });
@@ -39,7 +39,6 @@ export default function BiographyEditPage() {
         body: {
           year: form.year_str ?? '',
           description: form.description ?? '',
-          sort_order: Number(form.sort_str),
         },
       });
       if (apiError) throw new Error('保存に失敗しました');
@@ -63,17 +62,10 @@ export default function BiographyEditPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-6">経歴 編集</h1>
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">年 *</label>
-                <input required type="number" value={form.year_str ?? ''} onChange={(e) => set('year_str', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">表示順</label>
-                <input type="number" value={form.sort_str ?? '0'} onChange={(e) => set('sort_str', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">年 *</label>
+              <input required type="number" value={form.year_str ?? ''} onChange={(e) => set('year_str', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 max-w-xs" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">説明 *</label>

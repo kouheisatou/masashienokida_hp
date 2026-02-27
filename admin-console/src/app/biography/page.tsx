@@ -41,7 +41,6 @@ export default function BiographyListPage() {
                   <tr>
                     <th className="px-6 py-3 text-left">年</th>
                     <th className="px-6 py-3 text-left">説明</th>
-                    <th className="px-6 py-3 text-left">順序</th>
                     <th className="px-6 py-3"></th>
                   </tr>
                 </thead>
@@ -50,7 +49,6 @@ export default function BiographyListPage() {
                     <tr key={b.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 font-medium text-gray-900">{b.year}</td>
                       <td className="px-6 py-4 text-gray-600 max-w-md truncate">{b.description}</td>
-                      <td className="px-6 py-4 text-gray-500">{b.sort_order}</td>
                       <td className="px-6 py-4 text-right flex gap-3 justify-end">
                         <Link href={`/biography/${b.id}`} className="text-blue-600 hover:underline">編集</Link>
                         <button onClick={() => handleDelete(b.id)} className="text-red-500 hover:underline">削除</button>

@@ -72,45 +72,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/news": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List published news */
-        get: operations["getNews"];
-        put?: never;
-        /** Create news (admin) */
-        post: operations["createNews"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/news/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** Get single news item */
-        get: operations["getNewsById"];
-        /** Update news (admin) */
-        put: operations["updateNews"];
-        post?: never;
-        /** Delete news (admin) */
-        delete: operations["deleteNews"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/concerts": {
         parameters: {
             query?: never;
@@ -436,42 +397,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/news": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List all news including unpublished (admin) */
-        get: operations["getAdminNews"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/news/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        /** Get single news item (admin) */
-        get: operations["getAdminNewsById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/admin/concerts": {
         parameters: {
             query?: never;
@@ -649,28 +574,6 @@ export interface components {
             user: components["schemas"]["User"];
             subscription: components["schemas"]["Subscription"];
         };
-        NewsItem: {
-            /** Format: uuid */
-            id: string;
-            title: string;
-            body: string;
-            image_url?: string | null;
-            category?: string | null;
-            /** Format: date-time */
-            published_at: string;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        NewsInput: {
-            title: string;
-            body: string;
-            image_url?: string | null;
-            category?: string | null;
-            /** Format: date-time */
-            published_at?: string;
-            /** @default true */
-            is_published: boolean;
-        };
         Concert: {
             /** Format: uuid */
             id: string;
@@ -730,13 +633,10 @@ export interface components {
             id: string;
             year: string;
             description: string;
-            sort_order: number;
         };
         BiographyInput: {
             year: string;
             description: string;
-            /** @default 0 */
-            sort_order: number;
         };
         BlogPostSummary: {
             /** Format: uuid */
@@ -868,19 +768,6 @@ export interface components {
         UpdateNameInput: {
             name: string;
         };
-        AdminNewsItem: {
-            /** Format: uuid */
-            id: string;
-            title: string;
-            body: string;
-            image_url?: string | null;
-            category?: string | null;
-            /** Format: date-time */
-            published_at?: string | null;
-            is_published: boolean;
-            /** Format: date-time */
-            created_at: string;
-        };
         AdminConcert: {
             /** Format: uuid */
             id: string;
@@ -917,7 +804,6 @@ export interface components {
             id: string;
             year: string;
             description: string;
-            sort_order: number;
             /** Format: date-time */
             created_at: string;
         };
@@ -1048,137 +934,6 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkResponse"];
-                };
-            };
-        };
-    };
-    getNews: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NewsItem"][];
-                };
-            };
-        };
-    };
-    createNews: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["NewsInput"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NewsItem"];
-                };
-            };
-        };
-    };
-    getNewsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NewsItem"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateNews: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["NewsInput"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NewsItem"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteNews: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1890,55 +1645,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminMemberList"];
                 };
-            };
-        };
-    };
-    getAdminNews: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminNewsItem"][];
-                };
-            };
-        };
-    };
-    getAdminNewsById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminNewsItem"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

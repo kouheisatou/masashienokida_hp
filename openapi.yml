@@ -67,51 +67,6 @@ components:
         subscription:
           $ref: '#/components/schemas/Subscription'
 
-    NewsItem:
-      type: object
-      required: [id, title, body, published_at]
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        body:
-          type: string
-        image_url:
-          type: string
-          nullable: true
-        category:
-          type: string
-          nullable: true
-        published_at:
-          type: string
-          format: date-time
-        created_at:
-          type: string
-          format: date-time
-
-    NewsInput:
-      type: object
-      required: [title, body]
-      properties:
-        title:
-          type: string
-        body:
-          type: string
-        image_url:
-          type: string
-          nullable: true
-        category:
-          type: string
-          nullable: true
-        published_at:
-          type: string
-          format: date-time
-        is_published:
-          type: boolean
-          default: true
-
     Concert:
       type: object
       required: [id, title, date, venue, is_upcoming]
@@ -241,7 +196,7 @@ components:
 
     BiographyEntry:
       type: object
-      required: [id, year, description, sort_order]
+      required: [id, year, description]
       properties:
         id:
           type: string
@@ -250,8 +205,6 @@ components:
           type: string
         description:
           type: string
-        sort_order:
-          type: integer
 
     BiographyInput:
       type: object
@@ -261,9 +214,6 @@ components:
           type: string
         description:
           type: string
-        sort_order:
-          type: integer
-          default: 0
 
     BlogPostSummary:
       type: object
@@ -551,33 +501,6 @@ components:
           type: string
           minLength: 1
 
-    AdminNewsItem:
-      type: object
-      required: [id, title, body, is_published, created_at]
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        body:
-          type: string
-        image_url:
-          type: string
-          nullable: true
-        category:
-          type: string
-          nullable: true
-        published_at:
-          type: string
-          format: date-time
-          nullable: true
-        is_published:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-
     AdminConcert:
       type: object
       required: [id, title, date, venue, is_upcoming, is_published, created_at]
@@ -650,7 +573,7 @@ components:
 
     AdminBiographyEntry:
       type: object
-      required: [id, year, description, sort_order, created_at]
+      required: [id, year, description, created_at]
       properties:
         id:
           type: string
@@ -659,8 +582,6 @@ components:
           type: string
         description:
           type: string
-        sort_order:
-          type: integer
         created_at:
           type: string
           format: date-time
@@ -812,102 +733,6 @@ paths:
     delete:
       operationId: deleteAuthAccount
       summary: Delete account
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OkResponse'
-
-  /news:
-    get:
-      operationId: getNews
-      summary: List published news
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/NewsItem'
-    post:
-      operationId: createNews
-      summary: Create news (admin)
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewsInput'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NewsItem'
-
-  /news/{id}:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      operationId: getNewsById
-      summary: Get single news item
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NewsItem'
-        '404':
-          description: Not found
-    put:
-      operationId: updateNews
-      summary: Update news (admin)
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewsInput'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NewsItem'
-        '404':
-          description: Not found
-    delete:
-      operationId: deleteNews
-      summary: Delete news (admin)
       security:
         - bearerAuth: []
       responses:
@@ -1434,44 +1259,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminMemberList'
-
-  /admin/news:
-    get:
-      operationId: getAdminNews
-      summary: List all news including unpublished (admin)
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AdminNewsItem'
-
-  /admin/news/{id}:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      operationId: getAdminNewsById
-      summary: Get single news item (admin)
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminNewsItem'
-        '404':
-          description: Not found
 
   /admin/concerts:
     get:

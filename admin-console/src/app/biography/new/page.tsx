@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 
 export default function BiographyNewPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ year: '', description: '', sort_order: '0' });
+  const [form, setForm] = useState({ year: '', description: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,7 +21,7 @@ export default function BiographyNewPage() {
     setSaving(true);
     setError('');
     try {
-      const { error: apiError } = await api.POST('/biography', { body: { year: form.year, description: form.description, sort_order: Number(form.sort_order) } });
+      const { error: apiError } = await api.POST('/biography', { body: { year: form.year, description: form.description } });
       if (apiError) throw new Error('保存に失敗しました');
       router.push('/biography');
     } catch (err) {
@@ -37,17 +37,10 @@ export default function BiographyNewPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-6">経歴 新規作成</h1>
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">年 *</label>
-                <input required type="number" value={form.year} onChange={(e) => set('year', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">表示順</label>
-                <input type="number" value={form.sort_order} onChange={(e) => set('sort_order', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">年 *</label>
+              <input required type="number" value={form.year} onChange={(e) => set('year', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 max-w-xs" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">説明 *</label>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminShell from '@/components/AdminShell';
 import AuthGuard from '@/components/AuthGuard';
+import ImageUploader from '@/components/ImageUploader';
 import { api, type components } from '@/lib/api';
 
 type DiscographyItem = components['schemas']['AdminDiscographyItem'];
@@ -88,11 +89,10 @@ export default function DiscographyEditPage() {
               <textarea rows={4} value={form.description ?? ''} onChange={(e) => set('description', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">画像URL</label>
-              <input value={form.image_url ?? ''} onChange={(e) => set('image_url', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-            </div>
+            <ImageUploader
+              value={(form.image_url as string) ?? null}
+              onChange={(url) => set('image_url', url ?? '')}
+            />
             <div className="flex items-center gap-2">
               <input type="checkbox" id="is_published" checked={form.is_published ?? false} onChange={(e) => set('is_published', e.target.checked)} className="rounded" />
               <label htmlFor="is_published" className="text-sm text-gray-700">公開する</label>

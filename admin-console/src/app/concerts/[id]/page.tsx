@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminShell from '@/components/AdminShell';
 import AuthGuard from '@/components/AuthGuard';
+import ImageUploader from '@/components/ImageUploader';
 import { api, type components } from '@/lib/api';
 
 type Concert = components['schemas']['AdminConcert'];
@@ -122,11 +123,10 @@ export default function ConcertEditPage() {
               <textarea rows={3} value={form.note ?? ''} onChange={(e) => set('note', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">画像URL</label>
-              <input value={form.image_url ?? ''} onChange={(e) => set('image_url', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
-            </div>
+            <ImageUploader
+              value={(form.image_url as string) ?? null}
+              onChange={(url) => set('image_url', url ?? '')}
+            />
             <div className="flex gap-6">
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="is_upcoming" checked={form.is_upcoming ?? false} onChange={(e) => set('is_upcoming', e.target.checked)} className="rounded" />

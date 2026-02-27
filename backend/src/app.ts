@@ -7,7 +7,6 @@ import passport from 'passport';
 
 import { optionalAuth } from './middleware/auth';
 import authRouter from './routes/auth';
-import newsRouter from './routes/news';
 import concertsRouter from './routes/concerts';
 import discographyRouter from './routes/discography';
 import biographyRouter from './routes/biography';
@@ -55,7 +54,6 @@ app.use(passport.initialize());
 app.use(optionalAuth);
 
 app.use('/auth', authRouter);
-app.use('/news', newsRouter);
 app.use('/concerts', concertsRouter);
 app.use('/discography', discographyRouter);
 app.use('/biography', biographyRouter);

@@ -6,11 +6,10 @@ import { clearToken } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard', label: 'ダッシュボード', icon: '📊' },
-  { href: '/news', label: 'ニュース', icon: '📰' },
+  { href: '/blog', label: 'ブログ', icon: '✍️' },
   { href: '/concerts', label: 'コンサート', icon: '🎵' },
   { href: '/discography', label: 'ディスコグラフィー', icon: '💿' },
   { href: '/biography', label: '経歴', icon: '📝' },
-  { href: '/blog', label: 'ブログ', icon: '✍️' },
   { href: '/contacts', label: 'お問い合わせ', icon: '📬' },
   { href: '/members', label: '会員管理', icon: '👥' },
 ];

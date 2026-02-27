@@ -5,17 +5,17 @@ import Link from 'next/link';
 import { Calendar, MapPin, Music, Users } from 'lucide-react';
 import { api, type components } from '@/lib/api';
 
-type NewsItem = components['schemas']['NewsItem'];
+type BlogPost = components['schemas']['BlogPostSummary'];
 type Concert = components['schemas']['Concert'];
 type DiscographyItem = components['schemas']['DiscographyItem'];
 
 export default function HomePage() {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [news, setNews] = useState<BlogPost[]>([]);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [discography, setDiscography] = useState<DiscographyItem[]>([]);
 
   useEffect(() => {
-    api.GET('/news', { params: { query: { limit: 3 } } }).then(({ data }) => { if (data) setNews(data); });
+    api.GET('/blog', { params: { query: { category: 'news' } } }).then(({ data }) => { if (data) setNews(data.posts.slice(0, 3)); });
     api.GET('/concerts', { params: { query: { upcoming: 'true' } } }).then(({ data }) => { if (data) setConcerts(data); });
     api.GET('/discography').then(({ data }) => { if (data) setDiscography(data); });
   }, []);
@@ -100,29 +100,32 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {news.length > 0 ? news.map((item) => (
-              <article key={item.id} className="card overflow-hidden group">
-                {item.image_url && (
-                  <div className="aspect-video overflow-hidden">
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-taupe text-sm mb-3">
-                    <Calendar size={14} />
-                    <time>{new Date(item.published_at).toLocaleDateString('ja-JP')}</time>
-                  </div>
-                  <h3 className="text-lg mb-3">{item.title}</h3>
-                  {item.body && (
-                    <p className="text-taupe text-sm leading-relaxed line-clamp-3">{item.body}</p>
+              <Link key={item.id} href={`/blog/${item.id}/`}>
+                <article className="card overflow-hidden group">
+                  {item.thumbnail?.url ? (
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={item.thumbnail.url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video overflow-hidden bg-burgundy" />
                   )}
-                </div>
-              </article>
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 text-taupe text-sm mb-3">
+                      <Calendar size={14} />
+                      <time>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('ja-JP') : '—'}</time>
+                    </div>
+                    <h3 className="text-lg mb-3 group-hover:text-burgundy-accent transition-colors">{item.title}</h3>
+                    {item.excerpt && (
+                      <p className="text-taupe text-sm leading-relaxed line-clamp-3">{item.excerpt}</p>
+                    )}
+                  </div>
+                </article>
+              </Link>
             )) : (
-              /* Placeholder cards while loading or when empty */
               [
                 { seed: 'news-concert', icon: <Calendar size={14} />, title: 'コンサート情報' },
                 { seed: 'news-radio', icon: <Music size={14} />, title: 'メディア情報' },

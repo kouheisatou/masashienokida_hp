@@ -68,7 +68,7 @@ All dynamic data is fetched client-side. Pages are `'use client'` components.
 - `lib/prisma.ts` — Prisma Client singleton (reused across hot reloads)
 - `middleware/auth.ts` — `optionalAuth` (global), `requireAuth`; augments `Express.User` with `AuthPayload`
 - `middleware/requireRole.ts` — RBAC factory
-- `routes/` — auth, news, concerts, discography, biography, blog, members, contact, stripe, admin
+- `routes/` — auth, concerts, discography, biography, blog, members, contact, stripe, admin
 - `utils/email.ts` — nodemailer helpers
 
 ### Schema & API Single Sources of Truth
@@ -78,7 +78,7 @@ All dynamic data is fetched client-side. Pages are `'use client'` components.
 
 ### Database
 Schema in `backend/prisma/schema.prisma` (single source of truth). Key models:
-`User`, `Session`, `Subscription`, `Contact`, `News`, `Concert`, `Discography`, `Biography`, `BlogPost`, `RateLimit`
+`User`, `Session`, `Subscription`, `Contact`, `Concert`, `Discography`, `Biography`, `BlogPost`, `RateLimit`
 
 Migrations live in `backend/prisma/migrations/`. On container start the backend runs `prisma migrate deploy` automatically.
 

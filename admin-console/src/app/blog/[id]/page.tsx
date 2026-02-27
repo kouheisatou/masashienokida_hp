@@ -9,6 +9,16 @@ import { api, type components } from '@/lib/api';
 
 type BlogPost = components['schemas']['AdminBlogPost'];
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+type PublishMode = 'now' | 'scheduled';
+
+const CATEGORY_OPTIONS = [
+  { value: '', label: '選択してください' },
+  { value: 'news', label: 'お知らせ' },
+  { value: 'concert', label: 'コンサート' },
+  { value: 'daily', label: '日常' },
+  { value: 'practice', label: '練習・レッスン' },
+  { value: 'travel', label: '旅' },
+];
 
 export default function BlogEditPage() {
   const router = useRouter();
@@ -18,6 +28,7 @@ export default function BlogEditPage() {
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [publishing, setPublishing] = useState(false);
+  const [publishMode, setPublishMode] = useState<PublishMode>('now');
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestForm = useRef(form);
@@ -26,12 +37,11 @@ export default function BlogEditPage() {
   useEffect(() => {
     api.GET('/admin/blog/{id}', { params: { path: { id } } }).then(({ data }) => {
       if (data) {
-        setForm({
-          ...data,
-          published_at: data.published_at
-            ? new Date(data.published_at).toISOString().slice(0, 16)
-            : '',
-        });
+        const pa = data.published_at
+          ? new Date(data.published_at).toISOString().slice(0, 16)
+          : '';
+        setForm({ ...data, published_at: pa });
+        if (pa) setPublishMode('scheduled');
         setLoading(false);
       }
     });
@@ -66,7 +76,6 @@ export default function BlogEditPage() {
     [id]
   );
 
-  // コンテンツ変更で自動保存（debounce 2秒）
   useEffect(() => {
     if (loading) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -81,8 +90,13 @@ export default function BlogEditPage() {
   }, [form.title, form.content, form.excerpt, form.category, form.members_only, loading]);
 
   async function handlePublish() {
+    if (publishMode === 'scheduled' && !form.published_at) return;
     setPublishing(true);
     try {
+      const publishedAt = publishMode === 'now'
+        ? new Date().toISOString()
+        : new Date(form.published_at as string).toISOString();
+
       await api.PUT('/admin/blog/{id}', {
         params: { path: { id } },
         body: {
@@ -93,7 +107,7 @@ export default function BlogEditPage() {
           category: (form.category as string) || null,
           members_only: form.members_only ?? false,
           is_published: true,
-          published_at: (form.published_at as string) || new Date().toISOString(),
+          published_at: publishedAt,
         },
       });
       router.push('/blog');
@@ -132,6 +146,8 @@ export default function BlogEditPage() {
     saved: 'text-green-600',
     error: 'text-red-500',
   };
+
+  const isScheduledFuture = publishMode === 'scheduled' && form.published_at && new Date(form.published_at as string) > new Date();
 
   if (loading) {
     return (
@@ -182,10 +198,10 @@ export default function BlogEditPage() {
                 <button
                   type="button"
                   onClick={handlePublish}
-                  disabled={publishing}
+                  disabled={publishing || (publishMode === 'scheduled' && !form.published_at)}
                   className="bg-gray-900 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
                 >
-                  {publishing ? '公開中...' : '公開する'}
+                  {publishing ? '公開中...' : isScheduledFuture ? '予約公開する' : '公開する'}
                 </button>
               )}
             </div>
@@ -229,20 +245,48 @@ export default function BlogEditPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">カテゴリ</label>
-                <input
+                <select
                   value={(form.category as string) ?? ''}
                   onChange={(e) => set('category', e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                />
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
+                >
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">公開日時</label>
-                <input
-                  type="datetime-local"
-                  value={(form.published_at as string) ?? ''}
-                  onChange={(e) => set('published_at', e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-                />
+                <label className="block text-xs font-medium text-gray-500 mb-1">公開タイミング</label>
+                <div className="flex gap-4 mb-2">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="publishMode"
+                      checked={publishMode === 'now'}
+                      onChange={() => { setPublishMode('now'); set('published_at', ''); }}
+                      className="accent-gray-900"
+                    />
+                    <span className="text-sm text-gray-700">今すぐ</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="publishMode"
+                      checked={publishMode === 'scheduled'}
+                      onChange={() => setPublishMode('scheduled')}
+                      className="accent-gray-900"
+                    />
+                    <span className="text-sm text-gray-700">日時指定</span>
+                  </label>
+                </div>
+                {publishMode === 'scheduled' && (
+                  <input
+                    type="datetime-local"
+                    value={(form.published_at as string) ?? ''}
+                    onChange={(e) => set('published_at', e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  />
+                )}
               </div>
               <div className="col-span-2 flex gap-6 pt-1">
                 <label className="flex items-center gap-2 cursor-pointer">

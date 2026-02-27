@@ -179,37 +179,6 @@ router.get('/members', async (req, res) => {
   }
 });
 
-// ── News (admin read, includes unpublished) ───────────────────────
-
-router.get('/news', async (_req, res) => {
-  try {
-    const rows = await prisma.news.findMany({ orderBy: { createdAt: 'desc' } });
-    res.json(
-      rows.map((n) => ({
-        id: n.id, title: n.title, body: n.body, image_url: n.imageUrl,
-        category: n.category, published_at: n.publishedAt, is_published: n.isPublished,
-        created_at: n.createdAt,
-      }))
-    );
-  } catch {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-router.get('/news/:id', async (req, res) => {
-  try {
-    const row = await prisma.news.findUnique({ where: { id: req.params.id } });
-    if (!row) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json({
-      id: row.id, title: row.title, body: row.body, image_url: row.imageUrl,
-      category: row.category, published_at: row.publishedAt, is_published: row.isPublished,
-      created_at: row.createdAt, updated_at: row.updatedAt,
-    });
-  } catch {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // ── Concerts (admin read, includes unpublished) ───────────────────
 
 router.get('/concerts', async (_req, res) => {
@@ -283,12 +252,12 @@ router.get('/discography/:id', async (req, res) => {
 router.get('/biography', async (_req, res) => {
   try {
     const rows = await prisma.biography.findMany({
-      orderBy: [{ sortOrder: 'asc' }, { year: 'asc' }],
+      orderBy: { year: 'asc' },
     });
     res.json(
       rows.map((b) => ({
         id: b.id, year: b.year, description: b.description,
-        sort_order: b.sortOrder, created_at: b.createdAt,
+        created_at: b.createdAt,
       }))
     );
   } catch {
@@ -302,7 +271,7 @@ router.get('/biography/:id', async (req, res) => {
     if (!row) { res.status(404).json({ error: 'Not found' }); return; }
     res.json({
       id: row.id, year: row.year, description: row.description,
-      sort_order: row.sortOrder, created_at: row.createdAt, updated_at: row.updatedAt,
+      created_at: row.createdAt, updated_at: row.updatedAt,
     });
   } catch {
     res.status(500).json({ error: 'Internal server error' });

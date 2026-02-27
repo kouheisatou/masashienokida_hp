@@ -9,11 +9,11 @@ type BlogPost = components['schemas']['BlogPostSummary'];
 
 const categories = [
   { id: '', name: 'すべて' },
+  { id: 'news', name: 'お知らせ' },
   { id: 'concert', name: 'コンサート' },
   { id: 'daily', name: '日常' },
   { id: 'practice', name: '練習・レッスン' },
   { id: 'travel', name: '旅' },
-  { id: 'members', name: '会員限定' },
 ];
 
 export default function BlogPage() {

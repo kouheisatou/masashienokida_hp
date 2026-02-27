@@ -48,18 +48,6 @@ const FAKE_USER = {
   subscription: null,
 };
 
-const FAKE_NEWS = {
-  id: '00000000-0000-4000-8000-000000000002',
-  title: '管理者向けニュース',
-  body: '本文',
-  imageUrl: null,
-  category: null,
-  publishedAt: new Date('2024-06-01T00:00:00Z'),
-  isPublished: false,
-  createdAt: new Date('2024-06-01T00:00:00Z'),
-  updatedAt: new Date('2024-06-01T00:00:00Z'),
-};
-
 const FAKE_CONCERT = {
   id: '00000000-0000-4000-8000-000000000003',
   title: '管理者向けコンサート',
@@ -94,7 +82,6 @@ const FAKE_BIO = {
   id: '00000000-0000-4000-8000-000000000005',
   year: '2010',
   description: '入学',
-  sortOrder: 1,
   createdAt: new Date('2024-06-01T00:00:00Z'),
   updatedAt: new Date('2024-06-01T00:00:00Z'),
 };
@@ -270,47 +257,6 @@ describe('GET /admin/members', () => {
       .set(authHeader('ADMIN'));
 
     expect(prismaMock.$transaction).toHaveBeenCalled();
-  });
-});
-
-// ── Admin News ─────────────────────────────────────────────────────
-
-describe('GET /admin/news', () => {
-  it('ADMIN → 非公開含む全ニュースを返し openapi スキーマに一致する', async () => {
-    prismaMock.news.findMany.mockResolvedValue([FAKE_NEWS]);
-
-    const res = await request(app)
-      .get('/admin/news')
-      .set(authHeader('ADMIN'));
-
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body[0].is_published).toBe(false);
-    validateResponse('getAdminNews', 200, res.body);
-  });
-});
-
-describe('GET /admin/news/:id', () => {
-  it('ADMIN → 単一ニュースを返す', async () => {
-    prismaMock.news.findUnique.mockResolvedValue(FAKE_NEWS);
-
-    const res = await request(app)
-      .get(`/admin/news/${FAKE_NEWS.id}`)
-      .set(authHeader('ADMIN'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.id).toBe(FAKE_NEWS.id);
-    validateResponse('getAdminNewsById', 200, res.body);
-  });
-
-  it('存在しない ID → 404', async () => {
-    prismaMock.news.findUnique.mockResolvedValue(null);
-
-    const res = await request(app)
-      .get('/admin/news/non-existent-id')
-      .set(authHeader('ADMIN'));
-
-    expect(res.status).toBe(404);
   });
 });
 

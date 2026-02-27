@@ -101,20 +101,6 @@ model Contact {
   @@map("contacts")
 }
 
-model News {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title       String
-  body        String?
-  imageUrl    String?  @map("image_url")
-  category    String?
-  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz
-  isPublished Boolean  @default(true) @map("is_published")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
-
-  @@index([publishedAt(sort: Desc)], map: "idx_news_published_at")
-  @@map("news")
-}
 
 model Concert {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -156,7 +142,6 @@ model Biography {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   year        String
   description String
-  sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

@@ -8,14 +8,12 @@ function serializeBiography(b: {
   id: string;
   year: string;
   description: string;
-  sortOrder: number;
   createdAt: Date;
 }) {
   return {
     id: b.id,
     year: b.year,
     description: b.description,
-    sort_order: b.sortOrder,
     created_at: b.createdAt,
   };
 }
@@ -23,7 +21,7 @@ function serializeBiography(b: {
 router.get('/', async (_req, res) => {
   try {
     const rows = await prisma.biography.findMany({
-      orderBy: [{ sortOrder: 'asc' }, { year: 'asc' }],
+      orderBy: { year: 'asc' },
     });
     res.json(rows.map(serializeBiography));
   } catch {
@@ -33,9 +31,9 @@ router.get('/', async (_req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description, sort_order } = req.body;
+    const { year, description } = req.body;
     const row = await prisma.biography.create({
-      data: { year, description, sortOrder: sort_order ?? 0 },
+      data: { year, description },
     });
     res.status(201).json(serializeBiography(row));
   } catch {
@@ -45,10 +43,10 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description, sort_order } = req.body;
+    const { year, description } = req.body;
     const row = await prisma.biography.update({
       where: { id: req.params.id },
-      data: { year, description, sortOrder: sort_order },
+      data: { year, description },
     });
     res.json(serializeBiography(row));
   } catch (err: unknown) {

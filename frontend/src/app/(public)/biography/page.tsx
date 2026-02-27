@@ -1,11 +1,19 @@
-import type { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'BIOGRAPHY',
-  description: 'ピアニスト榎田まさしのプロフィール。経歴、受賞歴、ディスコグラフィなどをご紹介します。',
-};
+import { useEffect, useState } from 'react';
+import { api, type components } from '@/lib/api';
+
+type BiographyEntry = components['schemas']['BiographyEntry'];
 
 export default function BiographyPage() {
+  const [entries, setEntries] = useState<BiographyEntry[]>([]);
+
+  useEffect(() => {
+    api.GET('/biography').then(({ data }) => {
+      if (data) setEntries(data);
+    });
+  }, []);
+
   return (
     <div className="pt-20">
       {/* Hero Section */}
@@ -148,24 +156,18 @@ export default function BiographyPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
               <div className="space-y-8">
-                {[
-                  { year: '1986', text: '宮崎県小林市に生まれる' },
-                  { year: '2005', text: '大分県立芸術緑丘高等学校音楽科 卒業' },
-                  { year: '2009', text: '愛知県立芸術大学音楽学部 卒業' },
-                  { year: '2011', text: '愛知県立芸術大学大学院音楽研究科 修了' },
-                  { year: '2012', text: 'カリフォルニア大学ロサンゼルス校（UCLA）にて研鑽' },
-                  { year: '2013', text: '東京秋のリサイタルシリーズ開始' },
-                  { year: '2014', text: 'CD「P.カザルスへのオマージュ」リリース' },
-                  { year: '2017', text: 'CD「トロイメライ」リリース' },
-                  { year: '2018', text: 'ダン・フー・ファク氏より「主題と変奏」献呈' },
-                ].map((item) => (
-                  <div key={item.year} className="flex gap-6">
-                    <div className="w-20 flex-shrink-0 text-burgundy-accent">
-                      {item.year}
+                {entries.length === 0 ? (
+                  <p className="text-taupe text-sm">読み込み中...</p>
+                ) : (
+                  entries.map((item) => (
+                    <div key={item.id} className="flex gap-6">
+                      <div className="w-20 flex-shrink-0 text-burgundy-accent">
+                        {item.year}
+                      </div>
+                      <div className="text-beige">{item.description}</div>
                     </div>
-                    <div className="text-beige">{item.text}</div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="space-y-4">

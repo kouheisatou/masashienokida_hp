@@ -14,7 +14,6 @@ const FAKE_BIOGRAPHY = {
   id: '00000000-0000-4000-8000-000000000005',
   year: '2010',
   description: '東京藝術大学に入学',
-  sortOrder: 1,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
 };
@@ -32,7 +31,6 @@ describe('GET /biography', () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body[0].year).toBe(FAKE_BIOGRAPHY.year);
-    expect(res.body[0].sort_order).toBe(FAKE_BIOGRAPHY.sortOrder);
     validateResponse('getBiography', 200, res.body);
   });
 });

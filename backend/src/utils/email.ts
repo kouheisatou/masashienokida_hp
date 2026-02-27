@@ -172,31 +172,6 @@ ${siteUrl('/admin/members')}
   });
 }
 
-// ── News Notification (N1) ───────────────────────────────────────
-
-export async function sendNewsNotification(news: { id: string; title: string; body: string | null }) {
-  const users = await prisma.user.findMany({
-    where: { role: { not: 'ADMIN' } },
-    select: { email: true },
-  });
-  if (users.length === 0) return;
-
-  const text = `
-新しいお知らせが公開されました。
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${news.title}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${news.body ? `\n${news.body}\n` : ''}
-▼ 詳細はこちら
-${siteUrl(`/news`)}
-
-${SITE_NAME}
-  `.trim();
-
-  await sendBulkMail(users, `[お知らせ] ${news.title}`, text);
-}
-
 // ── Blog Post Notification (N2) ──────────────────────────────────
 
 export async function sendBlogPostNotification(post: { id: string; title: string; excerpt: string | null }) {
