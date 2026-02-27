@@ -58,6 +58,7 @@ jobs:
         run: |
           cd ~/masashienokida_hp
           docker compose -f docker-compose.prod.yml up --build -d
+          docker compose -f docker-compose.prod.yml restart nginx
 
       - name: Clean up old images
         run: docker image prune -f
