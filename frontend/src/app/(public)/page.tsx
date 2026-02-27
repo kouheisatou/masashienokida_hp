@@ -8,16 +8,19 @@ import { api, type components } from '@/lib/api';
 type BlogPost = components['schemas']['BlogPostSummary'];
 type Concert = components['schemas']['Concert'];
 type DiscographyItem = components['schemas']['DiscographyItem'];
+type BiographyEntry = components['schemas']['BiographyEntry'];
 
 export default function HomePage() {
   const [news, setNews] = useState<BlogPost[]>([]);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [discography, setDiscography] = useState<DiscographyItem[]>([]);
+  const [biography, setBiography] = useState<BiographyEntry[]>([]);
 
   useEffect(() => {
     api.GET('/blog').then(({ data }) => { if (data) setNews(data.posts.slice(0, 3)); });
     api.GET('/concerts', { params: { query: { upcoming: 'true' } } }).then(({ data }) => { if (data) setConcerts(data); });
     api.GET('/discography').then(({ data }) => { if (data) setDiscography(data); });
+    api.GET('/biography').then(({ data }) => { if (data) setBiography(data); });
   }, []);
 
   return (
@@ -50,15 +53,15 @@ export default function HomePage() {
             <Link href="/concerts/" className="btn btn-primary">
               コンサート情報
             </Link>
-            <Link href="/biography/" className="btn btn-outline">
+            <a href="#intro" className="btn btn-outline">
               プロフィール
-            </Link>
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Artist Section */}
-      <section className="section-padding">
+      {/* Artist Section (自己紹介) */}
+      <section id="intro" className="section-padding scroll-mt-24">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Photo */}
@@ -85,9 +88,61 @@ export default function HomePage() {
                   繊細で深みのある音楽表現で聴衆を魅了し続けている。
                 </p>
               </div>
-              <Link href="/biography/" className="btn btn-outline mt-8 inline-block">
-                プロフィールを読む →
-              </Link>
+              <a href="#keireki" className="btn btn-outline mt-8 inline-block">
+                経歴を見る →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 経歴 Section */}
+      <section id="keireki" className="section-padding scroll-mt-24">
+        <div className="container">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-center mb-12">経歴</h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+              <div className="space-y-8">
+                {biography.length === 0 ? (
+                  <p className="text-taupe text-sm">読み込み中...</p>
+                ) : (
+                  biography.map((item) => (
+                    <div key={item.id} className="flex gap-6">
+                      <div className="w-20 flex-shrink-0 text-burgundy-accent">
+                        {item.year}
+                      </div>
+                      <div className="text-beige">{item.description}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div className="aspect-[4/5] overflow-hidden rounded">
+                  <img
+                    src="https://picsum.photos/seed/bio-practice/600/750"
+                    alt="練習風景"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="aspect-square overflow-hidden rounded">
+                    <img
+                      src="https://picsum.photos/seed/bio-young/400/400"
+                      alt="若き日の榎田まさし"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="aspect-square overflow-hidden rounded">
+                    <img
+                      src="https://picsum.photos/seed/bio-overseas/400/400"
+                      alt="海外公演"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

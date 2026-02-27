@@ -238,25 +238,52 @@ http://<ドメイン>/api/auth/admin/google/callback
 
 ## 7. デプロイの実行と確認
 
-### 初回デプロイ
+**注意**: production ブランチにはブランチプロテクションが設定されており、**直接 push ・直接コミットはできません**。main から PR をマージする方式でのみ更新可能です。
+
+### 初回デプロイ（production ブランチ作成時）
 
 ```bash
-# production ブランチを作成して push
+# production ブランチを作成して push（プロテクション設定前の初回のみ）
 git checkout -b production
 git push -u origin production
 ```
 
-### 通常のデプロイ
+### 通常のデプロイ（PR で main を production にマージ）
 
 ```bash
 # main で開発・コミット後
-git checkout production
-git merge main
-git push origin production
+git push origin main
 
-# main に戻る
-git checkout main
+# GitHub で PR を作成: main → production
+gh pr create --base production --head main --title "Deploy: <変更内容の要約>"
+
+# PR をマージすると GitHub Actions が自動実行されデプロイされる
+gh pr merge <PR番号> --merge
+# または GitHub の Web UI でマージ
 ```
+
+### ブランチプロテクション（production への direct push 禁止）
+
+production への直接 push を防ぐため、次のようにプロテクションを設定済み:
+
+```bash
+gh api repos/<owner>/<repo>/branches/production/protection -X PUT --input - << 'JSON'
+{
+  "required_status_checks": null,
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false,
+    "required_approving_review_count": 0
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+JSON
+```
+
+`required_approving_review_count: 0` で PR 必須・承認不要。main からのマージでデプロイを実行する。
 
 ### デプロイの確認
 

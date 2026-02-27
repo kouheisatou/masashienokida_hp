@@ -16,7 +16,6 @@ const ROLE_LABELS: Record<UserType['role'], string> = {
 
 const navigation = [
   { name: 'HOME', href: '/' },
-  { name: 'BIOGRAPHY', href: '/biography/' },
   { name: 'CONCERT', href: '/concerts/' },
   { name: 'DISCOGRAPHY', href: '/discography/' },
   { name: 'BLOG', href: '/blog/' },
