@@ -29,6 +29,7 @@ export function Header() {
   const [authChecked, setAuthChecked] = useState(false);
   const desktopRef = useRef<HTMLDivElement>(null);
   const mobileRef = useRef<HTMLDivElement>(null);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchUser = useCallback(() => {
     api.GET('/auth/me').then(({ data }) => {
@@ -54,7 +55,8 @@ export function Header() {
       const target = e.target as Node;
       const insideDesktop = desktopRef.current?.contains(target);
       const insideMobile = mobileRef.current?.contains(target);
-      if (!insideDesktop && !insideMobile) {
+      const insideDropdown = accountDropdownRef.current?.contains(target);
+      if (!insideDesktop && !insideMobile && !insideDropdown) {
         setAccountOpen(false);
       }
     };
@@ -234,7 +236,7 @@ export function Header() {
 
       {/* Mobile Account Dropdown */}
       {accountOpen && (
-        <div className="lg:hidden bg-burgundy border-t border-burgundy-border">
+        <div ref={accountDropdownRef} className="lg:hidden bg-burgundy border-t border-burgundy-border">
           <div className="container py-4">
             {accountMenuItems}
           </div>
