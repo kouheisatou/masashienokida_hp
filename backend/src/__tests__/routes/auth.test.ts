@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prismaMock } from '../mocks/prisma';
 import { validateResponse } from '../utils/openApiValidator';
-import { authHeader } from '../utils/testAuth';
+import { authHeader, invalidTokenHeader, wrongSignatureTokenHeader, expiredTokenHeader } from '../utils/testAuth';
 
 vi.mock('../../lib/prisma', async () => {
   const { prismaMock } = await import('../mocks/prisma');
@@ -41,6 +41,27 @@ beforeEach(() => {
 describe('GET /auth/me', () => {
   it('認証なし → 401', async () => {
     const res = await request(app).get('/auth/me');
+    expect(res.status).toBe(401);
+  });
+
+  it('不正なトークン形式 → 401', async () => {
+    const res = await request(app)
+      .get('/auth/me')
+      .set(invalidTokenHeader());
+    expect(res.status).toBe(401);
+  });
+
+  it('署名が間違った JWT → 401', async () => {
+    const res = await request(app)
+      .get('/auth/me')
+      .set(wrongSignatureTokenHeader('USER'));
+    expect(res.status).toBe(401);
+  });
+
+  it('期限切れ JWT → 401', async () => {
+    const res = await request(app)
+      .get('/auth/me')
+      .set(expiredTokenHeader('USER'));
     expect(res.status).toBe(401);
   });
 
@@ -89,6 +110,13 @@ describe('POST /auth/signout', () => {
     expect(res.status).toBe(401);
   });
 
+  it('不正なトークン → 401', async () => {
+    const res = await request(app)
+      .post('/auth/signout')
+      .set(invalidTokenHeader());
+    expect(res.status).toBe(401);
+  });
+
   it('有効な JWT → { ok: true }', async () => {
     const res = await request(app)
       .post('/auth/signout')
@@ -103,6 +131,13 @@ describe('POST /auth/signout', () => {
 describe('DELETE /auth/account', () => {
   it('認証なし → 401', async () => {
     const res = await request(app).delete('/auth/account');
+    expect(res.status).toBe(401);
+  });
+
+  it('期限切れ JWT → 401', async () => {
+    const res = await request(app)
+      .delete('/auth/account')
+      .set(expiredTokenHeader('USER'));
     expect(res.status).toBe(401);
   });
 

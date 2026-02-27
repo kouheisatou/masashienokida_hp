@@ -14,6 +14,7 @@ const FAKE_BIOGRAPHY = {
   id: '00000000-0000-4000-8000-000000000005',
   year: '2010',
   description: '東京藝術大学に入学',
+  sortOrder: 0,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
 };
@@ -51,6 +52,14 @@ describe('POST /biography', () => {
     expect(res.status).toBe(403);
   });
 
+  it('MEMBER_FREE ロール → 403', async () => {
+    const res = await request(app)
+      .post('/biography')
+      .set(authHeader('MEMBER_FREE'))
+      .send({ year: '2010', description: 'テスト' });
+    expect(res.status).toBe(403);
+  });
+
   it('ADMIN → 201 で略歴を作成し openapi スキーマに一致する', async () => {
     prismaMock.biography.create.mockResolvedValue(FAKE_BIOGRAPHY);
 
@@ -71,6 +80,22 @@ describe('PUT /biography/:id', () => {
       .put(`/biography/${FAKE_BIOGRAPHY.id}`)
       .send({ year: '2011', description: '更新' });
     expect(res.status).toBe(401);
+  });
+
+  it('USER ロール → 403', async () => {
+    const res = await request(app)
+      .put(`/biography/${FAKE_BIOGRAPHY.id}`)
+      .set(authHeader('USER'))
+      .send({ year: '2011', description: '更新' });
+    expect(res.status).toBe(403);
+  });
+
+  it('MEMBER_GOLD ロール → 403', async () => {
+    const res = await request(app)
+      .put(`/biography/${FAKE_BIOGRAPHY.id}`)
+      .set(authHeader('MEMBER_GOLD'))
+      .send({ year: '2011', description: '更新' });
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → 略歴を更新して返す', async () => {
@@ -103,6 +128,13 @@ describe('DELETE /biography/:id', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).delete(`/biography/${FAKE_BIOGRAPHY.id}`);
     expect(res.status).toBe(401);
+  });
+
+  it('MEMBER_FREE ロール → 403', async () => {
+    const res = await request(app)
+      .delete(`/biography/${FAKE_BIOGRAPHY.id}`)
+      .set(authHeader('MEMBER_FREE'));
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → { ok: true }', async () => {

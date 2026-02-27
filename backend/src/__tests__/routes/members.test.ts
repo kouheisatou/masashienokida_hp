@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prismaMock } from '../mocks/prisma';
 import { validateResponse } from '../utils/openApiValidator';
-import { authHeader } from '../utils/testAuth';
+import { authHeader, invalidTokenHeader } from '../utils/testAuth';
 
 vi.mock('../../lib/prisma', async () => {
   const { prismaMock } = await import('../mocks/prisma');
@@ -59,6 +59,13 @@ beforeEach(() => {
 describe('GET /members/me', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).get('/members/me');
+    expect(res.status).toBe(401);
+  });
+
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .get('/members/me')
+      .set(invalidTokenHeader());
     expect(res.status).toBe(401);
   });
 
@@ -127,6 +134,22 @@ describe('PUT /members/me', () => {
     expect(res.status).toBe(400);
   });
 
+  it('name が空文字 → 400', async () => {
+    const res = await request(app)
+      .put('/members/me')
+      .set(authHeader('USER'))
+      .send({ name: '' });
+    expect(res.status).toBe(400);
+  });
+
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .put('/members/me')
+      .set(invalidTokenHeader())
+      .send({ name: '新しい名前' });
+    expect(res.status).toBe(401);
+  });
+
   it('有効なリクエスト → ユーザー情報を更新して返す', async () => {
     const updated = { ...FAKE_USER, name: '新しい名前' };
     prismaMock.user.update.mockResolvedValue(updated);
@@ -147,6 +170,13 @@ describe('PUT /members/me', () => {
 describe('GET /members/content', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).get('/members/content');
+    expect(res.status).toBe(401);
+  });
+
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .get('/members/content')
+      .set(invalidTokenHeader());
     expect(res.status).toBe(401);
   });
 

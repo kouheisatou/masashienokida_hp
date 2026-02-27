@@ -76,6 +76,14 @@ describe('POST /discography', () => {
     expect(res.status).toBe(403);
   });
 
+  it('MEMBER_GOLD ロール → 403', async () => {
+    const res = await request(app)
+      .post('/discography')
+      .set(authHeader('MEMBER_GOLD'))
+      .send({ title: 'x', release_year: 2023 });
+    expect(res.status).toBe(403);
+  });
+
   it('ADMIN → 201 でアイテムを作成し openapi スキーマに一致する', async () => {
     prismaMock.discography.create.mockResolvedValue(FAKE_DISC);
 
@@ -96,6 +104,14 @@ describe('PUT /discography/:id', () => {
       .put(`/discography/${FAKE_DISC.id}`)
       .send({ title: 'x', release_year: 2023 });
     expect(res.status).toBe(401);
+  });
+
+  it('MEMBER_FREE ロール → 403', async () => {
+    const res = await request(app)
+      .put(`/discography/${FAKE_DISC.id}`)
+      .set(authHeader('MEMBER_FREE'))
+      .send({ title: 'x', release_year: 2023 });
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → アイテムを更新して返す', async () => {
@@ -128,6 +144,13 @@ describe('DELETE /discography/:id', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).delete(`/discography/${FAKE_DISC.id}`);
     expect(res.status).toBe(401);
+  });
+
+  it('MEMBER_GOLD ロール → 403', async () => {
+    const res = await request(app)
+      .delete(`/discography/${FAKE_DISC.id}`)
+      .set(authHeader('MEMBER_GOLD'));
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → { ok: true }', async () => {

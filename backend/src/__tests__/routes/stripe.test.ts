@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prismaMock } from '../mocks/prisma';
 import { validateResponse } from '../utils/openApiValidator';
-import { authHeader } from '../utils/testAuth';
+import { authHeader, invalidTokenHeader } from '../utils/testAuth';
 
 vi.mock('../../lib/prisma', async () => {
   const { prismaMock } = await import('../mocks/prisma');
@@ -87,6 +87,13 @@ describe('POST /stripe/checkout', () => {
     expect(res.status).toBe(401);
   });
 
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .post('/stripe/checkout')
+      .set(invalidTokenHeader());
+    expect(res.status).toBe(401);
+  });
+
   it('Stripe Customer 未作成の場合 → 新規作成してチェックアウト URL を返す', async () => {
     const m = await stripeMocks();
     prismaMock.subscription.findUnique.mockResolvedValue(FAKE_SUBSCRIPTION);
@@ -133,6 +140,13 @@ describe('POST /stripe/checkout', () => {
 describe('GET /stripe/portal', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).get('/stripe/portal');
+    expect(res.status).toBe(401);
+  });
+
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .get('/stripe/portal')
+      .set(invalidTokenHeader());
     expect(res.status).toBe(401);
   });
 

@@ -106,6 +106,22 @@ describe('POST /concerts', () => {
     expect(res.status).toBe(403);
   });
 
+  it('MEMBER_FREE ロール → 403', async () => {
+    const res = await request(app)
+      .post('/concerts')
+      .set(authHeader('MEMBER_FREE'))
+      .send({ title: 'x', date: '2024-09-01', venue: 'y' });
+    expect(res.status).toBe(403);
+  });
+
+  it('MEMBER_GOLD ロール → 403', async () => {
+    const res = await request(app)
+      .post('/concerts')
+      .set(authHeader('MEMBER_GOLD'))
+      .send({ title: 'x', date: '2024-09-01', venue: 'y' });
+    expect(res.status).toBe(403);
+  });
+
   it('ADMIN → 201 でコンサート作成し openapi スキーマに一致する', async () => {
     prismaMock.concert.create.mockResolvedValue(FAKE_CONCERT);
 
@@ -124,6 +140,22 @@ describe('PUT /concerts/:id', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).put(`/concerts/${FAKE_CONCERT.id}`).send({ title: 'x' });
     expect(res.status).toBe(401);
+  });
+
+  it('USER ロール → 403', async () => {
+    const res = await request(app)
+      .put(`/concerts/${FAKE_CONCERT.id}`)
+      .set(authHeader('USER'))
+      .send({ title: 'x', date: '2024-09-01T00:00:00Z', venue: 'y' });
+    expect(res.status).toBe(403);
+  });
+
+  it('MEMBER_GOLD ロール → 403', async () => {
+    const res = await request(app)
+      .put(`/concerts/${FAKE_CONCERT.id}`)
+      .set(authHeader('MEMBER_GOLD'))
+      .send({ title: 'x', date: '2024-09-01T00:00:00Z', venue: 'y' });
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → コンサートを更新して返す', async () => {
@@ -156,6 +188,13 @@ describe('DELETE /concerts/:id', () => {
   it('未認証 → 401', async () => {
     const res = await request(app).delete(`/concerts/${FAKE_CONCERT.id}`);
     expect(res.status).toBe(401);
+  });
+
+  it('USER ロール → 403', async () => {
+    const res = await request(app)
+      .delete(`/concerts/${FAKE_CONCERT.id}`)
+      .set(authHeader('USER'));
+    expect(res.status).toBe(403);
   });
 
   it('ADMIN → { ok: true }', async () => {

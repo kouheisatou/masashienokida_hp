@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prismaMock } from '../mocks/prisma';
 import { validateResponse } from '../utils/openApiValidator';
-import { authHeader } from '../utils/testAuth';
+import { authHeader, invalidTokenHeader } from '../utils/testAuth';
 
 vi.mock('../../lib/prisma', async () => {
   const { prismaMock } = await import('../mocks/prisma');
@@ -82,6 +82,7 @@ const FAKE_BIO = {
   id: '00000000-0000-4000-8000-000000000005',
   year: '2010',
   description: '入学',
+  sortOrder: 0,
   createdAt: new Date('2024-06-01T00:00:00Z'),
   updatedAt: new Date('2024-06-01T00:00:00Z'),
 };
@@ -120,11 +121,25 @@ describe('Admin 認可ガード', () => {
     expect(res.status).toBe(403);
   });
 
+  it('MEMBER_FREE ロール → 403', async () => {
+    const res = await request(app)
+      .get('/admin/stats')
+      .set(authHeader('MEMBER_FREE'));
+    expect(res.status).toBe(403);
+  });
+
   it('MEMBER_GOLD ロール → 403', async () => {
     const res = await request(app)
       .get('/admin/stats')
       .set(authHeader('MEMBER_GOLD'));
     expect(res.status).toBe(403);
+  });
+
+  it('不正な JWT → 401', async () => {
+    const res = await request(app)
+      .get('/admin/stats')
+      .set(invalidTokenHeader());
+    expect(res.status).toBe(401);
   });
 });
 
@@ -217,6 +232,15 @@ describe('PUT /admin/contacts/:id', () => {
       .put(`/admin/contacts/${FAKE_CONTACT.id}`)
       .set(authHeader('ADMIN'))
       .send({ status: 'invalid_status' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('status が欠落 → 400', async () => {
+    const res = await request(app)
+      .put(`/admin/contacts/${FAKE_CONTACT.id}`)
+      .set(authHeader('ADMIN'))
+      .send({});
 
     expect(res.status).toBe(400);
   });

@@ -93,6 +93,19 @@ describe('POST /contact', () => {
     expect(res.status).toBe(400);
   });
 
+  it('body が空オブジェクト → 400', async () => {
+    const res = await request(app).post('/contact').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('必須項目がすべて欠落 → 400', async () => {
+    const res = await request(app).post('/contact').send({
+      phone: '090-1234-5678',
+      category: 'concert',
+    });
+    expect(res.status).toBe(400);
+  });
+
   it('phone と category はオプションで省略可能', async () => {
     prismaMock.contact.create.mockResolvedValue(FAKE_CONTACT_RECORD);
 

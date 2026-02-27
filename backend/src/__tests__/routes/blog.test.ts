@@ -166,6 +166,18 @@ describe('GET /blog/:id', () => {
     expect(res.body.content).toBeNull();
   });
 
+  it('MEMBER_FREE ロールがメンバー限定記事を取得 → content あり, isLocked: false', async () => {
+    prismaMock.blogPost.findFirst.mockResolvedValue(FAKE_POST_MEMBERS);
+
+    const res = await request(app)
+      .get(`/blog/${FAKE_POST_MEMBERS.id}`)
+      .set(authHeader('MEMBER_FREE'));
+
+    expect(res.status).toBe(200);
+    expect(res.body.isLocked).toBe(false);
+    expect(res.body.content).toBe(FAKE_POST_MEMBERS.content);
+  });
+
   it('MEMBER_GOLD ロールがメンバー限定記事を取得 → content あり, isLocked: false', async () => {
     prismaMock.blogPost.findFirst.mockResolvedValue(FAKE_POST_MEMBERS);
 
