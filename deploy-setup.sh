@@ -171,16 +171,12 @@ if ! id -u github-runner &>/dev/null; then
   echo ">>> github-runner ユーザー作成完了"
 fi
 
-# 既に runner が走っている場合はスキップ
-if [[ -f /home/github-runner/actions-runner/.runner ]]; then
-  echo ">>> Runner は既に設定済み。スキップします"
-  exit 0
-fi
-
-# ダウンロード & 展開
+# ダウンロード & 展開 (バイナリがなければ)
 mkdir -p /home/github-runner/actions-runner
 cd /home/github-runner/actions-runner
-curl -sL "${RUNNER_URL}" | tar xz
+if [[ ! -f ./config.sh ]]; then
+  curl -sL "${RUNNER_URL}" | tar xz
+fi
 chown -R github-runner:github-runner /home/github-runner/actions-runner
 
 # リポジトリ clone
@@ -190,8 +186,24 @@ if [[ ! -d /home/github-runner/${DEPLOY_DIR} ]]; then
   chown -R github-runner:github-runner /home/github-runner/${DEPLOY_DIR}
 fi
 
-# Runner の設定 (非対話)
+# 既存の systemd サービスを停止・削除してからクリーン再設定
 cd /home/github-runner/actions-runner
+SVC_NAME="actions.runner.kouheisatou-masashienokida_hp.xserver-vps"
+if [[ -f "/etc/systemd/system/\${SVC_NAME}.service" ]]; then
+  echo ">>> 既存の Runner サービスを停止・削除中..."
+  systemctl stop "\${SVC_NAME}" || true
+  systemctl disable "\${SVC_NAME}" || true
+  rm -f "/etc/systemd/system/\${SVC_NAME}.service"
+  systemctl daemon-reload
+fi
+
+# 既存の .runner 設定があれば削除して再設定
+if [[ -f .runner ]]; then
+  echo ">>> 既存の Runner 設定を削除中..."
+  sudo -u github-runner ./config.sh remove --token "${RUNNER_TOKEN}" || true
+fi
+
+# Runner の設定 (非対話)
 sudo -u github-runner ./config.sh \
   --url "https://github.com/${REPO}" \
   --token "${RUNNER_TOKEN}" \
@@ -201,7 +213,7 @@ sudo -u github-runner ./config.sh \
   --unattended \
   --replace
 
-# systemd サービスとして登録
+# systemd サービスとして登録 & 起動
 ./svc.sh install github-runner
 ./svc.sh start
 
@@ -249,8 +261,8 @@ setup_ssl() {
   info "certbot で SSL 証明書を取得中 (ドメイン: ${DOMAIN})..."
 
   # まず nginx を HTTP のみで起動して ACME チャレンジに対応させる
-  run_remote bash <<REMOTE_SCRIPT
-set -euo pipefail
+  run_remote bash <<REMOTE_SCRIPT || true
+set -uo pipefail
 
 cd /home/github-runner/${DEPLOY_DIR}
 
@@ -349,7 +361,7 @@ main_menu() {
   echo "  1) フルセットアップ (Step 1〜4 すべて実行)"
   echo "  2) VPS 基盤セットアップのみ (Docker, Git)"
   echo "  3) GitHub Actions Runner セットアップのみ"
-  echo "  4) デプロイ実行のみ (main → production)"
+  echo "  4) デプロイ実行のみ (workflow_dispatch)"
   echo "  5) Let's Encrypt SSL セットアップのみ"
   echo "  6) ヘルスチェック"
   echo "  7) VPS にSSHログイン"
