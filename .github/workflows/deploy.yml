@@ -58,8 +58,7 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           cd ~/masashienokida_hp
-          docker compose -f docker-compose.prod.yml up --build -d
-          docker compose -f docker-compose.prod.yml restart nginx
+          docker compose -f docker-compose.prod.yml up --build -d --force-recreate
 
       - name: Clean up old images
         run: docker image prune -f
