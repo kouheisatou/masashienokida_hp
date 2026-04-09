@@ -4,29 +4,114 @@
  * Run: npx prisma db seed
  */
 import { PrismaClient } from '@prisma/client';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sharp = require('sharp');
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
+
+// ── MinIO / S3 setup ──
+const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT ?? 'http://localhost:9000';
+const MINIO_BUCKET = process.env.MINIO_BUCKET ?? 'blog-images';
+const MINIO_PUBLIC_URL = process.env.MINIO_PUBLIC_URL ?? 'http://localhost:9000';
+
+const s3 = new S3Client({
+  endpoint: MINIO_ENDPOINT,
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.MINIO_ROOT_USER ?? 'minioadmin',
+    secretAccessKey: process.env.MINIO_ROOT_PASSWORD ?? 'minioadmin_secret_change_this',
+  },
+  forcePathStyle: true,
+});
+
+/**
+ * Upload a local image file to MinIO, converting to WebP (1200px max width).
+ * Returns the public URL or null if the file doesn't exist.
+ */
+async function uploadSeedImage(
+  filePath: string,
+  filenameKey: string,
+  folder: string = 'concerts',
+): Promise<string | null> {
+  if (!fs.existsSync(filePath)) {
+    console.warn(`  ⚠ image not found: ${filePath}`);
+    return null;
+  }
+  const buffer = fs.readFileSync(filePath);
+  const webpBuffer = await sharp(buffer)
+    .resize(1200, null, { withoutEnlargement: true })
+    .webp({ quality: 85 })
+    .toBuffer();
+
+  const key = `${folder}/${filenameKey}.webp`;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: MINIO_BUCKET,
+      Key: key,
+      Body: webpBuffer,
+      ContentType: 'image/webp',
+    }),
+  );
+  return `${MINIO_PUBLIC_URL}/${MINIO_BUCKET}/${key}`;
+}
+
+// ── Image directories ──
+const CONCERT_IMAGE_DIR = path.resolve(__dirname, 'concert-flyers');
+const DISCOGRAPHY_IMAGE_DIR = path.resolve(__dirname, 'discography-covers');
+
+interface ConcertSeed {
+  title: string;
+  date: Date;
+  time: string | null;
+  venue: string;
+  address: string | null;
+  imageUrl: string | null;
+  program: string[];
+  price: string | null;
+  ticketUrl: string | null;
+  note: string | null;
+  isUpcoming: boolean;
+  isPublished: boolean;
+  _imageFile?: string; // local filename inside CONCERT_IMAGE_DIR (optional)
+}
 
 async function main() {
   // ── 1. Biography ──────────────────────────────────────────────
   await prisma.biography.deleteMany({});
   await prisma.biography.createMany({
     data: [
-      { year: '1986', description: '宮崎県小林市で生まれる。5歳よりピアノを始める。', sortOrder: 0 },
-      { year: '学歴', description: '大分県立芸術緑丘高等学校卒業、愛知県立芸術大学・大学院修了。UCLAにてマルグリス氏のマスタークラス受講。', sortOrder: 1 },
-      { year: '活動', description: '日本各地およびアジア諸国でソロ・室内楽・録音活動を展開。ソウル・ハノイの芸術大学で指導。銀座王子ホール・杉並公会堂等で年次リサイタル。', sortOrder: 2 },
-      { year: '2014', description: 'CD「P.カザルスへのオマージュ」リリース。', sortOrder: 3 },
-      { year: '2016', description: 'ソウル「芸術の殿堂」Asia国際現代ピアノ音楽祭に招聘。', sortOrder: 4 },
-      { year: '2017', description: 'ソロCD「トロイメライ」リリース。ベトナム作品「ベトナムの花束」日本初演。', sortOrder: 5 },
-      { year: '2018', description: 'ダン・フー・ファク氏より「主題と変奏」献呈。', sortOrder: 6 },
-      { year: '師事', description: 'ピアノ：山元眞千子、佐藤純子、星野美由紀、松本総一郎、牧野縝、サハロフ、ロー、池田洋子／室内楽：松野迅', sortOrder: 7 },
-      { year: '主なリサイタル', description: '2013展覧会の絵→14アパッショナータ→15カーニヴァル→16ショパンの泉→17こどもの情景→18なき王女のパヴァーヌ→19バラード→20テンペスト→21５B→22さすらい人幻想曲→23ふなうた→24甘い想い出→25ガルッピほか', sortOrder: 8 },
+      { year: '1986', description: '日本で最も星が美しいといわれる宮崎県小林市に生まれる。', sortOrder: 0 },
+      { year: '1991', description: '5歳よりピアノを始める。', sortOrder: 1 },
+      { year: '中学時代', description: 'アスリート（駅伝選手）として活躍。', sortOrder: 2 },
+      { year: '高校', description: '大分県立芸術緑丘高等学校に進学。', sortOrder: 3 },
+      { year: '大学', description: '愛知県立芸術大学に進学。在学中より日本各地、ポーランド、イタリア、中国、韓国、タイ、ベトナムなどでソロ・室内楽・レコーディング活動を展開。', sortOrder: 4 },
+      { year: '2012', description: '愛知県立芸術大学大学院修了。「最優秀修了生の共演」に出演。', sortOrder: 5 },
+      { year: '2013', description: 'カリフォルニア大学ロサンゼルス校（UCLA）にてヴィタリー・マルグリス氏のマスタークラスを受講。', sortOrder: 6 },
+      { year: '2014', description: 'CD「P.カザルスへのオマージュ」リリース。', sortOrder: 7 },
+      { year: '2016', description: '韓国ソウルアートセンター「芸術の殿堂」にて「Asia国際現代ピアノ音楽祭」に招聘され、日本の作品を紹介。', sortOrder: 8 },
+      { year: '2017', description: 'ソロ・アルバムCD「トロイメライ」リリース（ダン・フー・ファク作曲「太鼓」世界初録音を含む）。ベトナム作品「ベトナムの花束」日本初演。', sortOrder: 9 },
+      { year: '2018', description: '現代ベトナムを代表する作曲家ダン・フー・ファク氏より作品「主題と変奏」が献呈される。', sortOrder: 10 },
     ],
   });
   console.log('✓ biography');
 
   // ── 2. Discography ───────────────────────────────────────────
   await prisma.discography.deleteMany({});
+
+  const casalsImageUrl = await uploadSeedImage(
+    path.join(DISCOGRAPHY_IMAGE_DIR, 'casals-hommage.jpg'),
+    'casals-hommage',
+    'discography',
+  );
+  const traumereiImageUrl = await uploadSeedImage(
+    path.join(DISCOGRAPHY_IMAGE_DIR, 'traumerei.jpg'),
+    'traumerei',
+    'discography',
+  );
+
   await prisma.discography.createMany({
     data: [
       {
@@ -35,7 +120,7 @@ async function main() {
         description:
           'パブロ・カザルスの作品を収録したCD。各地でのリサイタル活動の集大成として制作。\n\n制作・販売：株式会社音楽センター',
         purchaseUrl: 'https://www.ongakucenter.co.jp/SHOP/CCD910.html',
-        imageUrl: null,
+        imageUrl: casalsImageUrl,
         sortOrder: 1,
         isPublished: true,
       },
@@ -45,7 +130,7 @@ async function main() {
         description:
           'ソロ・アルバムCD。世界初録音を含む全16曲収録。\n\n【収録曲】\n1. 幻想即興曲 … ショパン\n2. 小犬のワルツ … ショパン\n3. お菓子のベルト・コンベヤー … 湯山昭\n4. エリーゼのために … ベートーヴェン\n5. トロイメライ … シューマン\n6. ボレロ … ショパン\n7. 革命のエチュード … ショパン\n8. 舟歌 … チャイコフスキー\n9. もみの木 … シベリウス\n10. 月の光 … ドビュッシー\n11. 夢想 … ドビュッシー\n12. 火祭りの踊り … ファリャ\n13. 親密なページ … カザルス\n14. 盆踊 … 伊福部昭\n15. カノーネ … 吉田隆子\n16. 太鼓 … ダン・フー・ファク（世界初録音）\n\n制作・販売：株式会社音楽センター',
         purchaseUrl: 'https://www.ongakucenter.co.jp/SHOP/CCD933.html',
-        imageUrl: null,
+        imageUrl: traumereiImageUrl,
         sortOrder: 2,
         isPublished: true,
       },
@@ -55,16 +140,16 @@ async function main() {
 
   // ── 3. Concerts ──────────────────────────────────────────────
   await prisma.concert.deleteMany({});
-  await prisma.concert.createMany({
-    data: [
+  const concertData: ConcertSeed[] = [
       // 2026 upcoming
       {
         title: '〈戯曲音劇〉セロ弾きのゴーシュ',
         date: new Date('2026-02-08'),
-        time: null,
-        venue: 'ウエルネス交流プラザ2階ムジカホール',
-        address: '宮崎県都城市',
+        time: '開場13:30 / 開演14:00',
+        venue: 'ウエルネス交流プラザ 2階ムジカホール',
+        address: '宮崎県都城市（TEL 0986-26-7770）',
         imageUrl: null,
+        _imageFile: '2026-gauche.avif',
         program: ['シューマン：トロイメライ', 'バッハ：無伴奏チェロ組曲', 'ポッパー：ハンガリー狂詩曲', 'ヴィヴァルディ：四季より 春', 'ショスタコーヴィチ：ジャズ組曲第2番', 'ドビュッシー：月の光'],
         price: null,
         ticketUrl: null,
@@ -79,6 +164,7 @@ async function main() {
         venue: 'すみだチェリーホール',
         address: '東京都墨田区（JR両国駅徒歩4分・錦糸町駅徒歩14分）',
         imageUrl: null,
+        _imageFile: '2026-salon.avif',
         program: ['ベートーヴェン：バガテル「エリーゼのために」', 'ドビュッシー：夢', 'バルトーク：３つのチーク県による民謡', 'ショパン：小犬のワルツ', 'ショパン：マズルカ 作品17-4', 'ショパン：革命のエチュード', 'ファリャ：火祭りの踊り'],
         price: '全自由席 一般4,000円 / 会員3,000円（サポーターズゴールド会員はご招待）',
         ticketUrl: null,
@@ -87,16 +173,17 @@ async function main() {
         isPublished: true,
       },
       {
-        title: '〈ピアノDUOコンサート〉月野佳奈★榎田まさしピアノDUOコンサート',
+        title: '〈ピアノDUOコンサート〉月野佳奈★榎田まさしピアノDUOコンサート ～ピアノ連弾で贈る音楽のプレゼント～',
         date: new Date('2026-07-20'),
-        time: null,
+        time: '開場13:30 / 開演14:00',
         venue: '牛込箪笥区民ホール',
         address: '東京都新宿区（都営大江戸線「牛込神楽坂」A1出口より徒歩0分）',
         imageUrl: null,
+        _imageFile: '2026-duo.avif',
         program: ['J.シュトラウス：美しく青きドナウ', '久石譲：となりのトトロ', 'ハチャトリアン：仮面舞踏会'],
-        price: 'サポーターズの方は会員割引あり',
+        price: '入場無料（中学生以下） / 中学生以上500円 / 各日先着50名（3歳以下は保護者の膝上）',
         ticketUrl: null,
-        note: '0歳から入場可　主催：エトワール・ミュージック　後援：榎田まさしsupporters',
+        note: '0歳から入場可　聴いて・観て・楽しめる新しいクラシックコンサート　主催：エトワール・ミュージック　後援：榎田まさしsupporters　前売開始：2026年3月1日（日）AM10:00～',
         isUpcoming: true,
         isPublished: true,
       },
@@ -114,18 +201,20 @@ async function main() {
         isUpcoming: true,
         isPublished: true,
       },
-      // 過去の公演
+      // ── 過去の公演 ──
+      // 2025
       {
-        title: '榎田まさしピアノコンサート（印西）',
-        date: new Date('2025-07-30'),
-        time: null,
-        venue: '印西市文化ホール 多目的室',
-        address: '千葉県印西市',
+        title: '榎田まさしピアノリサイタル',
+        date: new Date('2025-11-29'),
+        time: '開場13:30 / 開演14:00',
+        venue: 'すみだトリフォニーホール 小ホール',
+        address: '東京都墨田区（JR総武線錦糸町駅北口より徒歩5分）',
         imageUrl: null,
-        program: ['G.ランゲ：花の歌', 'B.ガルッピ：ソナタ ハ長調', 'チャイコフスキー：〈四季〉より「ひばり」', 'ショパン：ワルツ第7番 嬰ハ短調 作品64-2', 'ショパン：華麗なる大円舞曲 作品18', 'ショパン：幻想即興曲', 'ドビュッシー：月の光', 'ファリャ：火祭りの踊り'],
-        price: '一般1,500円 / 中・高校生500円 / 小学生以下無料',
+        _imageFile: '2025-recital.avif',
+        program: ['B.ガルッピ：ソナタ ハ長調', 'J.ハイドン：アンダンテと変奏曲', 'L.v.ベートーヴェン：ピアノソナタ', 'G.ダンツィ：花の歌', 'P.I.チャイコフスキー：〈四季〉より「ひばり」ほか', 'F.ショパン：バラード'],
+        price: '一般5,000円（税込） / 小中学生1,500円（税込）',
         ticketUrl: null,
-        note: '主催：ピアノを楽しむ会　後援：エトワール・ミュージック、榎田まさしsupporters',
+        note: 'Art of 2025　お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター',
         isUpcoming: false,
         isPublished: true,
       },
@@ -158,16 +247,32 @@ async function main() {
         isPublished: true,
       },
       {
-        title: '榎田まさしピアノリサイタル〈甘い想い出〉',
-        date: new Date('2025-11-29'),
-        time: '開場13:30 / 開演14:00',
-        venue: 'すみだトリフォニーホール 小ホール',
-        address: '東京都墨田区（JR錦糸町駅北口より徒歩5分）',
+        title: '榎田まさしピアノコンサート（印西）',
+        date: new Date('2025-07-30'),
+        time: null,
+        venue: '印西市文化ホール 多目的室',
+        address: '千葉県印西市',
         imageUrl: null,
-        program: [],
-        price: null,
+        program: ['G.ランゲ：花の歌', 'B.ガルッピ：ソナタ ハ長調', 'チャイコフスキー：〈四季〉より「ひばり」', 'ショパン：ワルツ第7番 嬰ハ短調 作品64-2', 'ショパン：華麗なる大円舞曲 作品18', 'ショパン：幻想即興曲', 'ドビュッシー：月の光', 'ファリャ：火祭りの踊り'],
+        price: '一般1,500円 / 中・高校生500円 / 小学生以下無料',
         ticketUrl: null,
-        note: '2025年秋の東京リサイタル',
+        note: '主催：ピアノを楽しむ会　後援：エトワール・ミュージック、榎田まさしsupporters',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2024
+      {
+        title: '榎田まさしピアノリサイタル〈甘い想い出〉',
+        date: new Date('2024-10-16'),
+        time: '開場18:00 / 開演18:30',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2024-sweet-memory.avif',
+        program: ['メンデルスゾーン：無言歌集より「甘い想い出」', 'ショパン：ワルツ第15番', 'ショパン：ピアノソナタ第2番 変ロ短調「葬送」', 'ショパン：英雄ポロネーズ 作品53'],
+        price: '4,500円（全指定席・税込）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター',
         isUpcoming: false,
         isPublished: true,
       },
@@ -185,8 +290,195 @@ async function main() {
         isUpcoming: false,
         isPublished: true,
       },
-    ],
-  });
+      // 2023
+      {
+        title: '榎田まさしピアノリサイタル〈ふなうた〉',
+        date: new Date('2023-10-13'),
+        time: '開場18:00 / 開演18:30',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2023-barcarolle.avif',
+        program: ['J.S.バッハ：半音階的幻想曲とフーガ 二短調', 'F.ショパン：バラード第3番 変イ長調 作品47', 'R.シューマン：幻想小曲集 作品12より', 'C.グアスタビーノ：ばらとやなぎ', 'P.I.チャイコフスキー：〈四季〉より「舟歌」', 'F.リスト：伝説'],
+        price: '4,500円（全自由席・税込）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2022
+      {
+        title: '榎田まさしピアノリサイタル〈さすらい人幻想曲〉',
+        date: new Date('2022-10-14'),
+        time: '開場18:00 / 開演18:30',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2022-wanderer.avif',
+        program: ['スカルラッティ：ソナタ ハ長調', 'モーツァルト：ブルックの主題による変奏曲', 'シューベルト：さすらい人幻想曲', 'ラヴェル：古風なメヌエット', 'ストラヴィンスキー：ペトルーシュカからの3楽章より', 'ガーシュウィン：3つのプレリュード'],
+        price: '4,500円（全指定席・税込）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター　Piano: Bösendorfer',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2021
+      {
+        title: '榎田まさしピアノリサイタル〈5B〉～かしら文字がBではじまる5人の作曲家展～',
+        date: new Date('2021-10-13'),
+        time: '開場18:30 / 開演19:00',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2021-5b.avif',
+        program: ['L.バーンスタイン：タッチズ', 'A.ベルク：ソナタ 作品1', 'J.ブラームス：間奏曲 / ワルツ', 'L.v.ベートーヴェン：ソナタ第15番 ニ長調「田園」', 'J.S.バッハ：イタリア協奏曲 BWV971'],
+        price: '3,300円（全指定席）',
+        ticketUrl: null,
+        note: '5×B COMPOSERS with Bösendorfer　お問合せ：松野迅後援会 090-7107-6661　Piano: Bösendorfer Imperial',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2020
+      {
+        title: '榎田まさしピアノリサイタル〈テンペスト〉',
+        date: new Date('2020-10-14'),
+        time: '開場18:30 / 開演19:00',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2020-tempest.avif',
+        program: ['ベートーヴェン：ピアノソナタ第17番 ニ短調「テンペスト」Op.31-2', 'ショパン：アンダンテ・スピアナートと華麗なる大ポロネーズ 作品22'],
+        price: '3,000円（全指定席） / 小中学生1,000円',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2019
+      {
+        title: '榎田まさしピアノリサイタル〈バラード〉',
+        date: new Date('2019-10-17'),
+        time: '開場18:30 / 開演19:00',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2019-ballade.avif',
+        program: ['ベートーヴェン：ピアノソナタ Op.49-2', 'ドビュッシー：アラベスク', 'シューベルト：ピアノソナタ D668', 'ショパン：バラード第4番 ヘ短調 作品52', 'ドビュッシー：子守歌 / パヴァーヌ'],
+        price: '3,000円（全指定席）',
+        ticketUrl: null,
+        note: 'Music for Tomorrow 2019　お問合せ：松野迅後援会 090-7107-6661',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2018
+      {
+        title: '榎田まさしピアノリサイタル〈なき王女のためのパヴァーヌ〉',
+        date: new Date('2018-10-12'),
+        time: '開場18:30 / 開演19:00',
+        venue: '杉並公会堂 小ホール',
+        address: '東京都杉並区（JR荻窪駅北口より徒歩7分）',
+        imageUrl: null,
+        _imageFile: '2018-pavane.avif',
+        program: ['ショパン：プレリュード「雨だれ」ほか', 'メシアン：ポール・デュカスの墓碑への小品', 'ラヴェル：ソナチネ', 'ラフマニノフ：前奏曲', 'ファリャ：恋は魔術師より', 'ラヴェル：なき王女のためのパヴァーヌ'],
+        price: '3,000円（全自由席） / 小中学生1,000円',
+        ticketUrl: null,
+        note: 'Music for Tomorrow 2018　お問合せ：松野迅後援会 090-7107-6661　協力：(株)音楽センター',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2017
+      {
+        title: '榎田まさしピアノリサイタル〈こどもの情景〉',
+        date: new Date('2017-10-20'),
+        time: '開場18:00 / 開演18:30',
+        venue: '王子ホール',
+        address: '東京都中央区銀座4丁目',
+        imageUrl: null,
+        _imageFile: '2017-kinderszenen.avif',
+        program: ['スカルラッティ：ソナタ', 'ショパン：3つのノクターン', 'ダン・フー・ファク：太鼓', 'シューマン：こどもの情景', 'ムソルグスキー：展覧会の絵'],
+        price: '3,000円（全自由席） / 平土間席1,000円',
+        ticketUrl: null,
+        note: 'Masashi Enokida Piano Recital 2017　お問合せ：松野迅後援会',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2016
+      {
+        title: '榎田まさしピアノリサイタル〈ショパンの泉〉～BACHOPIN～',
+        date: new Date('2016-10-29'),
+        time: '開場13:30 / 開演14:00',
+        venue: '王子ホール',
+        address: '東京都中央区銀座4丁目',
+        imageUrl: null,
+        _imageFile: '2016-bachopin.avif',
+        program: ['バッハ：デュエット第3番 ト長調', 'ショパン：マズルカ 作品41-1', 'ショパン：ピアノソナタ第3番 ロ短調 作品58', 'ショパン：ボレロ 作品19', 'ショパン：幻想即興曲', 'ショパン：ノクターン 作品9', 'ショパン：ワルツ 変ニ長調「小犬」', 'ショパン：バラード第2番 ヘ長調', 'ショパン：英雄ポロネーズ 作品53'],
+        price: '3,000円（全自由席）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 03-3237-0113　協力：(株)音楽センター',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2015
+      {
+        title: '榎田まさしピアノリサイタル〈カーニヴァル〉',
+        date: new Date('2015-10-22'),
+        time: '開場18:00 / 開演18:30',
+        venue: '王子ホール',
+        address: '東京都中央区銀座4丁目',
+        imageUrl: null,
+        _imageFile: '2015-carnival.avif',
+        program: ['ドビュッシー：喜びの島', 'モーツァルト：ピアノソナタ第11番 イ長調 K.331', 'ベートーヴェン：ピアノソナタ第14番 嬰ハ短調「月光」Op.27-2', '伊福部昭：ピアノ組曲', 'シューマン：謝肉祭 Op.9'],
+        price: '3,000円（全自由席）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会 03-3237-0113',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2014
+      {
+        title: '榎田匡志ピアノリサイタル〈熱情〉',
+        date: new Date('2014-10-22'),
+        time: '開場18:00 / 開演18:30',
+        venue: 'ルーテル市ヶ谷センター',
+        address: '東京都新宿区市谷砂土原町',
+        imageUrl: null,
+        _imageFile: '2014-appassionata.avif',
+        program: ['尾崎宗吉：四つの小品', 'ベートーヴェン：なくした小銭への怒り', 'ベートーヴェン：ピアノソナタ第23番 ヘ短調「熱情」作品57', 'カザルス：4つのロマンス', 'チャイコフスキー：「四季」より', 'ショパン：アンダンテ・スピアナートと華麗なる大ポロネーズ'],
+        price: '2,000円（全自由席）',
+        ticketUrl: null,
+        note: 'Masashi Enokida Piano Recital "Appassionata"　お問合せ：松野迅後援会',
+        isUpcoming: false,
+        isPublished: true,
+      },
+      // 2013
+      {
+        title: '榎田匡志ピアノリサイタル〈展覧会の絵〉',
+        date: new Date('2013-11-27'),
+        time: '開場18:30 / 開演19:00',
+        venue: 'ルーテル市ヶ谷センター',
+        address: '東京都新宿区市谷砂土原町',
+        imageUrl: null,
+        _imageFile: '2013-exhibition.avif',
+        program: ['吉田隆子：カノーネ', 'ベートーヴェン：ピアノソナタ第24番「テレーゼ」', 'ショパン：マズルカ', 'ムソルグスキー：組曲「展覧会の絵」'],
+        price: '2,000円（全自由席）',
+        ticketUrl: null,
+        note: 'お問合せ：松野迅後援会　松野迅後援会・東京',
+        isUpcoming: false,
+        isPublished: true,
+      },
+    ];
+
+  // Upload images and insert concerts
+  for (const concert of concertData) {
+    let imageUrl: string | null = null;
+    if (concert._imageFile) {
+      const filePath = path.join(CONCERT_IMAGE_DIR, concert._imageFile);
+      const key = concert._imageFile.replace(/\.[^.]+$/, '');
+      imageUrl = await uploadSeedImage(filePath, key);
+    }
+    const { _imageFile, ...data } = concert;
+    await prisma.concert.create({ data: { ...data, imageUrl } });
+  }
   console.log('✓ concerts');
 
   // ── 4. Blog categories ────────────────────────────────────────
@@ -246,7 +538,7 @@ async function main() {
   console.log('✓ blog_posts');
 
   console.log('\nSeed completed successfully.');
-  console.log('biography: 9, discography: 2, concerts: 9, blog_categories: 7, blog_posts: 32');
+  console.log('biography: 11, discography: 2, concerts: 9, blog_categories: 7, blog_posts: 32');
 }
 
 main()
