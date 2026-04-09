@@ -26,28 +26,23 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center">
+      <section className="relative min-h-screen flex items-end justify-center pb-72">
         {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/hero-piano/1920/1080)',
-            filter: 'brightness(0.5)',
+            backgroundImage: 'url(/hero.jpeg)',
+            filter: 'brightness(0.75)',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-burgundy-black/40 to-burgundy-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-burgundy-black/80" />
 
-        <div className="relative container text-center z-10 pt-20">
+        <div className="relative container text-center z-10">
           <h1 className="text-hero text-white mb-6 animate-fade-in">
             榎田まさし
           </h1>
           <p className="text-2xl text-beige tracking-[0.3em] mb-8 animate-fade-in">
             PIANIST
-          </p>
-          <p className="text-taupe max-w-2xl mx-auto leading-relaxed mb-12 animate-fade-in">
-            キャッチコピー、なにか一言。
-            <br />
-            ここに書く予定です。
           </p>
           <div className="flex justify-center gap-4 animate-fade-in">
             <Link href="/concerts/" className="btn btn-primary">
@@ -67,25 +62,26 @@ export default function HomePage() {
             {/* Photo */}
             <div className="relative">
               <img
-                src="https://picsum.photos/seed/pianist-portrait/700/875"
+                src="/profile.jpeg"
                 alt="榎田まさし"
                 className="w-full aspect-[4/5] object-cover rounded"
               />
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 border border-burgundy-accent opacity-40 rounded" />
+              <div className="absolute -bottom-4 -right-4 w-32 h-32 border border-burgundy-accent opacity-40 rounded -z-10" />
             </div>
 
             {/* Text */}
             <div>
               <p className="text-taupe tracking-[0.3em] text-sm mb-4">PIANIST</p>
-              <h2 className="mb-8">榎田まさし</h2>
+              <h2 className="mb-8">榎田 まさし<span className="block text-lg text-taupe mt-2">Masashi Enokida</span></h2>
               <div className="space-y-4 text-beige leading-relaxed">
                 <p>
-                  1986年、宮崎県小林市生まれ。愛知県立芸術大学を経て、
-                  カリフォルニア大学ロサンゼルス校（UCLA）にてヴィタリー・マルグリス氏に師事。
+                  宮崎県生まれ。愛知県立芸術大学を経て愛知県立芸術大学大学院修了。UCLA（カリフォルニア大学ロサンゼルス校）にてV.マルグリス氏のマスタークラスを修了。
                 </p>
                 <p>
-                  ポーランド、イタリア、ベトナムなど国内外で演奏活動を展開。
-                  繊細で深みのある音楽表現で聴衆を魅了し続けている。
+                  ポーランド、イタリア、ベトナムなど世界各地で演奏活動を展開。
+                </p>
+                <p>
+                  豊かな研鑽に裏打ちされた「繊細かつ深淵な響き」は、聴き手の心に深く、鮮やかな情景を描き出す。その誠実で情緒豊かな音楽性は、国内外で高く評価されている。
                 </p>
               </div>
               <a href="#keireki" className="btn btn-outline mt-8 inline-block">
@@ -121,23 +117,23 @@ export default function HomePage() {
               <div className="space-y-4">
                 <div className="aspect-[4/5] overflow-hidden rounded">
                   <img
-                    src="https://picsum.photos/seed/bio-practice/600/750"
-                    alt="練習風景"
+                    src="/concert-hall.jpg"
+                    alt="コンサートホール"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="aspect-square overflow-hidden rounded">
                     <img
-                      src="https://picsum.photos/seed/bio-young/400/400"
-                      alt="若き日の榎田まさし"
+                      src="/violin-duo.jpeg"
+                      alt="ヴァイオリンとのデュオ"
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="aspect-square overflow-hidden rounded">
                     <img
-                      src="https://picsum.photos/seed/bio-overseas/400/400"
-                      alt="海外公演"
+                      src="/ensemble.jpg"
+                      alt="アンサンブル公演"
                       className="w-full h-full object-cover"
                     />
                   </div>
