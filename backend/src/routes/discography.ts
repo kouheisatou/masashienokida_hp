@@ -100,6 +100,23 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
+router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
+  try {
+    const items: { id: string; sort_order: number }[] = req.body;
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.discography.update({
+          where: { id: item.id },
+          data: { sortOrder: item.sort_order },
+        })
+      )
+    );
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     await prisma.discography.delete({ where: { id: req.params.id } });

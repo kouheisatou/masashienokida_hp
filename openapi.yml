@@ -1080,6 +1080,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/OkResponse'
 
+  /discography/reorder:
+    put:
+      operationId: reorderDiscography
+      summary: Reorder discography entries (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required: [id, sort_order]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  sort_order:
+                    type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
   /blog/categories:
     get:
       operationId: getBlogCategories
