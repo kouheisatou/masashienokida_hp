@@ -74,7 +74,8 @@ export default function DiscographyDetailPage() {
           <div
             className="absolute inset-0 bg-cover bg-center flex items-center justify-center"
             style={{
-              backgroundImage: 'url(https://picsum.photos/seed/discography-detail/1600/600)',
+              backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_37.jpg)',
+              backgroundPosition: 'center 35%',
               filter: 'brightness(0.45)',
             }}
           >

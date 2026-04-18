@@ -208,14 +208,14 @@ export default function HomePage() {
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4">
           {[
-            { seed: 'gallery-piano-1', label: 'コンサート' },
-            { seed: 'gallery-stage', label: 'ステージ' },
-            { seed: 'gallery-piano-2', label: 'リサイタル' },
-            { seed: 'gallery-backstage', label: '演奏後' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_1.jpg', label: 'ソロリサイタル' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_20.jpg', label: '室内楽' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_19.jpg', label: 'リハーサル' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_23.jpg', label: '演奏後' },
           ].map((item) => (
-            <div key={item.seed} className="relative aspect-square overflow-hidden group">
+            <div key={item.src} className="relative aspect-square overflow-hidden group">
               <img
-                src={`https://picsum.photos/seed/${item.seed}/600/600`}
+                src={item.src}
                 alt={item.label}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
@@ -339,7 +339,8 @@ export default function HomePage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/supporters-bg/1600/800)',
+            backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_29.jpg)',
+            backgroundPosition: 'center 35%',
             filter: 'brightness(0.3)',
           }}
         />

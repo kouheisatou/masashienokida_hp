@@ -81,7 +81,8 @@ export default function ConcertDetailPage() {
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: 'url(https://picsum.photos/seed/concert-detail/1600/600)',
+              backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_44.jpg)',
+              backgroundPosition: 'center 30%',
               filter: 'brightness(0.45)',
             }}
           />

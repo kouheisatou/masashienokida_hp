@@ -35,7 +35,8 @@ export default function ConcertsPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/concert-hero/1600/600)',
+            backgroundImage: 'url(/pic/Gemini_Generated_Image_ytk4yrytk4yrytk4.jpeg)',
+            backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
         />
@@ -169,14 +170,14 @@ export default function ConcertsPage() {
       <section>
         <div className="grid grid-cols-3">
           {[
-            'concert-moment-1',
-            'concert-moment-2',
-            'concert-moment-3',
-          ].map((seed) => (
-            <div key={seed} className="relative aspect-[4/3] overflow-hidden group">
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_25.jpg', alt: '声楽共演' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_26.jpg', alt: '熱演' },
+            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_40.jpg', alt: '客席からの眺め' },
+          ].map((item) => (
+            <div key={item.src} className="relative aspect-[4/3] overflow-hidden group">
               <img
-                src={`https://picsum.photos/seed/${seed}/600/450`}
-                alt="演奏風景"
+                src={item.src}
+                alt={item.alt}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-burgundy-black/30 group-hover:bg-burgundy-black/10 transition-colors duration-500" />
@@ -265,7 +266,8 @@ export default function ConcertsPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/concert-request-bg/1600/700)',
+            backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_38.jpg)',
+            backgroundPosition: 'center 35%',
             filter: 'brightness(0.3)',
           }}
         />

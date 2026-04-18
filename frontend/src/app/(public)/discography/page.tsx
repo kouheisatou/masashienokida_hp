@@ -24,7 +24,8 @@ export default function DiscographyPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/discography-hero/1600/600)',
+            backgroundImage: 'url(/pic/Gemini_Generated_Image_herpu8herpu8herp.jpeg)',
+            backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
         />

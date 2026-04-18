@@ -67,7 +67,8 @@ export default function ContactPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/contact-hero/1600/600)',
+            backgroundImage: 'url(/pic/Gemini_Generated_Image_nbwrgknbwrgknbwr.jpeg)',
+            backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
         />
@@ -121,22 +122,19 @@ export default function ContactPage() {
                   {[...Array(2)].map((_, i) => (
                     <div key={i} className="flex gap-4 px-2">
                       {[
-                        { seed: 'outreach-1', alt: '学校でのコンサート' },
-                        { seed: 'outreach-2', alt: '福祉施設での演奏' },
-                        { seed: 'outreach-3', alt: '企業イベント' },
-                        { seed: 'outreach-4', alt: 'サロンコンサート' },
-                        { seed: 'outreach-5', alt: '地域イベント' },
+                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_33.jpg', alt: '地域コンサート' },
+                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_34.jpg', alt: 'サロンコンサート' },
+                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_5.jpg', alt: '2台ピアノ' },
+                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_32.jpg', alt: 'ミニコンサート' },
+                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_45.jpg', alt: 'トークコンサート' },
                       ].map((item, index) => (
                         <div key={`${i}-${index}`} className="relative w-64 md:w-80 aspect-[4/3] rounded-sm overflow-hidden flex-shrink-0 group cursor-pointer">
                           <img
-                            src={`https://picsum.photos/seed/${item.seed}/600/450`}
+                            src={item.src}
                             alt={item.alt}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           />
                           <div className="absolute inset-0 bg-burgundy-black/20 group-hover:bg-transparent transition-colors duration-500" />
-                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-burgundy-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <p className="text-white text-sm tracking-wider">{item.alt}</p>
-                          </div>
                         </div>
                       ))}
                     </div>

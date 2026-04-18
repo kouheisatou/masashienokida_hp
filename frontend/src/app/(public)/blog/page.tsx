@@ -72,7 +72,8 @@ export default function BlogPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://picsum.photos/seed/blog-hero/1600/600)',
+            backgroundImage: 'url(/pic/Gemini_Generated_Image_jo02rcjo02rcjo02.jpeg)',
+            backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
         />
