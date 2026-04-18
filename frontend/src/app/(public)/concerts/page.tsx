@@ -149,14 +149,15 @@ export default function ConcertsPage() {
                       <Link href={`/concerts/${concert.id}/`} className="btn btn-outline">
                         詳細を見る
                       </Link>
-                      {concert.ticket_url && (
-                        <a href={concert.ticket_url} className="btn btn-primary">
-                          チケットを購入する
+                      {concert.ticket_url ? (
+                        <a href={concert.ticket_url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                          チケット購入
                         </a>
+                      ) : (
+                        <span className="btn btn-primary opacity-50 cursor-not-allowed">
+                          チケット準備中
+                        </span>
                       )}
-                      <Link href="/supporters/" className="btn btn-outline">
-                        会員割引について
-                      </Link>
                     </div>
                   </div>
                 </article>

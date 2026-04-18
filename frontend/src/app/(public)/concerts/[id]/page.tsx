@@ -68,25 +68,14 @@ export default function ConcertDetailPage() {
     <div className="pt-20">
       {/* Hero Section */}
       <section className="relative min-h-[40vh] flex items-end pb-16 overflow-hidden">
-        {concert.image_url ? (
-          <>
-            <img
-              src={concert.image_url}
-              alt={concert.title}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-burgundy-black via-burgundy-black/60 to-burgundy-black/30" />
-          </>
-        ) : (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_44.jpg)',
-              backgroundPosition: 'center 30%',
-              filter: 'brightness(0.45)',
-            }}
-          />
-        )}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url(/pic/Gemini_Generated_Image_ytk4yrytk4yrytk4.jpeg)',
+            backgroundPosition: 'center',
+            filter: 'brightness(0.45)',
+          }}
+        />
         <div className="relative z-10 container">
           <Link
             href="/concerts/"
@@ -108,14 +97,23 @@ export default function ConcertDetailPage() {
         <div className="container">
           <div className="max-w-3xl mx-auto">
             <article className="card overflow-hidden">
-              {concert.image_url && (
-                <div className="relative h-72 overflow-hidden">
+              {concert.image_url ? (
+                <div className="p-8 md:p-12 pb-0 md:pb-0">
                   <img
                     src={concert.image_url}
-                    alt={concert.venue}
-                    className="w-full h-full object-cover"
+                    alt={concert.title}
+                    className="w-full h-auto rounded"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-burgundy via-transparent to-transparent" />
+                </div>
+              ) : (
+                <div className="relative aspect-[16/9] overflow-hidden flex items-center justify-center">
+                  <img
+                    src="/pic/Gemini_Generated_Image_nbwrgknbwrgknbwr.jpeg"
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-burgundy-black/40" />
+                  <h2 className="relative z-10 text-2xl md:text-3xl text-white text-center px-8">{concert.title}</h2>
                 </div>
               )}
 
@@ -171,21 +169,31 @@ export default function ConcertDetailPage() {
                   <p className="text-burgundy-accent text-sm mb-8">※ {concert.note}</p>
                 )}
 
-                <div className="flex flex-wrap gap-4">
-                  {concert.ticket_url && (
-                    <a href={concert.ticket_url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
-                      チケットを購入する
-                    </a>
-                  )}
-                  <Link href="/supporters/" className="btn btn-outline">
-                    会員割引について
-                  </Link>
-                </div>
               </div>
             </article>
           </div>
         </div>
       </section>
+
+      {/* Floating Ticket Button (upcoming only) */}
+      {concert.is_upcoming && (
+        concert.ticket_url ? (
+          <a
+            href={concert.ticket_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-8 right-8 z-40 btn btn-primary flex items-center gap-2 shadow-lg shadow-burgundy-black/50"
+          >
+            <Ticket size={18} />
+            チケット購入
+          </a>
+        ) : (
+          <span className="fixed bottom-8 right-8 z-40 btn btn-primary flex items-center gap-2 shadow-lg shadow-burgundy-black/50 opacity-50 cursor-not-allowed">
+            <Ticket size={18} />
+            チケット準備中
+          </span>
+        )
+      )}
     </div>
   );
 }
