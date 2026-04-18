@@ -178,58 +178,60 @@ export default function BlogPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {posts.map((post) => (
-                  <article key={post.id} className="card overflow-hidden group">
-                    {/* Thumbnail */}
-                    <div className="aspect-video bg-burgundy-light relative">
-                      {post.thumbnail?.url ? (
-                        <img
-                          src={post.thumbnail.url}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-burgundy-border text-4xl">&#9834;</span>
-                        </div>
-                      )}
-                      {post.membersOnly && (
-                        <div className="absolute top-3 right-3 bg-burgundy-accent/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                          <Lock size={10} />
-                          会員限定
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6">
-                      {post.category && (
-                        <span className="text-burgundy-accent text-xs mb-2 block">
-                          {post.category.name}
-                        </span>
-                      )}
-
-                      <h2 className="text-lg mb-3 group-hover:text-burgundy-accent transition-colors line-clamp-2">
-                        <Link href={`/blog/${post.id}/`}>{post.title}</Link>
-                      </h2>
-
-                      {post.excerpt && (
-                        <p className="text-taupe text-sm mb-4 line-clamp-2">
-                          {post.excerpt}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-taupe text-xs">
-                        <Calendar size={12} />
-                        <time dateTime={post.publishedAt}>
-                          {new Date(post.publishedAt).toLocaleDateString('ja-JP', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </time>
+                  <Link key={post.id} href={`/blog/${post.id}/`} className="block h-full">
+                    <article className="card overflow-hidden group cursor-pointer h-full flex flex-col">
+                      {/* Thumbnail */}
+                      <div className="aspect-video bg-burgundy-light relative">
+                        {post.thumbnail?.url ? (
+                          <img
+                            src={post.thumbnail.url}
+                            alt={post.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-burgundy-border text-4xl">&#9834;</span>
+                          </div>
+                        )}
+                        {post.membersOnly && (
+                          <div className="absolute top-3 right-3 bg-burgundy-accent/90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <Lock size={10} />
+                            会員限定
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </article>
+
+                      {/* Content */}
+                      <div className="p-6 flex flex-col flex-grow">
+                        {post.category && (
+                          <span className="text-burgundy-accent text-xs mb-2 block">
+                            {post.category.name}
+                          </span>
+                        )}
+
+                        <h3 className="text-sm mb-3 group-hover:text-burgundy-accent transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+
+                        {post.excerpt && (
+                          <p className="text-taupe text-sm mb-4 line-clamp-2">
+                            {post.excerpt}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2 text-taupe text-xs mt-auto">
+                          <Calendar size={12} />
+                          <time dateTime={post.publishedAt}>
+                            {new Date(post.publishedAt).toLocaleDateString('ja-JP', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </time>
+                        </div>
+                      </div>
+                    </article>
+                  </Link>
                 ))}
               </div>
 

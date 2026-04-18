@@ -76,7 +76,16 @@ export default function ConcertsPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-burgundy-light" />
+                      <>
+                        <img
+                          src="/images/textures/header-contact.jpeg"
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-burgundy-black/40 flex items-center justify-center z-[1]">
+                          <h3 className="text-xl md:text-2xl text-white text-center px-8">{concert.title}</h3>
+                        </div>
+                      </>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-r from-burgundy-black/70 to-transparent" />
                     <div className="absolute top-6 left-8">

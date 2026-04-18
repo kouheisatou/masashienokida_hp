@@ -66,47 +66,28 @@ export default function ConcertDetailPage() {
 
   return (
     <div className="pt-20">
-      {/* Hero Section */}
-      <section className="relative min-h-[40vh] flex items-end pb-16 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url(/images/textures/header-concert.jpeg)',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.45)',
-          }}
-        />
-        <div className="relative z-10 container">
+      {/* Content */}
+      <section className="section-padding bg-burgundy">
+        <div className="container">
           <Link
             href="/concerts/"
-            className="inline-flex items-center gap-2 text-taupe hover:text-white transition-colors text-sm mb-6"
+            className="inline-flex items-center gap-2 text-taupe hover:text-white transition-colors text-sm mb-8"
           >
             <ArrowLeft size={16} />
             コンサート一覧に戻る
           </Link>
-          <h1 className="mb-2">{concert.title}</h1>
-          <div className="flex items-center gap-3 text-taupe">
-            <Calendar size={18} className="flex-shrink-0" />
-            <time dateTime={concert.date}>{dateStr}</time>
-          </div>
-        </div>
-      </section>
 
-      {/* Content */}
-      <section className="section-padding bg-burgundy">
-        <div className="container">
-          <div className="max-w-3xl mx-auto">
-            <article className="card overflow-hidden">
+          <div className="flex flex-col md:flex-row md:gap-12">
+            {/* Left: Image */}
+            <div className="md:w-1/2 flex-shrink-0">
               {concert.image_url ? (
-                <div className="p-8 md:p-12 pb-0 md:pb-0">
-                  <img
-                    src={concert.image_url}
-                    alt={concert.title}
-                    className="w-full h-auto rounded"
-                  />
-                </div>
+                <img
+                  src={concert.image_url}
+                  alt={concert.title}
+                  className="w-full h-auto object-contain rounded"
+                />
               ) : (
-                <div className="relative aspect-[16/9] overflow-hidden flex items-center justify-center">
+                <div className="relative w-full min-h-[300px] flex items-center justify-center rounded overflow-hidden">
                   <img
                     src="/images/textures/header-contact.jpeg"
                     alt=""
@@ -116,11 +97,20 @@ export default function ConcertDetailPage() {
                   <h2 className="relative z-10 text-2xl md:text-3xl text-white text-center px-8">{concert.title}</h2>
                 </div>
               )}
+            </div>
 
-              <div className="p-8 md:p-12">
+            {/* Right: Details */}
+            <div className="md:w-1/2 pt-8 md:pt-0">
                 <h2 className="text-2xl mb-8">{concert.title}</h2>
 
                 <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-4">
+                    <Calendar size={20} className="flex-shrink-0 mt-0.5 text-burgundy-accent" />
+                    <div>
+                      <p className="text-sm text-taupe mb-1">日程</p>
+                      <time dateTime={concert.date} className="text-beige">{dateStr}</time>
+                    </div>
+                  </div>
                   {concert.time && (
                     <div className="flex items-start gap-4">
                       <Clock size={20} className="flex-shrink-0 mt-0.5 text-burgundy-accent" />
@@ -169,8 +159,18 @@ export default function ConcertDetailPage() {
                   <p className="text-burgundy-accent text-sm mb-8">※ {concert.note}</p>
                 )}
 
-              </div>
-            </article>
+                {concert.is_upcoming && concert.ticket_url && (
+                  <a
+                    href={concert.ticket_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary inline-flex items-center gap-2"
+                  >
+                    <Ticket size={18} />
+                    チケット購入
+                  </a>
+                )}
+            </div>
           </div>
         </div>
       </section>
