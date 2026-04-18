@@ -67,7 +67,7 @@ export default function ContactPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/Gemini_Generated_Image_nbwrgknbwrgknbwr.jpeg)',
+            backgroundImage: 'url(/images/textures/header-contact.jpeg)',
             backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
@@ -122,11 +122,11 @@ export default function ContactPage() {
                   {[...Array(2)].map((_, i) => (
                     <div key={i} className="flex gap-4 px-2">
                       {[
-                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_33.jpg', alt: '地域コンサート' },
-                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_34.jpg', alt: 'サロンコンサート' },
-                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_5.jpg', alt: '2台ピアノ' },
-                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_32.jpg', alt: 'ミニコンサート' },
-                        { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_45.jpg', alt: 'トークコンサート' },
+                        { src: '/images/photos/community-concert.jpg', alt: '地域コンサート' },
+                        { src: '/images/photos/salon-concert.jpg', alt: 'サロンコンサート' },
+                        { src: '/images/photos/two-pianos.jpg', alt: '2台ピアノ' },
+                        { src: '/images/photos/mini-concert.jpg', alt: 'ミニコンサート' },
+                        { src: '/images/photos/talk-concert.jpg', alt: 'トークコンサート' },
                       ].map((item, index) => (
                         <div key={`${i}-${index}`} className="relative w-64 md:w-80 aspect-[4/3] rounded-sm overflow-hidden flex-shrink-0 group cursor-pointer">
                           <img

@@ -72,7 +72,7 @@ export default function BlogPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/Gemini_Generated_Image_jo02rcjo02rcjo02.jpeg)',
+            backgroundImage: 'url(/images/textures/header-blog.jpeg)',
             backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}

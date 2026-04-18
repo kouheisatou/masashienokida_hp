@@ -35,7 +35,7 @@ export default function ConcertsPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/Gemini_Generated_Image_ytk4yrytk4yrytk4.jpeg)',
+            backgroundImage: 'url(/images/textures/header-concert.jpeg)',
             backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
@@ -171,9 +171,9 @@ export default function ConcertsPage() {
       <section>
         <div className="grid grid-cols-3">
           {[
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_25.jpg', alt: '声楽共演' },
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_26.jpg', alt: '熱演' },
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_40.jpg', alt: '客席からの眺め' },
+            { src: '/images/photos/vocal-duet.jpg', alt: '声楽共演' },
+            { src: '/images/photos/passionate-play.jpg', alt: '熱演' },
+            { src: '/images/photos/audience-view.jpg', alt: '客席からの眺め' },
           ].map((item) => (
             <div key={item.src} className="relative aspect-[4/3] overflow-hidden group">
               <img
@@ -267,7 +267,7 @@ export default function ConcertsPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_38.jpg)',
+            backgroundImage: 'url(/images/photos/concert-request-bg.jpg)',
             backgroundPosition: 'center 35%',
             filter: 'brightness(0.3)',
           }}

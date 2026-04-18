@@ -71,7 +71,7 @@ export default function ConcertDetailPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/Gemini_Generated_Image_ytk4yrytk4yrytk4.jpeg)',
+            backgroundImage: 'url(/images/textures/header-concert.jpeg)',
             backgroundPosition: 'center',
             filter: 'brightness(0.45)',
           }}
@@ -108,7 +108,7 @@ export default function ConcertDetailPage() {
               ) : (
                 <div className="relative aspect-[16/9] overflow-hidden flex items-center justify-center">
                   <img
-                    src="/pic/Gemini_Generated_Image_nbwrgknbwrgknbwr.jpeg"
+                    src="/images/textures/header-contact.jpeg"
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover"
                   />

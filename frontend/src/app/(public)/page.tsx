@@ -208,10 +208,10 @@ export default function HomePage() {
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4">
           {[
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_1.jpg', label: 'ソロリサイタル' },
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_20.jpg', label: '室内楽' },
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_19.jpg', label: 'リハーサル' },
-            { src: '/pic/LINE_ALBUM_Webページ用素材写真_260418_23.jpg', label: '演奏後' },
+            { src: '/images/photos/solo-recital.jpg', label: 'ソロリサイタル' },
+            { src: '/images/photos/chamber-trio.jpg', label: '室内楽' },
+            { src: '/images/photos/rehearsal.jpg', label: 'リハーサル' },
+            { src: '/images/photos/after-concert.jpg', label: '演奏後' },
           ].map((item) => (
             <div key={item.src} className="relative aspect-square overflow-hidden group">
               <img
@@ -339,7 +339,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/pic/LINE_ALBUM_Webページ用素材写真_260418_29.jpg)',
+            backgroundImage: 'url(/images/photos/supporters-bg.jpg)',
             backgroundPosition: 'center 35%',
             filter: 'brightness(0.3)',
           }}
