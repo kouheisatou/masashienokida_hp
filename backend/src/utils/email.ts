@@ -197,6 +197,31 @@ ${SITE_NAME}
   await sendBulkMail(goldUsers, `[新着記事] ${post.title}`, text);
 }
 
+// ── Payment Failed ──────────────────────────────────────────────
+
+export async function sendPaymentFailedEmail(to: string, name: string) {
+  await sendMail({
+    to,
+    subject: 'お支払いに問題が発生しました',
+    text: `
+${name} 様
+
+ゴールド会員の更新にあたり、お支払いの処理に問題が発生しました。
+
+お手数ですが、以下のリンクからお支払い情報をご確認ください。
+
+▼ サブスクリプション管理
+${siteUrl('/members/profile')}
+
+お支払い方法を更新していただくことで、引き続きゴールド会員の特典をお楽しみいただけます。
+
+ご不明な点がございましたら、お気軽にお問い合わせください。
+
+${SITE_NAME}
+    `.trim(),
+  });
+}
+
 // ── Concert Notification (N6) ────────────────────────────────────
 
 export async function sendConcertNotification(concert: {

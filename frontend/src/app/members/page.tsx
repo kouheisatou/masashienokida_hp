@@ -1,23 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { User, CreditCard, Video, FileText, Settings, LogOut, Star, Crown, CheckCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api, clearToken, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 type Subscription = components['schemas']['Subscription'];
 
 export default function MembersDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="pt-20 min-h-screen flex items-center justify-center">
+        <p className="text-taupe">読み込み中...</p>
+      </div>
+    }>
+      <MembersDashboardContent />
+    </Suspense>
+  );
+}
+
+function MembersDashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<UserType | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      setShowCheckoutSuccess(true);
+      // URLからパラメータを消す
+      window.history.replaceState({}, '', '/members');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
+      // /auth/me 内で stripeCustomerId がある場合は毎回Stripeと自動同期される
       const { data } = await api.GET('/auth/me');
       if (!data) {
         router.replace('/login');
@@ -95,6 +118,25 @@ export default function MembersDashboardPage() {
       <section className="section-padding pt-0">
         <div className="container">
           <div className="max-w-4xl mx-auto">
+            {/* Checkout Success Banner */}
+            {showCheckoutSuccess && (
+              <div className="bg-green-900/20 border border-green-800 p-4 rounded mb-6 flex items-start gap-3">
+                <CheckCircle size={20} className="text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-green-300 font-medium">ゴールド会員へのアップグレードが完了しました！</p>
+                  <p className="text-green-400/70 text-sm mt-1">
+                    特別な特典をお楽しみください。
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCheckoutSuccess(false)}
+                  className="text-green-400/50 hover:text-green-300 ml-auto text-lg leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
             {/* User Info Card */}
             <div className="card p-8 mb-8">
               <div className="flex items-start gap-6">
@@ -132,17 +174,29 @@ export default function MembersDashboardPage() {
 
                   {subscription?.hasSubscription && (
                     <div className="mt-4 text-sm">
-                      <p className="text-taupe">
-                        次回更新日:{' '}
-                        <span className="text-beige">
-                          {subscription.currentPeriodEnd
-                            ? new Date(subscription.currentPeriodEnd).toLocaleDateString('ja-JP')
-                            : '-'}
-                        </span>
-                      </p>
-                      {subscription.cancelAtPeriodEnd && (
-                        <p className="text-burgundy-accent mt-1">
-                          ※ 次回更新時に解約されます
+                      {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd ? (
+                        <div className="bg-red-900/30 border border-red-700/50 rounded-lg px-4 py-3">
+                          <p className="text-red-300 font-medium">
+                            解約済み —{' '}
+                            {new Date(subscription.currentPeriodEnd).toLocaleDateString('ja-JP', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                            にダウングレードされます
+                          </p>
+                          <p className="text-red-400/70 text-xs mt-1">
+                            期間終了まではゴールド会員の特典をご利用いただけます
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-taupe">
+                          次回更新日:{' '}
+                          <span className="text-beige">
+                            {subscription.currentPeriodEnd
+                              ? new Date(subscription.currentPeriodEnd).toLocaleDateString('ja-JP')
+                              : '-'}
+                          </span>
                         </p>
                       )}
                     </div>

@@ -1279,6 +1279,26 @@ paths:
         '401':
           description: Unauthorized
 
+  /stripe/sync:
+    post:
+      operationId: postStripeSync
+      summary: Sync subscription status from Stripe to DB (handles both upgrade and cancellation)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [role]
+                properties:
+                  role:
+                    type: string
+        '401':
+          description: Unauthorized
+
   /stripe/webhook:
     post:
       operationId: postStripeWebhook

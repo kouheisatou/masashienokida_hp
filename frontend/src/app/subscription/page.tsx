@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Crown, Check, Shield, ArrowRight, Loader2 } from 'lucide-react';
+import { Crown, Check, Shield, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { api, getToken, getGoogleSignInUrl, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
@@ -33,6 +33,7 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!getToken()) {
@@ -50,24 +51,34 @@ export default function SubscriptionPage() {
 
   const handleCheckout = useCallback(async () => {
     setCheckoutLoading(true);
+    setError('');
     try {
-      const { data } = await api.POST('/stripe/checkout');
-      if (data?.url) {
-        window.location.href = data.url;
+      const { data, error: err } = await api.POST('/stripe/checkout');
+      if (err || !data?.url) {
+        setError((err as unknown as { error?: string })?.error ?? 'チェックアウトの開始に失敗しました');
+        setCheckoutLoading(false);
+        return;
       }
+      window.location.href = data.url;
     } catch {
+      setError('エラーが発生しました。もう一度お試しください。');
       setCheckoutLoading(false);
     }
   }, []);
 
   const handlePortal = useCallback(async () => {
     setPortalLoading(true);
+    setError('');
     try {
-      const { data } = await api.GET('/stripe/portal');
-      if (data?.url) {
-        window.location.href = data.url;
+      const { data, error: err } = await api.GET('/stripe/portal');
+      if (err || !data?.url) {
+        setError('サブスクリプション管理画面を開けませんでした');
+        setPortalLoading(false);
+        return;
       }
+      window.location.href = data.url;
     } catch {
+      setError('エラーが発生しました。もう一度お試しください。');
       setPortalLoading(false);
     }
   }, []);
@@ -90,6 +101,19 @@ export default function SubscriptionPage() {
           <div className="max-w-2xl mx-auto">
             <h1 className="text-center mb-4">SUBSCRIPTION</h1>
             <p className="text-taupe text-center mb-12">会員プランの管理</p>
+
+            {error && (
+              <div className="bg-red-900/20 border border-red-800 p-4 rounded mb-6 flex items-start gap-3">
+                <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-300 text-sm">{error}</p>
+                <button
+                  onClick={() => setError('')}
+                  className="text-red-400/50 hover:text-red-300 ml-auto text-lg leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            )}
 
             {!user ? (
               <div className="card p-10 text-center">

@@ -81,6 +81,7 @@ model Subscription {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([stripeCustomerId])
   @@map("subscriptions")
 }
 

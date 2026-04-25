@@ -2,9 +2,15 @@ import { Router } from 'express';
 import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
+import Stripe from 'stripe';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthPayload } from '../middleware/auth';
 import { sendWelcomeEmail } from '../utils/email';
+import { syncSubscriptionFromStripe } from './stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
 
 const router = Router();
 
@@ -169,6 +175,17 @@ router.get(
 
 router.get('/me', requireAuth, async (req, res) => {
   try {
+    // stripeCustomerId がある場合は毎回Stripeと同期
+    const subCheck = await prisma.subscription.findUnique({
+      where: { userId: req.user!.userId },
+      select: { stripeCustomerId: true },
+    });
+    if (subCheck?.stripeCustomerId) {
+      await syncSubscriptionFromStripe(req.user!.userId).catch(
+        (err) => console.error('Stripe sync in /auth/me failed:', err),
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
     });
@@ -204,7 +221,25 @@ router.post('/signout', requireAuth, (_req, res) => {
 
 router.delete('/account', requireAuth, async (req, res) => {
   try {
-    await prisma.user.delete({ where: { id: req.user!.userId } });
+    const userId = req.user!.userId;
+
+    // Stripe サブスクリプションがあればキャンセル
+    const sub = await prisma.subscription.findUnique({
+      where: { userId },
+      select: { stripeCustomerId: true },
+    });
+
+    if (sub?.stripeCustomerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: sub.stripeCustomerId,
+        status: 'active',
+      });
+      await Promise.all(
+        subscriptions.data.map((s) => stripe.subscriptions.cancel(s.id)),
+      );
+    }
+
+    await prisma.user.delete({ where: { id: userId } });
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Internal server error' });
