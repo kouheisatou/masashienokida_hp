@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { getToken, getGoogleSignInUrl } from '@/lib/api';
+import { isAuthenticated, getGoogleSignInUrl } from '@/lib/api';
 
 function LoginContent() {
   const router = useRouter();
@@ -11,7 +11,7 @@ function LoginContent() {
   const redirect = searchParams.get('redirect') ?? '/';
 
   useEffect(() => {
-    if (getToken()) {
+    if (isAuthenticated()) {
       router.replace(redirect);
     }
   }, [router, redirect]);

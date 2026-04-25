@@ -4,27 +4,30 @@ import { showSnackbar } from '@/lib/snackbar';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-export function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
+// 認証は httpOnly Cookie (auth_token) ベース。localStorage には触れない。
+// 残置: 過去バージョンが localStorage に書いた値を起動時に消去する。
+export function migrateLegacyToken() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('auth_token');
+  } catch {
+    /* noop */
+  }
 }
 
-export function setToken(token: string) {
-  localStorage.setItem('auth_token', token);
+// httpOnly cookie は JS から見えないため、並行して立てている
+// auth_present フラグ cookie の有無でログイン状態を即時判定する。
+export function isAuthenticated(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.cookie.split('; ').some((c) => c.startsWith('auth_present='));
 }
 
-export function clearToken() {
-  localStorage.removeItem('auth_token');
-}
-
-export const api = createClient<paths>({ baseUrl: API_BASE });
+export const api = createClient<paths>({
+  baseUrl: API_BASE,
+  credentials: 'include',
+});
 
 api.use({
-  async onRequest({ request }) {
-    const token = getToken();
-    if (token) request.headers.set('Authorization', `Bearer ${token}`);
-    return request;
-  },
   async onResponse({ response }) {
     if (response.status === 429) {
       showSnackbar('リクエストが多すぎます。しばらくお待ちください。', 'error');

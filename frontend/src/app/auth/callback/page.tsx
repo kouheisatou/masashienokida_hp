@@ -2,23 +2,16 @@
 
 import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { setToken } from '@/lib/api';
-
-function parseHash(hash: string): URLSearchParams {
-  return new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
-}
+import { migrateLegacyToken } from '@/lib/api';
 
 function AuthCallbackContent() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = parseHash(window.location.hash).get('token');
-    if (token) {
-      setToken(token);
-      // hash を即座に消去 (履歴・後続スクリプトからの参照を防ぐ)
-      window.history.replaceState(null, '', window.location.pathname);
-      window.dispatchEvent(new CustomEvent('auth:login'));
-    }
+    // 旧バージョンの localStorage 残骸を一掃
+    migrateLegacyToken();
+    // 認証 cookie はバックエンドが既にセット済み。ヘッダ等に通知して再フェッチさせる。
+    window.dispatchEvent(new CustomEvent('auth:login'));
     const savedRedirect = sessionStorage.getItem('auth_redirect') || '/';
     sessionStorage.removeItem('auth_redirect');
     router.replace(savedRedirect);

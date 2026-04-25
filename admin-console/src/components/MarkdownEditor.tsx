@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-import { getToken } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -59,10 +58,9 @@ export default function MarkdownEditor({ value, onChange, height = 520 }: Props)
       formData.append('image', file);
 
       try {
-        const token = getToken();
         const res = await fetch(`${API_BASE}/admin/upload/image`, {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           body: formData,
         });
         if (!res.ok) throw new Error('Upload failed');

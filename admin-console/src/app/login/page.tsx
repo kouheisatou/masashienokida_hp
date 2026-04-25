@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getToken, getAdminGoogleSignInUrl } from '@/lib/api';
+import { isAuthenticated, getAdminGoogleSignInUrl } from '@/lib/api';
 
 function LoginContent() {
   const router = useRouter();
@@ -10,7 +10,7 @@ function LoginContent() {
   const error = params.get('error');
 
   useEffect(() => {
-    if (getToken()) router.replace('/dashboard');
+    if (isAuthenticated()) router.replace('/dashboard');
   }, [router]);
 
   return (

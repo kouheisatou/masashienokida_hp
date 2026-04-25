@@ -1,13 +1,41 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
 import { randomBytes } from 'crypto';
 import { prisma } from '../lib/prisma';
-import { requireAuth, AuthPayload } from '../middleware/auth';
+import { requireAuth, AuthPayload, AUTH_COOKIE_NAME } from '../middleware/auth';
 import { sendWelcomeEmail } from '../utils/email';
 import { syncSubscriptionFromStripe } from './stripe';
+
+const AUTH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+// JS から「ログイン済みか」を即時判定するためのフラグ Cookie。
+// 値は意味を持たず、存在の有無だけで判定する。
+const AUTH_PRESENT_COOKIE = 'auth_present';
+
+function setAuthCookie(res: Response, token: string) {
+  res.cookie(AUTH_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: AUTH_COOKIE_MAX_AGE_MS,
+  });
+  res.cookie(AUTH_PRESENT_COOKIE, '1', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: AUTH_COOKIE_MAX_AGE_MS,
+  });
+}
+
+function clearAuthCookie(res: Response) {
+  res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+  res.clearCookie(AUTH_PRESENT_COOKIE, { path: '/' });
+}
 
 // OAuth state CSRF 対策: nonce を signed cookie と state 双方に載せて照合
 const OAUTH_STATE_COOKIE = 'oauth_state';
@@ -207,8 +235,8 @@ router.get(
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       );
-      // fragment 経由で渡す: アクセスログ・Referer・サーバ転送に乗らない
-      res.redirect(`${adminConsoleUrl}/auth/callback#token=${encodeURIComponent(token)}`);
+      setAuthCookie(res, token);
+      res.redirect(`${adminConsoleUrl}/auth/callback`);
     } else {
       // メインサイトフロー: ADMIN ロールでも ADMIN_EMAILS に含まれていなければ
       // トークン発行時に role を USER に下げる（管理コンソール迂回を防ぐ）
@@ -228,8 +256,8 @@ router.get(
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       );
-      // fragment 経由で渡す: アクセスログ・Referer・サーバ転送に乗らない
-      res.redirect(`${process.env.FRONTEND_URL}/auth/callback#token=${encodeURIComponent(token)}`);
+      setAuthCookie(res, token);
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
     }
   }
 );
@@ -277,6 +305,7 @@ router.get('/me', requireAuth, async (req, res) => {
 });
 
 router.post('/signout', requireAuth, (_req, res) => {
+  clearAuthCookie(res);
   res.json({ ok: true });
 });
 
@@ -301,6 +330,7 @@ router.delete('/account', requireAuth, async (req, res) => {
     }
 
     await prisma.user.delete({ where: { id: userId } });
+    clearAuthCookie(res);
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Internal server error' });

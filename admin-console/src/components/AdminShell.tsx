@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { clearToken } from '@/lib/api';
+import { api } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard', label: 'ダッシュボード', icon: '📊' },
@@ -21,8 +21,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  function handleSignOut() {
-    clearToken();
+  async function handleSignOut() {
+    await api.POST('/auth/signout');
     router.push('/login');
   }
 

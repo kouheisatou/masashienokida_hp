@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Menu, X, User, LogOut, Crown, Heart, LogIn, Sparkles } from 'lucide-react';
-import { api, getGoogleSignInUrl, clearToken, type components } from '@/lib/api';
+import { api, getGoogleSignInUrl, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 
@@ -65,7 +65,6 @@ export function Header() {
 
   const handleSignOut = useCallback(async () => {
     await api.POST('/auth/signout');
-    clearToken();
     setUser(null);
     setAccountOpen(false);
     window.location.href = '/';

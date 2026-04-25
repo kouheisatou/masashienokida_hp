@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Check, Star, Shield, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { api, getToken, getGoogleSignInUrl, type components } from '@/lib/api';
+import { api, isAuthenticated, getGoogleSignInUrl, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 
@@ -37,7 +37,7 @@ export default function SupportersPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!getToken()) {
+    if (!isAuthenticated()) {
       setAuthChecked(true);
       return;
     }

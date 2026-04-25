@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useCallback, useState } from 'react';
-import { getToken } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -31,10 +30,9 @@ export default function ImageUploader({ value, onChange, label = 'サムネイ�
       try {
         const formData = new FormData();
         formData.append('image', file);
-        const token = getToken();
         const res = await fetch(`${API_BASE}/admin/upload/image`, {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           body: formData,
         });
         if (!res.ok) {

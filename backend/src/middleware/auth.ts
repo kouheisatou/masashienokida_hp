@@ -14,19 +14,32 @@ declare global {
   }
 }
 
-// Attaches req.user if a valid Bearer JWT is present. Does NOT reject.
+// Attaches req.user if a valid JWT is present.
+// 受け口の優先順: httpOnly Cookie > Authorization Bearer (移行期互換のみ)
 // role は JWT に焼き込まれた値ではなく、DB の最新値を使う。
-export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+export const AUTH_COOKIE_NAME = 'auth_token';
+
+function extractToken(req: Request): string | null {
+  // 1) httpOnly cookie (推奨)
+  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
+  if (typeof cookieToken === 'string' && cookieToken.length > 0) return cookieToken;
+
+  // 2) Authorization Bearer (フォールバック: Stripe Webhook 等の例外用に残す)
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
+  if (header?.startsWith('Bearer ')) return header.slice(7);
+
+  return null;
+}
+
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  if (!token) {
     next();
     return;
   }
 
   try {
-    const token = header.slice(7);
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
-
     try {
       const user = await prisma.user.findUnique({
         where: { id: payload.userId },

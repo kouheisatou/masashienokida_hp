@@ -2,26 +2,22 @@
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { setToken } from '@/lib/api';
-
-function parseHash(hash: string): URLSearchParams {
-  return new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
-}
+import { isAuthenticated, migrateLegacyToken } from '@/lib/api';
 
 function CallbackHandler() {
   const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
-    const token = parseHash(window.location.hash).get('token');
+    migrateLegacyToken();
     const error = params.get('error');
 
-    if (token) {
-      setToken(token);
-      window.history.replaceState(null, '', window.location.pathname);
-      router.replace('/dashboard');
-    } else if (error === 'forbidden') {
+    if (error === 'forbidden') {
       router.replace('/login?error=forbidden');
+      return;
+    }
+    if (isAuthenticated()) {
+      router.replace('/dashboard');
     } else {
       router.replace('/login?error=auth_failed');
     }

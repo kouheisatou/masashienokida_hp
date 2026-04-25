@@ -2,29 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, clearToken, api } from '@/lib/api';
+import { isAuthenticated, api } from '@/lib/api';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
+    if (!isAuthenticated()) {
       router.replace('/login');
       return;
     }
     api.GET('/auth/me')
       .then(({ data }) => {
         if (!data || data.user.role !== 'ADMIN') {
-          clearToken();
           router.replace('/login?error=forbidden');
         } else {
           setChecking(false);
         }
       })
       .catch(() => {
-        clearToken();
         router.replace('/login');
       });
   }, [router]);

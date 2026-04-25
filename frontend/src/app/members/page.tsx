@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, LogOut, Star, Crown, CheckCircle, AlertCircle, Trash2, Check, CreditCard, Shield, ArrowRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { api, clearToken, type components } from '@/lib/api';
+import { api, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 type Subscription = components['schemas']['Subscription'];
@@ -60,7 +60,6 @@ function MembersDashboardContent() {
 
   const handleSignOut = async () => {
     await api.POST('/auth/signout');
-    clearToken();
     window.location.href = '/';
   };
 
@@ -97,7 +96,6 @@ function MembersDashboardContent() {
       setDeleting(false);
       return;
     }
-    clearToken();
     window.location.href = '/?withdrawn=true';
   };
 
