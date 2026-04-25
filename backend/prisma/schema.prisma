@@ -190,3 +190,11 @@ model RateLimit {
   @@id([key, windowEnd])
   @@map("rate_limits")
 }
+
+model StripeWebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz
+
+  @@map("stripe_webhook_events")
+}

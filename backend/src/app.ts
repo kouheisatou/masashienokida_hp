@@ -18,7 +18,35 @@ import adminRouter from './routes/admin';
 
 const app = express();
 
-app.use(helmet());
+// nginx 等 1 段の reverse proxy 配下を想定。express-rate-limit が
+// X-Forwarded-For を信頼できる範囲に限定する。
+app.set('trust proxy', 1);
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        'default-src': ["'self'"],
+        'script-src': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+        'connect-src': ["'self'", 'https://api.stripe.com'],
+        'frame-src': ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        'object-src': ["'none'"],
+        'base-uri': ["'self'"],
+        'frame-ancestors': ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 60 * 60 * 24 * 365,
+      includeSubDomains: true,
+      preload: true,
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001/admin';
 const adminConsoleOrigin = new URL(adminConsoleUrl).origin; // CORS は scheme+host+port のみ

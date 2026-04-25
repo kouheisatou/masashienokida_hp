@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
-import { SubscriptionStatus, SubscriptionTier } from '@prisma/client';
+import { Prisma, SubscriptionStatus, SubscriptionTier } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
 import { sendGoldWelcomeEmail, sendNewGoldMemberToAdmin, sendPaymentFailedEmail } from '../utils/email';
@@ -218,6 +218,19 @@ router.post('/webhook', async (req: Request, res: Response) => {
   } catch {
     res.status(400).json({ error: 'Webhook signature verification failed' });
     return;
+  }
+
+  // Idempotency: 同一 event.id の二重処理を抑止 (Stripe はリトライで再送する)
+  try {
+    await prisma.stripeWebhookEvent.create({
+      data: { id: event.id, type: event.type },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      res.json({ received: true, duplicate: true });
+      return;
+    }
+    throw err;
   }
 
   try {
