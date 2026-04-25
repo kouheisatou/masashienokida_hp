@@ -12,10 +12,11 @@ RUN npm run build
 # Stage 2: Production
 FROM node:20-alpine
 WORKDIR /app
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/next.config.ts ./
-RUN mkdir -p public
+COPY --chown=node:node --from=builder /app/package*.json ./
+COPY --chown=node:node --from=builder /app/.next ./.next
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/next.config.ts ./
+RUN mkdir -p public && chown node:node public
+USER node
 EXPOSE 3000
 CMD ["npm", "run", "start"]

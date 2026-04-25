@@ -18,6 +18,7 @@ vi.mock('stripe', () => {
   const billingPortalCreate = vi.fn();
   const customersCreate = vi.fn();
   const subscriptionsRetrieve = vi.fn();
+  const subscriptionsList = vi.fn();
   const webhooksConstructEvent = vi.fn();
 
   function StripeClass() {
@@ -25,7 +26,7 @@ vi.mock('stripe', () => {
       checkout: { sessions: { create: checkoutCreate } },
       billingPortal: { sessions: { create: billingPortalCreate } },
       customers: { create: customersCreate },
-      subscriptions: { retrieve: subscriptionsRetrieve },
+      subscriptions: { retrieve: subscriptionsRetrieve, list: subscriptionsList },
       webhooks: { constructEvent: webhooksConstructEvent },
     };
   }
@@ -33,7 +34,7 @@ vi.mock('stripe', () => {
   return {
     default: StripeClass,
     // テストから参照するために公開
-    __mocks: { checkoutCreate, billingPortalCreate, customersCreate, subscriptionsRetrieve, webhooksConstructEvent },
+    __mocks: { checkoutCreate, billingPortalCreate, customersCreate, subscriptionsRetrieve, subscriptionsList, webhooksConstructEvent },
   };
 });
 
@@ -45,6 +46,7 @@ async function stripeMocks() {
     billingPortalCreate: ReturnType<typeof vi.fn>;
     customersCreate: ReturnType<typeof vi.fn>;
     subscriptionsRetrieve: ReturnType<typeof vi.fn>;
+    subscriptionsList: ReturnType<typeof vi.fn>;
     webhooksConstructEvent: ReturnType<typeof vi.fn>;
   };
 }
@@ -222,7 +224,12 @@ describe('POST /stripe/webhook', () => {
       cancel_at_period_end: false,
     });
     prismaMock.subscription.update.mockResolvedValue(FAKE_SUBSCRIPTION);
-    prismaMock.user.update.mockResolvedValue({ ...FAKE_USER, role: 'MEMBER_GOLD' as const });
+    const goldUser = { ...FAKE_USER, role: 'MEMBER_GOLD' as const };
+    prismaMock.user.update.mockResolvedValue(goldUser);
+    // route 内 prisma.$transaction([sub.update, user.update]) の戻り値を再現
+    prismaMock.$transaction.mockImplementation(async (queries: unknown) =>
+      Array.isArray(queries) ? [FAKE_SUBSCRIPTION, goldUser] : queries,
+    );
 
     const res = await request(app)
       .post('/stripe/webhook')
@@ -256,6 +263,9 @@ describe('POST /stripe/webhook', () => {
     prismaMock.subscription.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.subscription.findFirst.mockResolvedValue({ userId: USER_ID } as never);
     prismaMock.user.update.mockResolvedValue({ ...FAKE_USER, role: 'MEMBER_GOLD' as const });
+    prismaMock.$transaction.mockImplementation(async (queries: unknown) =>
+      Array.isArray(queries) ? [{ count: 1 }, { ...FAKE_USER, role: 'MEMBER_GOLD' }] : queries,
+    );
 
     const res = await request(app)
       .post('/stripe/webhook')
@@ -285,6 +295,11 @@ describe('POST /stripe/webhook', () => {
     prismaMock.subscription.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.subscription.findFirst.mockResolvedValue({ userId: USER_ID } as never);
     prismaMock.user.update.mockResolvedValue({ ...FAKE_USER, role: 'MEMBER_FREE' as const });
+    prismaMock.$transaction.mockImplementation(async (queries: unknown) =>
+      Array.isArray(queries) ? [{ count: 1 }, { ...FAKE_USER, role: 'MEMBER_FREE' }] : queries,
+    );
+    // 別アクティブ subscription なし
+    m.subscriptionsList.mockResolvedValue({ data: [] });
 
     const res = await request(app)
       .post('/stripe/webhook')
