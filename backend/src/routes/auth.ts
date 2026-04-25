@@ -148,7 +148,8 @@ router.get(
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       );
-      res.redirect(`${adminConsoleUrl}/auth/callback?token=${token}`);
+      // fragment 経由で渡す: アクセスログ・Referer・サーバ転送に乗らない
+      res.redirect(`${adminConsoleUrl}/auth/callback#token=${encodeURIComponent(token)}`);
     } else {
       // メインサイトフロー: ADMIN ロールでも ADMIN_EMAILS に含まれていなければ
       // トークン発行時に role を USER に下げる（管理コンソール迂回を防ぐ）
@@ -168,7 +169,8 @@ router.get(
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       );
-      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+      // fragment 経由で渡す: アクセスログ・Referer・サーバ転送に乗らない
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback#token=${encodeURIComponent(token)}`);
     }
   }
 );

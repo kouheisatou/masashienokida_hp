@@ -1,24 +1,28 @@
 'use client';
 
 import { Suspense, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { setToken } from '@/lib/api';
 
+function parseHash(hash: string): URLSearchParams {
+  return new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+}
+
 function AuthCallbackContent() {
-  const params = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
-    const token = params.get('token');
+    const token = parseHash(window.location.hash).get('token');
     if (token) {
       setToken(token);
-      // 他コンポーネント（Header等）にログイン完了を通知し、/auth/me を再フェッチさせる
+      // hash を即座に消去 (履歴・後続スクリプトからの参照を防ぐ)
+      window.history.replaceState(null, '', window.location.pathname);
       window.dispatchEvent(new CustomEvent('auth:login'));
     }
     const savedRedirect = sessionStorage.getItem('auth_redirect') || '/';
     sessionStorage.removeItem('auth_redirect');
     router.replace(savedRedirect);
-  }, [params, router]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

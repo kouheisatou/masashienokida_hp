@@ -4,16 +4,21 @@ import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { setToken } from '@/lib/api';
 
+function parseHash(hash: string): URLSearchParams {
+  return new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+}
+
 function CallbackHandler() {
   const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
-    const token = params.get('token');
+    const token = parseHash(window.location.hash).get('token');
     const error = params.get('error');
 
     if (token) {
       setToken(token);
+      window.history.replaceState(null, '', window.location.pathname);
       router.replace('/dashboard');
     } else if (error === 'forbidden') {
       router.replace('/login?error=forbidden');
