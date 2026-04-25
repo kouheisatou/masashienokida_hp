@@ -3,10 +3,33 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
+import { randomBytes } from 'crypto';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthPayload } from '../middleware/auth';
 import { sendWelcomeEmail } from '../utils/email';
 import { syncSubscriptionFromStripe } from './stripe';
+
+// OAuth state CSRF 対策: nonce を signed cookie と state 双方に載せて照合
+const OAUTH_STATE_COOKIE = 'oauth_state';
+const OAUTH_STATE_MAX_AGE_MS = 10 * 60 * 1000;
+
+type OAuthState = { nonce: string; purpose: 'user' | 'admin' };
+
+function encodeState(state: OAuthState): string {
+  return Buffer.from(JSON.stringify(state), 'utf8').toString('base64url');
+}
+
+function decodeState(raw: string): OAuthState | null {
+  try {
+    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+    if (typeof parsed?.nonce !== 'string' || (parsed?.purpose !== 'user' && parsed?.purpose !== 'admin')) {
+      return null;
+    }
+    return parsed as OAuthState;
+  } catch {
+    return null;
+  }
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -71,19 +94,36 @@ passport.use(
   )
 );
 
-router.get(
-  '/google',
-  passport.authenticate('google', { scope: ['email', 'profile'], session: false })
-);
+function setOAuthState(res: import('express').Response, purpose: 'user' | 'admin'): string {
+  const nonce = randomBytes(32).toString('base64url');
+  res.cookie(OAUTH_STATE_COOKIE, nonce, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    signed: true,
+    maxAge: OAUTH_STATE_MAX_AGE_MS,
+    path: '/auth',
+  });
+  return encodeState({ nonce, purpose });
+}
 
-router.get(
-  '/admin/google',
+router.get('/google', (req, res, next) => {
+  const state = setOAuthState(res, 'user');
   passport.authenticate('google', {
     scope: ['email', 'profile'],
     session: false,
-    state: 'admin',
-  } as object)
-);
+    state,
+  } as object)(req, res, next);
+});
+
+router.get('/admin/google', (req, res, next) => {
+  const state = setOAuthState(res, 'admin');
+  passport.authenticate('google', {
+    scope: ['email', 'profile'],
+    session: false,
+    state,
+  } as object)(req, res, next);
+});
 
 function getAdminEmails(): string[] {
   const raw = process.env.ADMIN_EMAILS ?? '';
@@ -93,11 +133,30 @@ function getAdminEmails(): string[] {
     .filter(Boolean);
 }
 
+function verifyOAuthState(req: import('express').Request, res: import('express').Response): OAuthState | null {
+  const rawState = typeof req.query.state === 'string' ? req.query.state : '';
+  const decoded = decodeState(rawState);
+  const cookieNonce = req.signedCookies?.[OAUTH_STATE_COOKIE];
+  // 検証後はクッキーを必ず破棄 (replay 防止)
+  res.clearCookie(OAUTH_STATE_COOKIE, { path: '/auth' });
+  if (!decoded || !cookieNonce || cookieNonce !== decoded.nonce) {
+    return null;
+  }
+  return decoded;
+}
+
 router.get(
   '/google/callback',
   (req, res, next) => {
+    const state = verifyOAuthState(req, res);
+    if (!state) {
+      // CSRF or expired state
+      return res.redirect(`${process.env.FRONTEND_URL}/?auth=error`);
+    }
+    // 後段ハンドラで利用するため request に格納
+    (req as unknown as { oauthPurpose: 'user' | 'admin' }).oauthPurpose = state.purpose;
     passport.authenticate('google', { session: false }, (err: unknown, user: (AuthPayload & { id: string }) | false) => {
-      const isAdmin = req.query.state === 'admin';
+      const isAdmin = state.purpose === 'admin';
       if (err || !user) {
         if (isAdmin) {
           return res.redirect(
@@ -112,7 +171,7 @@ router.get(
   },
   async (req, res) => {
     const user = req.user! as AuthPayload & { id: string };
-    const isAdmin = req.query.state === 'admin';
+    const isAdmin = (req as unknown as { oauthPurpose: 'user' | 'admin' }).oauthPurpose === 'admin';
 
     if (isAdmin) {
       const adminConsoleUrl = process.env.ADMIN_CONSOLE_URL ?? 'http://localhost:3001/admin';

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
@@ -71,6 +72,7 @@ app.use(
 // Stripe webhook requires raw body — mount before json parser
 app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
 
 app.use(
   rateLimit({
