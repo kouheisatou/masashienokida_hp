@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import AdminShell from '@/components/AdminShell';
 import AuthGuard from '@/components/AuthGuard';
 import MarkdownEditor from '@/components/MarkdownEditor';
+import ImageUploader from '@/components/ImageUploader';
 import { api } from '@/lib/api';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -101,7 +102,7 @@ export default function BlogNewPage() {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.title, form.content, form.excerpt, form.category_id, form.members_only]);
+  }, [form.title, form.content, form.excerpt, form.thumbnail_url, form.category_id, form.members_only]);
 
   async function handlePublish() {
     if (publishMode === 'scheduled' && !form.published_at) return;
@@ -209,12 +210,10 @@ export default function BlogNewPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">サムネイルURL</label>
-                <input
-                  value={form.thumbnail_url}
-                  onChange={(e) => set('thumbnail_url', e.target.value)}
-                  placeholder="https://..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                <ImageUploader
+                  value={form.thumbnail_url || null}
+                  onChange={(url) => set('thumbnail_url', url ?? '')}
+                  label="サムネイル画像"
                 />
               </div>
               <div>
