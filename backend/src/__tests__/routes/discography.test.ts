@@ -72,7 +72,7 @@ describe('POST /discography', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .post('/discography')
-      .set(authHeader('USER'))
+      .set(authHeader('MEMBER_FREE'))
       .send({ title: 'x', release_year: 2023 });
     expect(res.status).toBe(403);
   });

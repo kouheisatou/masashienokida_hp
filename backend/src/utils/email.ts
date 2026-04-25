@@ -138,9 +138,6 @@ ${name} 様
 ・年1回のリハーサル見学
 ・会員限定交流会への参加
 
-▼ 限定コンテンツ
-${siteUrl('/members/content')}
-
 ▼ サブスクリプション管理
 ${siteUrl('/members/profile')}
 

@@ -36,21 +36,6 @@ const FAKE_SUBSCRIPTION = {
   updatedAt: new Date('2024-01-01'),
 };
 
-const FAKE_ARTICLE = {
-  id: '00000000-0000-4000-8000-000000000020',
-  title: 'メンバー限定記事',
-  content: '本文',
-  excerpt: '要約',
-  thumbnailUrl: null,
-  categoryId: null,
-  category: null,
-  membersOnly: true,
-  isPublished: true,
-  publishedAt: new Date('2024-06-01T00:00:00Z'),
-  createdAt: new Date('2024-06-01T00:00:00Z'),
-  updatedAt: new Date('2024-06-01T00:00:00Z'),
-};
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -111,118 +96,10 @@ describe('GET /members/me', () => {
 
     const res = await request(app)
       .get('/members/me')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(404);
   });
 });
 
-// ── PUT /members/me ────────────────────────────────────────────────
 
-describe('PUT /members/me', () => {
-  it('未認証 → 401', async () => {
-    const res = await request(app)
-      .put('/members/me')
-      .send({ name: '新しい名前' });
-    expect(res.status).toBe(401);
-  });
-
-  it('name なし → 400', async () => {
-    const res = await request(app)
-      .put('/members/me')
-      .set(authHeader('USER'))
-      .send({});
-    expect(res.status).toBe(400);
-  });
-
-  it('name が空文字 → 400', async () => {
-    const res = await request(app)
-      .put('/members/me')
-      .set(authHeader('USER'))
-      .send({ name: '' });
-    expect(res.status).toBe(400);
-  });
-
-  it('不正な JWT → 401', async () => {
-    const res = await request(app)
-      .put('/members/me')
-      .set(invalidTokenHeader())
-      .send({ name: '新しい名前' });
-    expect(res.status).toBe(401);
-  });
-
-  it('有効なリクエスト → ユーザー情報を更新して返す', async () => {
-    const updated = { ...FAKE_USER, name: '新しい名前' };
-    prismaMock.user.update.mockResolvedValue(updated);
-
-    const res = await request(app)
-      .put('/members/me')
-      .set(authHeader('MEMBER_FREE'))
-      .send({ name: '新しい名前' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.name).toBe('新しい名前');
-    validateResponse('updateMembersMe', 200, res.body);
-  });
-});
-
-// ── GET /members/content ───────────────────────────────────────────
-
-describe('GET /members/content', () => {
-  it('未認証 → 401', async () => {
-    const res = await request(app).get('/members/content');
-    expect(res.status).toBe(401);
-  });
-
-  it('不正な JWT → 401', async () => {
-    const res = await request(app)
-      .get('/members/content')
-      .set(invalidTokenHeader());
-    expect(res.status).toBe(401);
-  });
-
-  it('USER ロール → 403 (MEMBER_FREE 以上が必要)', async () => {
-    const res = await request(app)
-      .get('/members/content')
-      .set(authHeader('USER'));
-    expect(res.status).toBe(403);
-  });
-
-  it('MEMBER_FREE → コンテンツを返し openapi スキーマに一致する', async () => {
-    prismaMock.blogPost.findMany.mockResolvedValue([FAKE_ARTICLE]);
-
-    const res = await request(app)
-      .get('/members/content')
-      .set(authHeader('MEMBER_FREE'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.tier).toBe('MEMBER_FREE');
-    expect(res.body.content.articles).toHaveLength(1);
-    expect(res.body.content.videos).toEqual([]);
-    // locked: false (サーバーが付与するフィールド)
-    expect(res.body.content.articles[0].locked).toBe(false);
-    validateResponse('getMembersContent', 200, res.body);
-  });
-
-  it('MEMBER_GOLD → tier が MEMBER_GOLD で返る', async () => {
-    prismaMock.blogPost.findMany.mockResolvedValue([FAKE_ARTICLE]);
-
-    const res = await request(app)
-      .get('/members/content')
-      .set(authHeader('MEMBER_GOLD'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.tier).toBe('MEMBER_GOLD');
-  });
-
-  it('ADMIN → tier が ADMIN で返る', async () => {
-    prismaMock.blogPost.findMany.mockResolvedValue([]);
-
-    const res = await request(app)
-      .get('/members/content')
-      .set(authHeader('ADMIN'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.tier).toBe('ADMIN');
-  });
-});

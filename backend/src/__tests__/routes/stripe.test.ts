@@ -56,7 +56,7 @@ const FAKE_USER = {
   email: 'test@example.com',
   name: 'Test User',
   image: null,
-  role: 'USER' as const,
+  role: 'MEMBER_FREE' as const,
   googleId: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
@@ -107,7 +107,7 @@ describe('POST /stripe/checkout', () => {
 
     const res = await request(app)
       .post('/stripe/checkout')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(res.body.url).toContain('checkout.stripe.com');
@@ -127,7 +127,7 @@ describe('POST /stripe/checkout', () => {
 
     const res = await request(app)
       .post('/stripe/checkout')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(m.customersCreate).not.toHaveBeenCalled();

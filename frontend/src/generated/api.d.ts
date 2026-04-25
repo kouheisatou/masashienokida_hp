@@ -284,24 +284,6 @@ export interface paths {
         };
         /** Get member profile and subscription */
         get: operations["getMembersMe"];
-        /** Update member name */
-        put: operations["updateMembersMe"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/members/content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get member-only content (MEMBER_FREE+) */
-        get: operations["getMembersContent"];
         put?: never;
         post?: never;
         delete?: never;
@@ -665,12 +647,12 @@ export interface components {
             name?: string | null;
             image?: string | null;
             /** @enum {string} */
-            role: "USER" | "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN";
+            role: "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN";
         };
         Subscription: {
             hasSubscription: boolean;
             /** @enum {string} */
-            tier: "USER" | "MEMBER_FREE" | "MEMBER_GOLD";
+            tier: "MEMBER_FREE" | "MEMBER_GOLD";
             status?: string | null;
             /** Format: date-time */
             currentPeriodEnd?: string | null;
@@ -786,25 +768,6 @@ export interface components {
             /** Format: uri */
             url: string;
         };
-        MemberContentResponse: {
-            /** @enum {string} */
-            tier: "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN";
-            content: {
-                videos: unknown[];
-                articles: {
-                    id?: string;
-                    title?: string;
-                    excerpt?: string | null;
-                    thumbnail?: {
-                        url?: string;
-                    } | null;
-                    category?: string | null;
-                    /** Format: date-time */
-                    publishedAt?: string;
-                    locked?: boolean;
-                }[];
-            };
-        };
         AdminStats: {
             stats: {
                 totalMembers: number;
@@ -858,7 +821,7 @@ export interface components {
             email: string;
             image?: string | null;
             /** @enum {string} */
-            role: "USER" | "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN";
+            role: "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN";
             /** Format: date-time */
             created_at: string;
             tier?: string | null;
@@ -874,9 +837,6 @@ export interface components {
         ContactStatusUpdate: {
             /** @enum {string} */
             status: "unread" | "read" | "replied" | "archived";
-        };
-        UpdateNameInput: {
-            name: string;
         };
         AdminConcert: {
             /** Format: uuid */
@@ -1579,71 +1539,6 @@ export interface operations {
             };
         };
     };
-    updateMembersMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateNameInput"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getMembersContent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberContentResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     postContact: {
         parameters: {
             query?: never;
@@ -1871,7 +1766,7 @@ export interface operations {
     getAdminMembers: {
         parameters: {
             query?: {
-                role?: "USER" | "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN" | "all";
+                role?: "MEMBER_FREE" | "MEMBER_GOLD" | "ADMIN" | "all";
                 search?: string;
                 page?: number;
             };

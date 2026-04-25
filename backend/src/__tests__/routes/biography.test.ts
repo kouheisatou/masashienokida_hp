@@ -47,7 +47,7 @@ describe('POST /biography', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .post('/biography')
-      .set(authHeader('USER'))
+      .set(authHeader('MEMBER_FREE'))
       .send({ year: '2010', description: 'テスト' });
     expect(res.status).toBe(403);
   });
@@ -85,7 +85,7 @@ describe('PUT /biography/:id', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .put(`/biography/${FAKE_BIOGRAPHY.id}`)
-      .set(authHeader('USER'))
+      .set(authHeader('MEMBER_FREE'))
       .send({ year: '2011', description: '更新' });
     expect(res.status).toBe(403);
   });

@@ -151,8 +151,8 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {news.length > 0 ? news.map((item) => (
-              <Link key={item.id} href={`/blog/${item.id}/`}>
-                <article className="card overflow-hidden group">
+              <Link key={item.id} href={`/blog/${item.id}/`} className="h-full">
+                <article className="card overflow-hidden group h-full flex flex-col">
                   {item.thumbnail?.url ? (
                     <div className="aspect-video overflow-hidden">
                       <img
@@ -164,14 +164,14 @@ export default function HomePage() {
                   ) : (
                     <div className="aspect-video overflow-hidden bg-burgundy" />
                   )}
-                  <div className="p-6">
+                  <div className="p-6 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 text-taupe text-sm mb-3">
                       <Calendar size={14} />
                       <time>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('ja-JP') : '—'}</time>
                     </div>
                     <h3 className="text-lg mb-3 group-hover:text-burgundy-accent transition-colors">{item.title}</h3>
                     {item.excerpt && (
-                      <p className="text-taupe text-sm leading-relaxed line-clamp-3">{item.excerpt}</p>
+                      <p className="text-taupe text-sm leading-relaxed line-clamp-3 flex-1">{item.excerpt}</p>
                     )}
                   </div>
                 </article>

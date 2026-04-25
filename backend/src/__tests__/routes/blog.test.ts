@@ -72,18 +72,7 @@ describe('GET /blog', () => {
     expect(post.membersOnly).toBe(true);
   });
 
-  it('USER ロールにはメンバー限定記事が isLocked: true で返る', async () => {
-    mockTransaction(1, [{ ...FAKE_POST_MEMBERS, content: undefined } as never]);
-
-    const res = await request(app)
-      .get('/blog')
-      .set(authHeader('USER'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.posts[0].isLocked).toBe(true);
-  });
-
-  it('MEMBER_FREE ロールにはメンバー限定記事が isLocked: false で返る', async () => {
+  it('MEMBER_FREE（無料会員）にはメンバー限定記事が isLocked: true で返る', async () => {
     mockTransaction(1, [{ ...FAKE_POST_MEMBERS, content: undefined } as never]);
 
     const res = await request(app)
@@ -91,7 +80,7 @@ describe('GET /blog', () => {
       .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
-    expect(res.body.posts[0].isLocked).toBe(false);
+    expect(res.body.posts[0].isLocked).toBe(true);
   });
 
   it('MEMBER_GOLD ロールにはメンバー限定記事が isLocked: false で返る', async () => {
@@ -155,19 +144,7 @@ describe('GET /blog/:id', () => {
     expect(res.body.content).toBeNull();
   });
 
-  it('USER ロールがメンバー限定記事を取得 → content: null, isLocked: true', async () => {
-    prismaMock.blogPost.findFirst.mockResolvedValue(FAKE_POST_MEMBERS);
-
-    const res = await request(app)
-      .get(`/blog/${FAKE_POST_MEMBERS.id}`)
-      .set(authHeader('USER'));
-
-    expect(res.status).toBe(200);
-    expect(res.body.isLocked).toBe(true);
-    expect(res.body.content).toBeNull();
-  });
-
-  it('MEMBER_FREE ロールがメンバー限定記事を取得 → content あり, isLocked: false', async () => {
+  it('MEMBER_FREE（無料会員）がメンバー限定記事を取得 → content: null, isLocked: true', async () => {
     prismaMock.blogPost.findFirst.mockResolvedValue(FAKE_POST_MEMBERS);
 
     const res = await request(app)
@@ -175,8 +152,8 @@ describe('GET /blog/:id', () => {
       .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
-    expect(res.body.isLocked).toBe(false);
-    expect(res.body.content).toBe(FAKE_POST_MEMBERS.content);
+    expect(res.body.isLocked).toBe(true);
+    expect(res.body.content).toBeNull();
   });
 
   it('MEMBER_GOLD ロールがメンバー限定記事を取得 → content あり, isLocked: false', async () => {

@@ -101,7 +101,7 @@ describe('POST /concerts', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .post('/concerts')
-      .set(authHeader('USER'))
+      .set(authHeader('MEMBER_FREE'))
       .send({ title: 'x', date: '2024-09-01', venue: 'y' });
     expect(res.status).toBe(403);
   });
@@ -145,7 +145,7 @@ describe('PUT /concerts/:id', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .put(`/concerts/${FAKE_CONCERT.id}`)
-      .set(authHeader('USER'))
+      .set(authHeader('MEMBER_FREE'))
       .send({ title: 'x', date: '2024-09-01T00:00:00Z', venue: 'y' });
     expect(res.status).toBe(403);
   });
@@ -193,7 +193,7 @@ describe('DELETE /concerts/:id', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .delete(`/concerts/${FAKE_CONCERT.id}`)
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
     expect(res.status).toBe(403);
   });
 

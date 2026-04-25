@@ -119,7 +119,7 @@ describe('Admin 認可ガード', () => {
   it('USER ロール → 403', async () => {
     const res = await request(app)
       .get('/admin/stats')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
     expect(res.status).toBe(403);
   });
 

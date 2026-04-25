@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Menu, X, User, LogOut, Settings, CreditCard, Crown, Heart, LogIn, Sparkles } from 'lucide-react';
+import { Menu, X, User, LogOut, Crown, Heart, LogIn, Sparkles } from 'lucide-react';
 import { api, getGoogleSignInUrl, clearToken, type components } from '@/lib/api';
 
 type UserType = components['schemas']['User'];
 
 const ROLE_LABELS: Record<UserType['role'], string> = {
-  USER: '無料会員',
-  MEMBER_FREE: 'メール会員',
+  MEMBER_FREE: '無料会員',
   MEMBER_GOLD: 'ゴールド会員',
   ADMIN: '管理者',
 };
@@ -75,8 +74,6 @@ export function Header() {
   const closeAccount = useCallback(() => setAccountOpen(false), []);
   const isGoldMember = user?.role === 'MEMBER_GOLD';
   const isAdmin = user?.role === 'ADMIN';
-  const needsUpgrade = user && !isGoldMember && !isAdmin;
-
   const accountMenuItems = user ? (
     <>
       <div className="px-4 py-3 border-b border-burgundy-border">
@@ -99,20 +96,10 @@ export function Header() {
           <User size={16} />
           マイページ
         </Link>
-        <Link href="/members/profile/" onClick={closeAccount} className="flex items-center gap-3 px-4 py-2.5 text-sm text-taupe hover:text-white hover:bg-burgundy transition-colors">
-          <Settings size={16} />
-          プロフィール設定
-        </Link>
         <Link href="/supporters/" onClick={closeAccount} className="flex items-center gap-3 px-4 py-2.5 text-sm text-taupe hover:text-white hover:bg-burgundy transition-colors">
           <Heart size={16} />
           サポーターズについて
         </Link>
-        {needsUpgrade && (
-          <Link href="/subscription/" onClick={closeAccount} className="flex items-center gap-3 px-4 py-2.5 text-sm text-burgundy-accent hover:text-white hover:bg-burgundy transition-colors font-medium">
-            <CreditCard size={16} />
-            ゴールド会員にアップグレード
-          </Link>
-        )}
       </div>
       <div className="border-t border-burgundy-border py-1">
         <button onClick={handleSignOut} className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-taupe hover:text-white hover:bg-burgundy transition-colors">

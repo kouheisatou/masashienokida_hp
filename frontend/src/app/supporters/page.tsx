@@ -1,12 +1,11 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Check, Star } from 'lucide-react';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'SUPPORTERS',
-  description:
-    '榎田まさしサポーターズクラブのご案内。メール会員（無料）、ゴールド会員（年会費3,000円）をご用意しています。',
-};
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { Check, Star, Shield, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { api, getToken, getGoogleSignInUrl, type components } from '@/lib/api';
+
+type UserType = components['schemas']['User'];
 
 const freeBenefits = [
   'コンサート情報の優先配信',
@@ -16,7 +15,7 @@ const freeBenefits = [
 ];
 
 const goldBenefits = [
-  'メール会員の全特典',
+  '無料会員の全特典',
   '主催公演チケット10%OFF',
   '年1回の主催公演無料招待',
   '年1回のリハーサル見学',
@@ -25,7 +24,51 @@ const goldBenefits = [
   '会員限定交流会への参加',
 ];
 
+const ROLE_LABELS: Record<UserType['role'], string> = {
+  MEMBER_FREE: '無料会員',
+  MEMBER_GOLD: 'ゴールド会員',
+  ADMIN: '管理者',
+};
+
 export default function SupportersPage() {
+  const [user, setUser] = useState<UserType | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!getToken()) {
+      setAuthChecked(true);
+      return;
+    }
+    api.GET('/auth/me').then(({ data }) => {
+      if (data) {
+        setUser(data.user);
+      }
+      setAuthChecked(true);
+    }).catch(() => setAuthChecked(true));
+  }, []);
+
+  const handleCheckout = useCallback(async () => {
+    setCheckoutLoading(true);
+    setError('');
+    try {
+      const { data, error: err } = await api.POST('/stripe/checkout');
+      if (err || !data?.url) {
+        setError('チェックアウトの開始に失敗しました');
+        setCheckoutLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError('エラーが発生しました。もう一度お試しください。');
+      setCheckoutLoading(false);
+    }
+  }, []);
+
+  const isGoldMember = user?.role === 'MEMBER_GOLD';
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
     <div className="pt-20">
       {/* Hero Section */}
@@ -51,7 +94,7 @@ export default function SupportersPage() {
             {/* Free Member */}
             <div className="card p-8">
               <div className="text-center mb-8">
-                <h3 className="text-xl mb-2">メール会員</h3>
+                <h3 className="text-xl mb-2">無料会員</h3>
                 <p className="text-taupe text-sm mb-4">無料</p>
                 <p className="text-3xl text-white">¥0</p>
               </div>
@@ -68,9 +111,11 @@ export default function SupportersPage() {
                 ))}
               </ul>
 
-              <Link href="/login" className="btn btn-outline w-full justify-center">
-                無料で登録する
-              </Link>
+              {authChecked && !user && (
+                <a href={getGoogleSignInUrl()} className="btn btn-outline w-full justify-center">
+                  無料で登録する
+                </a>
+              )}
             </div>
 
             {/* Gold Member */}
@@ -99,11 +144,60 @@ export default function SupportersPage() {
                 ))}
               </ul>
 
-              <Link href="/subscription" className="btn btn-primary w-full justify-center">
-                ゴールド会員になる
-              </Link>
+              {authChecked && (
+                isGoldMember || isAdmin ? (
+                  <div className="text-center text-taupe text-sm py-3">
+                    現在ご利用中のプランです
+                  </div>
+                ) : user ? (
+                  <button
+                    onClick={handleCheckout}
+                    disabled={checkoutLoading}
+                    className="btn btn-primary w-full justify-center"
+                  >
+                    {checkoutLoading ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      <>
+                        ゴールド会員になる
+                        <ArrowRight size={16} className="ml-2" />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <a href={getGoogleSignInUrl()} className="btn btn-primary w-full justify-center inline-flex items-center gap-2">
+                    ログインして申し込む
+                    <ArrowRight size={16} />
+                  </a>
+                )
+              )}
+
+              {authChecked && user && !isGoldMember && !isAdmin && (
+                <div className="mt-4 flex items-center justify-center gap-2 text-taupe text-xs">
+                  <Shield size={14} />
+                  <span>Stripeによる安全な決済</span>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Current Plan */}
+          {authChecked && user && (
+            <p className="text-center text-taupe text-sm mt-8">
+              現在のあなたのプラン：
+              <span className={isGoldMember || isAdmin ? 'text-burgundy-accent' : 'text-beige'}>
+                {' '}{ROLE_LABELS[user.role]}
+              </span>
+            </p>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="max-w-md mx-auto mt-6 bg-red-900/20 border border-red-800 p-4 rounded flex items-start gap-3">
+              <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -122,7 +216,7 @@ export default function SupportersPage() {
                   <h3 className="text-lg mb-2">アカウント登録</h3>
                   <p className="text-taupe text-sm">
                     Googleアカウントで簡単に登録できます。
-                    メールアドレスをご登録いただくとメール会員として登録されます。
+                    Googleアカウントでログインすると無料会員として登録されます。
                   </p>
                 </div>
               </div>
@@ -134,7 +228,7 @@ export default function SupportersPage() {
                 <div>
                   <h3 className="text-lg mb-2">会員種別を選択</h3>
                   <p className="text-taupe text-sm">
-                    メール会員のまま活動を応援いただくか、
+                    そのまま無料会員として活動を応援いただくか、
                     ゴールド会員にアップグレードするかをお選びください。
                   </p>
                 </div>

@@ -15,7 +15,7 @@ const FAKE_USER = {
   email: 'test-user@example.com',
   name: 'Test User',
   image: null,
-  role: 'USER' as const,
+  role: 'MEMBER_FREE' as const,
   googleId: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
@@ -54,14 +54,14 @@ describe('GET /auth/me', () => {
   it('署名が間違った JWT → 401', async () => {
     const res = await request(app)
       .get('/auth/me')
-      .set(wrongSignatureTokenHeader('USER'));
+      .set(wrongSignatureTokenHeader('MEMBER_FREE'));
     expect(res.status).toBe(401);
   });
 
   it('期限切れ JWT → 401', async () => {
     const res = await request(app)
       .get('/auth/me')
-      .set(expiredTokenHeader('USER'));
+      .set(expiredTokenHeader('MEMBER_FREE'));
     expect(res.status).toBe(401);
   });
 
@@ -71,11 +71,11 @@ describe('GET /auth/me', () => {
 
     const res = await request(app)
       .get('/auth/me')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(res.body.user.email).toBe(FAKE_USER.email);
-    expect(res.body.user.role).toBe('USER');
+    expect(res.body.user.role).toBe('MEMBER_FREE');
     expect(res.body.subscription).toBeDefined();
     validateResponse('getAuthMe', 200, res.body);
   });
@@ -85,7 +85,7 @@ describe('GET /auth/me', () => {
 
     const res = await request(app)
       .get('/auth/me')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(404);
   });
@@ -96,11 +96,11 @@ describe('GET /auth/me', () => {
 
     const res = await request(app)
       .get('/auth/me')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(res.body.subscription.hasSubscription).toBe(false);
-    expect(res.body.subscription.tier).toBe('USER');
+    expect(res.body.subscription.tier).toBe('MEMBER_FREE');
   });
 });
 
@@ -120,7 +120,7 @@ describe('POST /auth/signout', () => {
   it('有効な JWT → { ok: true }', async () => {
     const res = await request(app)
       .post('/auth/signout')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
@@ -137,7 +137,7 @@ describe('DELETE /auth/account', () => {
   it('期限切れ JWT → 401', async () => {
     const res = await request(app)
       .delete('/auth/account')
-      .set(expiredTokenHeader('USER'));
+      .set(expiredTokenHeader('MEMBER_FREE'));
     expect(res.status).toBe(401);
   });
 
@@ -146,7 +146,7 @@ describe('DELETE /auth/account', () => {
 
     const res = await request(app)
       .delete('/auth/account')
-      .set(authHeader('USER'));
+      .set(authHeader('MEMBER_FREE'));
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });

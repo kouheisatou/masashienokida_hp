@@ -8,14 +8,12 @@ import { api, type components } from '@/lib/api';
 type Member = components['schemas']['AdminMember'];
 
 const ROLE_LABELS: Record<string, string> = {
-  USER: 'ユーザー',
-  MEMBER_FREE: 'フリー会員',
+  MEMBER_FREE: '無料会員',
   MEMBER_GOLD: 'ゴールド会員',
   ADMIN: '管理者',
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  USER: 'bg-gray-100 text-gray-500',
   MEMBER_FREE: 'bg-blue-100 text-blue-700',
   MEMBER_GOLD: 'bg-yellow-100 text-yellow-700',
   ADMIN: 'bg-purple-100 text-purple-700',
@@ -33,7 +31,7 @@ export default function MembersPage() {
   async function load(p = 1, s = '', r = 'all') {
     setLoading(true);
     try {
-      const { data } = await api.GET('/admin/members', { params: { query: { page: p, search: s || undefined, role: (r !== 'all' ? r : undefined) as 'USER' | 'MEMBER_FREE' | 'MEMBER_GOLD' | 'ADMIN' | undefined } } });
+      const { data } = await api.GET('/admin/members', { params: { query: { page: p, search: s || undefined, role: (r !== 'all' ? r : undefined) as 'MEMBER_FREE' | 'MEMBER_GOLD' | 'ADMIN' | undefined } } });
       if (data) {
         setMembers(data.members);
         setTotalPages(data.totalPages);
@@ -68,8 +66,7 @@ export default function MembersPage() {
               className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 min-h-[44px] w-full sm:w-auto">
               <option value="all">すべてのロール</option>
               <option value="MEMBER_GOLD">ゴールド会員</option>
-              <option value="MEMBER_FREE">フリー会員</option>
-              <option value="USER">ユーザー</option>
+              <option value="MEMBER_FREE">無料会員</option>
               <option value="ADMIN">管理者</option>
             </select>
             <button type="submit" className="bg-gray-200 text-gray-700 text-sm px-4 py-2.5 rounded-lg hover:bg-gray-300 transition-colors min-h-[44px] touch-manipulation">検索</button>

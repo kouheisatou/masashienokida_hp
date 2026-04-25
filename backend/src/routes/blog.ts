@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
     ]);
 
     const role = req.user?.role ?? 'GUEST';
-    const isMember = ['MEMBER_FREE', 'MEMBER_GOLD', 'ADMIN'].includes(role);
+    const isMember = ['MEMBER_GOLD', 'ADMIN'].includes(role);
     const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
     res.json({
@@ -94,7 +94,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const role = req.user?.role ?? 'GUEST';
-    const isMember = ['MEMBER_FREE', 'MEMBER_GOLD', 'ADMIN'].includes(role);
+    const isMember = ['MEMBER_GOLD', 'ADMIN'].includes(role);
     const isLocked = post.membersOnly && !isMember;
 
     res.json({

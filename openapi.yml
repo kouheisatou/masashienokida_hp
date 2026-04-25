@@ -37,7 +37,7 @@ components:
           nullable: true
         role:
           type: string
-          enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN]
+          enum: [MEMBER_FREE, MEMBER_GOLD, ADMIN]
 
     Subscription:
       type: object
@@ -47,7 +47,7 @@ components:
           type: boolean
         tier:
           type: string
-          enum: [USER, MEMBER_FREE, MEMBER_GOLD]
+          enum: [MEMBER_FREE, MEMBER_GOLD]
         status:
           type: string
           nullable: true
@@ -312,47 +312,6 @@ components:
           type: string
           format: uri
 
-    MemberContentResponse:
-      type: object
-      required: [tier, content]
-      properties:
-        tier:
-          type: string
-          enum: [MEMBER_FREE, MEMBER_GOLD, ADMIN]
-        content:
-          type: object
-          required: [videos, articles]
-          properties:
-            videos:
-              type: array
-              items: {}
-            articles:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  title:
-                    type: string
-                  excerpt:
-                    type: string
-                    nullable: true
-                  thumbnail:
-                    type: object
-                    nullable: true
-                    properties:
-                      url:
-                        type: string
-                  category:
-                    type: string
-                    nullable: true
-                  publishedAt:
-                    type: string
-                    format: date-time
-                  locked:
-                    type: boolean
-
     AdminStats:
       type: object
       required: [stats, recentContacts, recentMembers]
@@ -467,7 +426,7 @@ components:
           nullable: true
         role:
           type: string
-          enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN]
+          enum: [MEMBER_FREE, MEMBER_GOLD, ADMIN]
         created_at:
           type: string
           format: date-time
@@ -502,14 +461,6 @@ components:
         status:
           type: string
           enum: [unread, read, replied, archived]
-
-    UpdateNameInput:
-      type: object
-      required: [name]
-      properties:
-        name:
-          type: string
-          minLength: 1
 
     AdminConcert:
       type: object
@@ -1186,44 +1137,6 @@ paths:
                 $ref: '#/components/schemas/AuthMeResponse'
         '401':
           description: Unauthorized
-    put:
-      operationId: updateMembersMe
-      summary: Update member name
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateNameInput'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Bad request
-
-  /members/content:
-    get:
-      operationId: getMembersContent
-      summary: Get member-only content (MEMBER_FREE+)
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MemberContentResponse'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
 
   /contact:
     post:
@@ -1402,7 +1315,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [USER, MEMBER_FREE, MEMBER_GOLD, ADMIN, all]
+            enum: [MEMBER_FREE, MEMBER_GOLD, ADMIN, all]
         - name: search
           in: query
           schema:

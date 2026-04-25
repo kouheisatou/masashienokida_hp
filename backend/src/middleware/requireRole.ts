@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 const ROLE_RANK: Record<string, number> = {
-  USER: 0,
-  MEMBER_FREE: 1,
+  MEMBER_FREE: 0,
   MEMBER_GOLD: 2,
   ADMIN: 99,
 };

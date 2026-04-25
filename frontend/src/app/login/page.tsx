@@ -17,8 +17,9 @@ function LoginContent() {
   }, [router, redirect]);
 
   const handleSignIn = () => {
-    // ログイン後に元のページへ戻るため、callbackでredirectを使えるようにする
-    // 現状のフローはGoogle → /auth/callback → /members なので、シンプルにGoogleへ
+    if (redirect && redirect !== '/') {
+      sessionStorage.setItem('auth_redirect', redirect);
+    }
     window.location.href = getGoogleSignInUrl();
   };
 

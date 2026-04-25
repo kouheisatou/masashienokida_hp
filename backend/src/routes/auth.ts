@@ -123,7 +123,7 @@ router.get(
         if (user.role === 'ADMIN') {
           await prisma.user.update({
             where: { id: user.id },
-            data: { role: 'USER' },
+            data: { role: 'MEMBER_FREE' },
           });
         }
         res.redirect(`${adminConsoleUrl}/auth/callback?error=forbidden`);
@@ -158,9 +158,9 @@ router.get(
         if (allowedEmails.length > 0 && !allowedEmails.includes(user.email.toLowerCase())) {
           await prisma.user.update({
             where: { id: user.id },
-            data: { role: 'USER' },
+            data: { role: 'MEMBER_FREE' },
           });
-          roleForToken = 'USER';
+          roleForToken = 'MEMBER_FREE';
         }
       }
       const token = jwt.sign(
@@ -208,7 +208,7 @@ router.get('/me', requireAuth, async (req, res) => {
             currentPeriodEnd: sub.currentPeriodEnd,
             cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
           }
-        : { hasSubscription: false, tier: 'USER' },
+        : { hasSubscription: false, tier: 'MEMBER_FREE' },
     });
   } catch {
     res.status(500).json({ error: 'Internal server error' });

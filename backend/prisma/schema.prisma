@@ -10,7 +10,6 @@ datasource db {
 // ── Enums ────────────────────────────────────────────────────────
 
 enum Role {
-  USER
   MEMBER_FREE
   MEMBER_GOLD
   ADMIN
@@ -43,7 +42,7 @@ model User {
   name      String?
   image     String?
   googleId  String?  @unique @map("google_id")
-  role      Role     @default(USER)
+  role      Role     @default(MEMBER_FREE)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

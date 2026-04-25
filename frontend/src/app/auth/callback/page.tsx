@@ -15,7 +15,9 @@ function AuthCallbackContent() {
       // 他コンポーネント（Header等）にログイン完了を通知し、/auth/me を再フェッチさせる
       window.dispatchEvent(new CustomEvent('auth:login'));
     }
-    router.replace('/');
+    const savedRedirect = sessionStorage.getItem('auth_redirect') || '/';
+    sessionStorage.removeItem('auth_redirect');
+    router.replace(savedRedirect);
   }, [params, router]);
 
   return (
