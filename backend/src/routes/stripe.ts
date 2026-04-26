@@ -5,6 +5,7 @@ import { Prisma, SubscriptionStatus, SubscriptionTier } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/auth';
 import { sendGoldWelcomeEmail, sendNewGoldMemberToAdmin, sendPaymentFailedEmail } from '../utils/email';
+import { logger, mask } from '../lib/logger';
 
 const router = Router();
 
@@ -262,11 +263,21 @@ router.post('/webhook', async (req: Request, res: Response) => {
           }),
         ]);
 
+        logger.info('stripe.checkout.completed', {
+          userId: mask.id(goldUser.id),
+          email: mask.email(goldUser.email),
+        });
+
         sendGoldWelcomeEmail(goldUser.email, goldUser.name ?? goldUser.email).catch(
-          (err) => console.error('Failed to send gold welcome email:', err),
+          (err) => logger.error('email.gold_welcome.failed', {
+            userId: mask.id(goldUser.id),
+            error: (err as Error).message,
+          }),
         );
         sendNewGoldMemberToAdmin({ name: goldUser.name, email: goldUser.email }).catch(
-          (err) => console.error('Failed to send new gold member admin notification:', err),
+          (err) => logger.error('email.gold_admin_notify.failed', {
+            error: (err as Error).message,
+          }),
         );
         break;
       }
@@ -300,6 +311,11 @@ router.post('/webhook', async (req: Request, res: Response) => {
               data: { role: active ? 'MEMBER_GOLD' : 'MEMBER_FREE' },
             }),
           ]);
+          logger.info('stripe.subscription.updated', {
+            userId: mask.id(userSub.userId),
+            tier,
+            status,
+          });
         }
         break;
       }
@@ -340,6 +356,9 @@ router.post('/webhook', async (req: Request, res: Response) => {
               data: { role: 'MEMBER_FREE' },
             }),
           ]);
+          logger.info('stripe.subscription.deleted', {
+            userId: mask.id(userSub.userId),
+          });
         }
         break;
       }
@@ -356,7 +375,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
 
         if (userSub?.user) {
           sendPaymentFailedEmail(userSub.user.email, userSub.user.name ?? userSub.user.email).catch(
-            (err) => console.error('Failed to send payment failed email:', err),
+            (err) => logger.error('payment_failed email send error', { error: (err as Error).message }),
           );
         }
         break;
@@ -365,7 +384,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
 
     res.json({ received: true });
   } catch (err) {
-    console.error('Webhook processing error:', err);
+    logger.error('stripe.webhook.failed', {
+      eventType: event?.type,
+      error: (err as Error).message,
+    });
     res.status(500).json({ error: 'Webhook processing error' });
   }
 });
