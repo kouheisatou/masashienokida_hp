@@ -1,11 +1,13 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 
 import { optionalAuth } from './middleware/auth';
+import { csrfTokenRouter } from './middleware/csrf';
 import authRouter from './routes/auth';
 import concertsRouter from './routes/concerts';
 import discographyRouter from './routes/discography';
@@ -43,6 +45,7 @@ app.use(
 // Stripe webhook requires raw body — mount before json parser
 app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
   rateLimit({
@@ -55,6 +58,8 @@ app.use(
 
 app.use(passport.initialize());
 app.use(optionalAuth);
+
+app.use(csrfTokenRouter);
 
 app.use('/auth', authRouter);
 app.use('/concerts', concertsRouter);

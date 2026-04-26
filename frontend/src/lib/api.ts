@@ -36,4 +36,20 @@ export function getGoogleSignInUrl(): string {
   return `${API_BASE}/auth/google`;
 }
 
+/**
+ * CSRF トークンを backend から取得する。
+ * `GET /csrf` は cookie (`csrf_token`) と JSON body の両方でトークンを返す。
+ * 公開フォーム (例: /contact) で POST を呼ぶ前に必ず取得し、
+ * `X-CSRF-Token` ヘッダにコピーする (double-submit cookie pattern)。
+ */
+export async function fetchCsrfToken(): Promise<string> {
+  const res = await fetch(`${API_BASE}/csrf`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Failed to fetch CSRF token');
+  const data = (await res.json()) as { token: string };
+  return data.token;
+}
+
 export type { paths, components };

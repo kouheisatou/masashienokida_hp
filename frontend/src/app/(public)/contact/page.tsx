@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Send, AlertCircle } from 'lucide-react';
-import { api } from '@/lib/api';
+import { fetchCsrfToken } from '@/lib/api';
 import { useSnackbar } from '@/components/SnackBar';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 const categories = [
   'リサイタル依頼',
@@ -33,8 +35,19 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      const { error: apiError } = await api.POST('/contact', { body: formData });
-      if (apiError) throw new Error('送信に失敗しました');
+      // Double-submit cookie 方式の CSRF: GET /csrf でトークンを取得し
+      // X-CSRF-Token ヘッダにコピーして POST する。
+      const csrfToken = await fetchCsrfToken();
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('送信に失敗しました');
       setStatus('success');
       showSnackbar('お問い合わせを送信しました。');
       setFormData({
