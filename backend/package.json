@@ -12,7 +12,9 @@
     "prisma:seed": "prisma db seed",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "init-storage": "ts-node-dev --transpile-only scripts/init-storage.ts",
+    "sync-admin-roles": "ts-node-dev --transpile-only scripts/sync-admin-roles.ts"
   },
   "prisma": {
     "seed": "ts-node-dev --transpile-only prisma/seed.ts"
@@ -20,6 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.999.0",
     "@aws-sdk/lib-storage": "^3.999.0",
+    "@aws-sdk/s3-request-presigner": "^3.1037.0",
     "@prisma/client": "^5.14.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
