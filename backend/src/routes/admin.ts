@@ -4,8 +4,9 @@ import multer from 'multer';
 import sharp from 'sharp';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
-import { uploadImage } from '../lib/storage';
+import { uploadImage, getSignedUrl } from '../lib/storage';
 import { sendBlogPostNotification } from '../utils/email';
+import { logger } from '../lib/logger';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -291,10 +292,31 @@ router.post('/upload/image', upload.single('image'), async (req, res) => {
       .resize(1200, null, { withoutEnlargement: true })
       .webp({ quality: 85 })
       .toBuffer();
-    const url = await uploadImage(webpBuffer, filename);
-    res.json({ url });
-  } catch {
+    // M-10: bucket は private 化されたので、bucket key を保存し、
+    //       配信時には署名 URL (1 時間有効) を都度発行する。
+    const key = await uploadImage(webpBuffer, filename);
+    const url = await getSignedUrl(key);
+    res.json({ key, url });
+  } catch (err) {
+    logger.error('admin.upload.failed', { error: (err as Error).message });
     res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// M-10: 署名 URL は短命なので、ブラウザは古い URL を捨てて
+//       このエンドポイントから都度新しい URL を取得する。
+router.get('/upload/sign', async (req, res) => {
+  try {
+    const key = typeof req.query.key === 'string' ? req.query.key : '';
+    if (!key) {
+      res.status(400).json({ error: 'key is required' });
+      return;
+    }
+    const url = await getSignedUrl(key);
+    res.json({ url });
+  } catch (err) {
+    logger.error('admin.upload.sign.failed', { error: (err as Error).message });
+    res.status(500).json({ error: 'Failed to generate signed URL' });
   }
 });
 
@@ -479,7 +501,7 @@ router.post('/blog', async (req, res) => {
     const pubDate = post.publishedAt ? new Date(post.publishedAt) : null;
     if (post.isPublished && pubDate && pubDate <= new Date()) {
       sendBlogPostNotification({ id: post.id, title: post.title, excerpt: post.excerpt }).catch(
-        (err) => console.error('Failed to send blog notification:', err),
+        (err) => logger.error('email.blog_notification.failed', { error: (err as Error).message }),
       );
     }
 
@@ -520,7 +542,7 @@ router.put('/blog/:id', async (req, res) => {
     const justPublished = !before?.isPublished && post.isPublished && pubDate && pubDate <= new Date();
     if (justPublished) {
       sendBlogPostNotification({ id: post.id, title: post.title, excerpt: post.excerpt }).catch(
-        (err) => console.error('Failed to send blog notification:', err),
+        (err) => logger.error('email.blog_notification.failed', { error: (err as Error).message }),
       );
     }
 
