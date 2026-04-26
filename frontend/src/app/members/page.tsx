@@ -90,7 +90,9 @@ function MembersDashboardContent() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     setError('');
-    const { error: err } = await api.DELETE('/auth/account');
+    const { error: err } = await api.DELETE('/auth/account', {
+      body: { confirmation: 'DELETE_MY_ACCOUNT' },
+    });
     if (err) {
       setError('退会処理中にエラーが発生しました');
       setDeleting(false);

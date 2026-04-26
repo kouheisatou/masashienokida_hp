@@ -3,7 +3,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthPayload, AUTH_COOKIE_NAME } from '../middleware/auth';
 import { sendWelcomeEmail } from '../utils/email';
@@ -64,6 +64,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const router = Router();
+
+// JWT 失効リスクヘッジのため jti を含めて発行する (M-02)
+function signJwt(payload: { userId: string; email: string; role: string }): string {
+  const jti = randomUUID();
+  return jwt.sign({ ...payload, jti }, process.env.JWT_SECRET!, { expiresIn: '30d' });
+}
+
+function jwtExpiryDate(): Date {
+  return new Date(Date.now() + AUTH_COOKIE_MAX_AGE_MS);
+}
+
+async function revokeToken(jti: string | undefined): Promise<void> {
+  if (!jti) return;
+  try {
+    await prisma.revokedToken.create({
+      data: { jti, expiresAt: jwtExpiryDate() },
+    });
+  } catch {
+    // unique 違反 (= 既に revoke 済) は無視
+  }
+}
+
+// /auth/me は短時間に何度も呼ばれうるので、Stripe API への再同期は 60 秒に 1 度に抑える (M-06)
+const stripeSyncCache = new Map<string, number>();
+const STRIPE_SYNC_TTL_MS = 60_000;
 
 async function upsertGoogleUser(profile: Profile): Promise<AuthPayload & { id: string }> {
   const email = profile.emails?.[0]?.value;
@@ -206,7 +231,6 @@ router.get(
       const allowedEmails = getAdminEmails();
 
       if (allowedEmails.length === 0 || !allowedEmails.includes(user.email.toLowerCase())) {
-        // ADMIN_EMAILS から外れたユーザーは DB の role を即時ダウングレード
         if (user.role === 'ADMIN') {
           await prisma.user.update({
             where: { id: user.id },
@@ -230,16 +254,10 @@ router.get(
         }
       }
 
-      const token = jwt.sign(
-        { userId: user.userId, email: user.email, role: user.role },
-        process.env.JWT_SECRET!,
-        { expiresIn: '30d' }
-      );
+      const token = signJwt({ userId: user.userId, email: user.email, role: user.role });
       setAuthCookie(res, token);
       res.redirect(`${adminConsoleUrl}/auth/callback`);
     } else {
-      // メインサイトフロー: ADMIN ロールでも ADMIN_EMAILS に含まれていなければ
-      // トークン発行時に role を USER に下げる（管理コンソール迂回を防ぐ）
       let roleForToken = user.role;
       if (user.role === 'ADMIN') {
         const allowedEmails = getAdminEmails();
@@ -251,11 +269,7 @@ router.get(
           roleForToken = 'MEMBER_FREE';
         }
       }
-      const token = jwt.sign(
-        { userId: user.userId, email: user.email, role: roleForToken },
-        process.env.JWT_SECRET!,
-        { expiresIn: '30d' }
-      );
+      const token = signJwt({ userId: user.userId, email: user.email, role: roleForToken });
       setAuthCookie(res, token);
       res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
     }
@@ -264,19 +278,26 @@ router.get(
 
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    // stripeCustomerId がある場合は毎回Stripeと同期
+    const userId = req.user!.userId;
+
+    // M-06: Stripe API 再同期は 60 秒に 1 度に抑える
     const subCheck = await prisma.subscription.findUnique({
-      where: { userId: req.user!.userId },
+      where: { userId },
       select: { stripeCustomerId: true },
     });
     if (subCheck?.stripeCustomerId) {
-      await syncSubscriptionFromStripe(req.user!.userId).catch(
-        (err) => console.error('Stripe sync in /auth/me failed:', err),
-      );
+      const lastSyncedAt = stripeSyncCache.get(userId) ?? 0;
+      const now = Date.now();
+      if (now - lastSyncedAt > STRIPE_SYNC_TTL_MS) {
+        stripeSyncCache.set(userId, now);
+        await syncSubscriptionFromStripe(userId).catch(
+          (err) => console.error('Stripe sync in /auth/me failed:', err),
+        );
+      }
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: userId },
     });
     if (!user) {
       res.status(404).json({ error: 'User not found' });
@@ -304,16 +325,23 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/signout', requireAuth, (_req, res) => {
+router.post('/signout', requireAuth, async (req, res) => {
+  await revokeToken(req.user!.jti);
   clearAuthCookie(res);
   res.json({ ok: true });
 });
 
 router.delete('/account', requireAuth, async (req, res) => {
+  // M-07: 確認 token (`DELETE_MY_ACCOUNT`) が無いと 400
+  const confirmation = (req.body as { confirmation?: unknown } | undefined)?.confirmation;
+  if (confirmation !== 'DELETE_MY_ACCOUNT') {
+    res.status(400).json({ error: 'confirmation required' });
+    return;
+  }
+
   try {
     const userId = req.user!.userId;
 
-    // Stripe サブスクリプションがあればキャンセル
     const sub = await prisma.subscription.findUnique({
       where: { userId },
       select: { stripeCustomerId: true },
@@ -330,6 +358,8 @@ router.delete('/account', requireAuth, async (req, res) => {
     }
 
     await prisma.user.delete({ where: { id: userId } });
+    await revokeToken(req.user!.jti);
+    stripeSyncCache.delete(userId);
     clearAuthCookie(res);
     res.json({ ok: true });
   } catch {

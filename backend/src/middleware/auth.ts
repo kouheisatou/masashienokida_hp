@@ -6,6 +6,7 @@ export interface AuthPayload {
   userId: string;
   email: string;
   role: string;
+  jti?: string;
 }
 
 declare global {
@@ -14,7 +15,7 @@ declare global {
   }
 }
 
-// Attaches req.user if a valid JWT is present.
+// Attaches req.user if a valid JWT is present and not revoked.
 // 受け口の優先順: httpOnly Cookie > Authorization Bearer (移行期互換のみ)
 // role は JWT に焼き込まれた値ではなく、DB の最新値を使う。
 export const AUTH_COOKIE_NAME = 'auth_token';
@@ -40,6 +41,23 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
+
+    // jti が含まれている場合は失効リストを確認
+    if (payload.jti) {
+      try {
+        const revoked = await prisma.revokedToken.findUnique({
+          where: { jti: payload.jti },
+        });
+        if (revoked) {
+          // 失効済みトークン → req.user を立てない (= requireAuth で 401)
+          next();
+          return;
+        }
+      } catch {
+        // DB lookup 失敗時は失効扱いせずトークン情報のみで進める (可用性優先)
+      }
+    }
+
     try {
       const user = await prisma.user.findUnique({
         where: { id: payload.userId },
@@ -49,6 +67,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
         userId: payload.userId,
         email: payload.email,
         role: user?.role ?? payload.role,
+        jti: payload.jti,
       };
     } catch {
       // DB 取得に失敗した場合は JWT の role をフォールバックとして使用

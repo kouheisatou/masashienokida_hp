@@ -959,7 +959,14 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Must be the literal string `DELETE_MY_ACCOUNT` to confirm account deletion (M-07) */
+                    confirmation: "DELETE_MY_ACCOUNT";
+                };
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -968,6 +975,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description confirmation field missing or invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error?: string;
+                    };
                 };
             };
         };

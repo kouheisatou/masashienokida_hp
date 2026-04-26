@@ -17,6 +17,17 @@ function siteUrl(path = ''): string {
   return `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}${path}`;
 }
 
+// M-08: ヘッダ注入対策 — subject に CR/LF が混入すると nodemailer の古いバージョン
+// では追加ヘッダ (Bcc 等) を仕込まれる可能性がある。subject は 1 行に正規化し、
+// text/html 内の CRLF は LF のみに正規化することで raw CR を排除する。
+function sanitizeHeader(value: string): string {
+  return value.replace(/[\r\n]+/g, ' ').trim();
+}
+
+function sanitizeBody(value: string): string {
+  return value.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
 export async function sendMail(options: {
   to: string;
   subject: string;
@@ -25,7 +36,10 @@ export async function sendMail(options: {
 }) {
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
-    ...options,
+    to: sanitizeHeader(options.to),
+    subject: sanitizeHeader(options.subject),
+    text: sanitizeBody(options.text),
+    ...(options.html ? { html: sanitizeBody(options.html) } : {}),
   });
 }
 

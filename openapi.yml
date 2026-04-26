@@ -754,6 +754,19 @@ paths:
       summary: Delete account
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirmation
+              properties:
+                confirmation:
+                  type: string
+                  enum: ['DELETE_MY_ACCOUNT']
+                  description: Must be the literal string `DELETE_MY_ACCOUNT` to confirm account deletion (M-07)
       responses:
         '200':
           description: OK
@@ -761,6 +774,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: confirmation field missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /concerts:
     get:
