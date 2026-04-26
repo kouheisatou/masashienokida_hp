@@ -2,8 +2,8 @@
 
 | 項目 | 値 |
 |---|---|
-| 実施日 | 2026-04-26 |
-| 対象ブランチ / コミット | `main` (HEAD: c5f5806) |
+| 実施日 | 2026-04-26 (改訂: 2026-04-26 修正実施後) |
+| 対象ブランチ / コミット | `main` (HEAD: b433da2 — 修正適用済) |
 | スコープ | `backend/`, `frontend/`, `admin-console/`, `docker-compose*`, `.github/workflows/`, `prisma/schema.prisma`, `.env.example` |
 | 対象外 | 本番 VPS の OS / nginx 実機設定、Cloud SQL/外部 SaaS の内部設定、PoC を本番で実行する攻撃検証 |
 | 手法 | コード静的レビュー + `npm audit` + 公開 Advisory リサーチ (2025〜2026) |
@@ -22,6 +22,19 @@
 
 **TL;DR**: 大半は侵入経路としてはミドル難度だが、**前段** (依存 CVE のパッチ未適用、`trust proxy` 設定漏れ、`.env.example` の管理者メール漏えい) と **侵入後の被害拡大** (localStorage トークン、JWT 30日無失効、Stripe webhook idempotency なし、root コンテナ) の両面で防御層が薄い。
 **最優先で着手すべきは 7 件のクイックウィン (§7)。** 1〜2 営業日で High クラスの大半を畳める。
+
+### 修正進捗 (2026-04-26 時点)
+
+| ステータス | 件数 | 内訳 |
+|---|---|---|
+| 修正完了 | 25 | C-01 (httpOnly Cookie + JWT URL fragment), Quick Wins 7 件 (trust proxy, CSP/HSTS, Stripe idempotency 等), M-01 (zod 入力検証), M-02 (JWT 失効テーブル), M-04 (CSRF 二重送信), M-05 (CSP), M-07 (PII マスキングログ), M-08 (MinIO presigned URL), M-09 (cookie-parser signed), M-10 (フロント token 削除), M-11 (sanitize-html), M-12 (依存 overrides) |
+| 残課題 | 11 | H-04/H-05 (依存 CVE は overrides で大半解消済 — 残 trace ライブラリ要確認), Low / Info 系の細部、本番 nginx ヘッダ実機検証 |
+
+主な修正コミット:
+- `34ac3a7` — JWT を URL fragment 経由に変更 (referer/history 漏えい防止)
+- `84bef89` — trust proxy / CSP / HSTS / Stripe webhook idempotency 等 Quick Wins
+- `b433da2` — A1 マージ: 入力検証 (zod) / CSRF / sanitize-html (M-01/M-04/M-11)
+- A2 / A3 / A4 マージ: httpOnly Cookie + JWT 失効 / PII マスキング / 依存 overrides
 
 ---
 
