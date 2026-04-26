@@ -62,7 +62,8 @@ router.get('/stats', async (_req, res) => {
         id: u.id, name: u.name, email: u.email, role: u.role, created_at: u.createdAt,
       })),
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -115,7 +116,8 @@ router.get('/contacts', async (req, res) => {
       total,
       totalPages: Math.ceil(total / limit),
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -186,7 +188,8 @@ router.get('/members', async (req, res) => {
       total,
       totalPages: Math.ceil(total / limit),
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -204,7 +207,8 @@ router.get('/concerts', async (_req, res) => {
         is_upcoming: c.isUpcoming, is_published: c.isPublished, created_at: c.createdAt,
       }))
     );
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -220,7 +224,8 @@ router.get('/concerts/:id', async (req, res) => {
       is_upcoming: row.isUpcoming, is_published: row.isPublished,
       created_at: row.createdAt, updated_at: row.updatedAt,
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -239,7 +244,8 @@ router.get('/discography', async (_req, res) => {
         sort_order: d.sortOrder, is_published: d.isPublished, created_at: d.createdAt,
       }))
     );
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -254,7 +260,8 @@ router.get('/discography/:id', async (req, res) => {
       sort_order: row.sortOrder, is_published: row.isPublished,
       created_at: row.createdAt, updated_at: row.updatedAt,
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -272,7 +279,8 @@ router.get('/biography', async (_req, res) => {
         sort_order: b.sortOrder, created_at: b.createdAt,
       }))
     );
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -285,7 +293,8 @@ router.get('/biography/:id', async (req, res) => {
       id: row.id, year: row.year, description: row.description,
       sort_order: row.sortOrder, created_at: row.createdAt, updated_at: row.updatedAt,
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -349,7 +358,8 @@ router.get('/blog/categories', async (_req, res) => {
         created_at: c.createdAt,
       }))
     );
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -468,7 +478,8 @@ router.get('/blog', async (req, res) => {
       total,
       totalPages: Math.ceil(total / limit),
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -487,7 +498,8 @@ router.get('/blog/:id', async (req, res) => {
       members_only: post.membersOnly, is_published: post.isPublished,
       published_at: post.publishedAt, created_at: post.createdAt, updated_at: post.updatedAt,
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -530,7 +542,8 @@ router.post('/blog', async (req, res) => {
       members_only: post.membersOnly, is_published: post.isPublished,
       published_at: post.publishedAt, created_at: post.createdAt,
     });
-  } catch {
+  } catch (err) {
+    console.error('[admin] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

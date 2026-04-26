@@ -20,7 +20,8 @@ router.get('/categories', async (_req, res) => {
       select: { id: true, name: true, slug: true, sortOrder: true },
     });
     res.json(categories);
-  } catch {
+  } catch (err) {
+    console.error('[blog] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -80,7 +81,8 @@ router.get('/', async (req, res) => {
       totalPages,
       total,
     });
-  } catch {
+  } catch (err) {
+    console.error('[blog] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -119,7 +121,8 @@ router.get('/:id', async (req, res) => {
       membersOnly: post.membersOnly,
       isLocked,
     });
-  } catch {
+  } catch (err) {
+    console.error('[blog] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

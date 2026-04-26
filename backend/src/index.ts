@@ -1,6 +1,9 @@
 import app from './app';
 import cron from 'node-cron';
 import { syncExpiringSubscriptions } from './routes/stripe';
+import { assertSecureEnv } from './lib/env';
+
+assertSecureEnv();
 
 const PORT = Number(process.env.PORT ?? 4000);
 app.listen(PORT, () => {

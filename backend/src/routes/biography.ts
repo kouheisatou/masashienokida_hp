@@ -32,7 +32,8 @@ router.get('/', async (_req, res) => {
       orderBy: { sortOrder: 'asc' },
     });
     res.json(rows.map(serializeBiography));
-  } catch {
+  } catch (err) {
+    console.error('[biography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -46,7 +47,8 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
       data: { year, description, sortOrder: sort_order ?? 0 },
     });
     res.status(201).json(serializeBiography(row));
-  } catch {
+  } catch (err) {
+    console.error('[biography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -68,7 +70,8 @@ router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
       )
     );
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[biography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -100,7 +103,8 @@ router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     await prisma.biography.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[biography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

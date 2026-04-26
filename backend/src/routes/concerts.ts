@@ -53,7 +53,8 @@ router.get('/', async (req, res) => {
     });
 
     res.json(rows.map(serializeConcert));
-  } catch {
+  } catch (err) {
+    console.error('[concerts] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -68,7 +69,8 @@ router.get('/:id', async (req, res) => {
       return;
     }
     res.json(serializeConcert(row));
-  } catch {
+  } catch (err) {
+    console.error('[concerts] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -107,7 +109,8 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
     }
 
     res.status(201).json(serializeConcert(row));
-  } catch {
+  } catch (err) {
+    console.error('[concerts] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -163,7 +166,8 @@ router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     await prisma.concert.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[concerts] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

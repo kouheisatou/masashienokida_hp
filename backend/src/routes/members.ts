@@ -30,7 +30,8 @@ router.get('/me', requireAuth, async (req, res) => {
           }
         : { hasSubscription: false, tier: 'MEMBER_FREE' },
     });
-  } catch {
+  } catch (err) {
+    console.error('[members] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

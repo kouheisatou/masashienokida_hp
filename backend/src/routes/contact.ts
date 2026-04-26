@@ -44,7 +44,8 @@ router.post('/', contactLimiter, requireCsrfToken, async (req, res) => {
     );
 
     res.status(201).json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[contact] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

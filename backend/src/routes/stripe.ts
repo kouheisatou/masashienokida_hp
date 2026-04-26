@@ -77,7 +77,8 @@ router.post('/checkout', requireAuth, async (req: Request, res: Response) => {
     });
 
     res.json({ url: session.url });
-  } catch {
+  } catch (err) {
+    console.error('[stripe] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -102,7 +103,8 @@ router.get('/portal', requireAuth, async (req: Request, res: Response) => {
     });
 
     res.json({ url: session.url });
-  } catch {
+  } catch (err) {
+    console.error('[stripe] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -216,7 +218,8 @@ router.post('/webhook', async (req: Request, res: Response) => {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch {
+  } catch (err) {
+    console.error('[stripe] handler error:', err);
     res.status(400).json({ error: 'Webhook signature verification failed' });
     return;
   }

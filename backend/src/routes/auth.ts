@@ -320,7 +320,8 @@ router.get('/me', requireAuth, async (req, res) => {
           }
         : { hasSubscription: false, tier: 'MEMBER_FREE' },
     });
-  } catch {
+  } catch (err) {
+    console.error('[auth] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -362,7 +363,8 @@ router.delete('/account', requireAuth, async (req, res) => {
     stripeSyncCache.delete(userId);
     clearAuthCookie(res);
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[auth] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

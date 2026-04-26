@@ -41,7 +41,8 @@ router.get('/', async (_req, res) => {
       orderBy: [{ sortOrder: 'desc' }, { releaseYear: 'desc' }],
     });
     res.json(rows.map(serializeDiscography));
-  } catch {
+  } catch (err) {
+    console.error('[discography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -56,7 +57,8 @@ router.get('/:id', async (req, res) => {
       return;
     }
     res.json(serializeDiscography(row));
-  } catch {
+  } catch (err) {
+    console.error('[discography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -78,7 +80,8 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
       },
     });
     res.status(201).json(serializeDiscography(row));
-  } catch {
+  } catch (err) {
+    console.error('[discography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -127,7 +130,8 @@ router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
       )
     );
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[discography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -136,7 +140,8 @@ router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     await prisma.discography.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('[discography] handler error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
