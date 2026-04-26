@@ -36,6 +36,8 @@ const FAKE_SUBSCRIPTION = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // デフォルトでは失効済みトークンは存在しない
+  prismaMock.revokedToken.findUnique.mockResolvedValue(null);
 });
 
 describe('GET /auth/me', () => {
@@ -102,6 +104,35 @@ describe('GET /auth/me', () => {
     expect(res.body.subscription.hasSubscription).toBe(false);
     expect(res.body.subscription.tier).toBe('USER');
   });
+
+  it('失効済みトークン (M-02) → 401', async () => {
+    // jti 付きトークンで一度サインアウト後の再利用シミュレーション
+    prismaMock.revokedToken.findUnique.mockResolvedValue({
+      id: 'rev-1',
+      jti: 'whatever',
+      expiresAt: new Date(Date.now() + 60_000),
+      createdAt: new Date(),
+    });
+
+    // testAuth の makeToken は jti を含まないので、ここでは jti を含むトークンを直接生成
+    const jwt = (await import('jsonwebtoken')).default;
+    const token = jwt.sign(
+      {
+        userId: FAKE_USER.id,
+        email: FAKE_USER.email,
+        role: 'USER',
+        jti: 'revoked-jti-uuid',
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1h' },
+    );
+
+    const res = await request(app)
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(401);
+  });
 });
 
 describe('POST /auth/signout', () => {
@@ -118,6 +149,12 @@ describe('POST /auth/signout', () => {
   });
 
   it('有効な JWT → { ok: true }', async () => {
+    prismaMock.revokedToken.create.mockResolvedValue({
+      id: 'rev-1',
+      jti: 'jti-1',
+      expiresAt: new Date(),
+      createdAt: new Date(),
+    });
     const res = await request(app)
       .post('/auth/signout')
       .set(authHeader('USER'));
@@ -125,6 +162,38 @@ describe('POST /auth/signout', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
     validateResponse('postAuthSignout', 200, res.body);
+  });
+
+  it('jti 付き JWT で signout すると revokedToken.create が呼ばれる', async () => {
+    prismaMock.revokedToken.create.mockResolvedValue({
+      id: 'rev-1',
+      jti: 'jti-from-token',
+      expiresAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    const jwt = (await import('jsonwebtoken')).default;
+    const token = jwt.sign(
+      {
+        userId: FAKE_USER.id,
+        email: FAKE_USER.email,
+        role: 'USER',
+        jti: 'jti-from-token',
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1h' },
+    );
+
+    const res = await request(app)
+      .post('/auth/signout')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.revokedToken.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ jti: 'jti-from-token' }),
+      }),
+    );
   });
 });
 
@@ -141,12 +210,39 @@ describe('DELETE /auth/account', () => {
     expect(res.status).toBe(401);
   });
 
-  it('有効な JWT → アカウント削除して { ok: true }', async () => {
+  it('confirmation 無し → 400', async () => {
+    const res = await request(app)
+      .delete('/auth/account')
+      .set(authHeader('USER'))
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('confirmation required');
+  });
+
+  it('confirmation の値が不正 → 400', async () => {
+    const res = await request(app)
+      .delete('/auth/account')
+      .set(authHeader('USER'))
+      .send({ confirmation: 'yes' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('confirmation required');
+  });
+
+  it('confirmation 正しい → アカウント削除して { ok: true }', async () => {
     prismaMock.user.delete.mockResolvedValue(FAKE_USER);
+    prismaMock.revokedToken.create.mockResolvedValue({
+      id: 'rev-1',
+      jti: 'jti-1',
+      expiresAt: new Date(),
+      createdAt: new Date(),
+    });
 
     const res = await request(app)
       .delete('/auth/account')
-      .set(authHeader('USER'));
+      .set(authHeader('USER'))
+      .send({ confirmation: 'DELETE_MY_ACCOUNT' });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });

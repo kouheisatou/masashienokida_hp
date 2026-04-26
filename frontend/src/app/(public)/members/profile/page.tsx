@@ -66,7 +66,10 @@ export default function MembersProfilePage() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     setError('');
-    const { error: err } = await api.DELETE('/auth/account');
+    // M-07: 必須の確認 token を送信。サーバ側で `DELETE_MY_ACCOUNT` 完全一致を検証する
+    const { error: err } = await api.DELETE('/auth/account', {
+      body: { confirmation: 'DELETE_MY_ACCOUNT' },
+    });
     if (err) {
       setError('退会処理中にエラーが発生しました');
       setDeleting(false);
