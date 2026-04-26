@@ -72,3 +72,4 @@ Thumbs.db
 /frontend/src/lib/api.d.ts
 /admin-console/node_modules/
 /admin-console/.next/
+.claude/
