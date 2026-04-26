@@ -6,6 +6,15 @@ import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
 import { uploadImage } from '../lib/storage';
 import { sendBlogPostNotification } from '../utils/email';
+import {
+  adminContactUpdateSchema,
+  blogPostCreateSchema,
+  blogPostUpdateSchema,
+  blogCategoryCreateSchema,
+  blogCategoryUpdateSchema,
+  parseBody,
+} from '../lib/validators';
+import { sanitizeBlogContent, sanitizePlainText } from '../lib/sanitize';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -67,8 +76,14 @@ router.get('/contacts', async (req, res) => {
     const limit = 20;
     const offset = (page - 1) * limit;
 
+    const validStatuses: ContactStatus[] = ['unread', 'read', 'replied', 'archived'];
+    const statusFilter =
+      status && status !== 'all' && validStatuses.includes(status as ContactStatus)
+        ? { status: status as ContactStatus }
+        : {};
+
     const where: Prisma.ContactWhereInput = {
-      ...(status && status !== 'all' ? { status: status as ContactStatus } : {}),
+      ...statusFilter,
       ...(search
         ? {
             OR: [
@@ -106,15 +121,11 @@ router.get('/contacts', async (req, res) => {
 
 router.put('/contacts/:id', async (req, res) => {
   try {
-    const { status } = req.body;
-    const validStatuses: ContactStatus[] = ['unread', 'read', 'replied', 'archived'];
-    if (!validStatuses.includes(status)) {
-      res.status(400).json({ error: 'Invalid status' });
-      return;
-    }
+    const data = parseBody(req, res, adminContactUpdateSchema);
+    if (!data) return;
     const contact = await prisma.contact.update({
       where: { id: req.params.id },
-      data: { status },
+      data: { status: data.status },
     });
     res.json({
       id: contact.id, name: contact.name, email: contact.email, phone: contact.phone,
@@ -323,11 +334,9 @@ router.get('/blog/categories', async (_req, res) => {
 
 router.post('/blog/categories', async (req, res) => {
   try {
-    const { name, slug, sort_order } = req.body;
-    if (!name || !slug) {
-      res.status(400).json({ error: 'name and slug are required' });
-      return;
-    }
+    const data = parseBody(req, res, blogCategoryCreateSchema);
+    if (!data) return;
+    const { name, slug, sort_order } = data;
     const cat = await prisma.blogCategory.create({
       data: { name, slug, sortOrder: sort_order ?? 0 },
     });
@@ -346,7 +355,9 @@ router.post('/blog/categories', async (req, res) => {
 
 router.put('/blog/categories/:id', async (req, res) => {
   try {
-    const { name, slug, sort_order } = req.body;
+    const data = parseBody(req, res, blogCategoryUpdateSchema);
+    if (!data) return;
+    const { name, slug, sort_order } = data;
     const cat = await prisma.blogCategory.update({
       where: { id: req.params.id },
       data: {
@@ -461,12 +472,19 @@ router.get('/blog/:id', async (req, res) => {
 
 router.post('/blog', async (req, res) => {
   try {
-    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = req.body;
+    const data = parseBody(req, res, blogPostCreateSchema);
+    if (!data) return;
+    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = data;
+    // ブログ本文は HTML/markdown を想定。サーバ側で sanitize-html を通し
+    // <script> <iframe> on* 属性などを除去する。
+    const sanitizedContent = sanitizeBlogContent(content ?? null);
+    const sanitizedExcerpt = sanitizePlainText(excerpt ?? null);
+
     const post = await prisma.blogPost.create({
       data: {
         title,
-        content: content ?? null,
-        excerpt: excerpt ?? null,
+        content: sanitizedContent ?? null,
+        excerpt: sanitizedExcerpt ?? null,
         thumbnailUrl: thumbnail_url ?? null,
         categoryId: category_id ?? null,
         membersOnly: members_only ?? false,
@@ -497,7 +515,11 @@ router.post('/blog', async (req, res) => {
 
 router.put('/blog/:id', async (req, res) => {
   try {
-    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = req.body;
+    const data = parseBody(req, res, blogPostUpdateSchema);
+    if (!data) return;
+    const { title, content, excerpt, thumbnail_url, category_id, members_only, is_published, published_at } = data;
+    const sanitizedContent = sanitizeBlogContent(content ?? null);
+    const sanitizedExcerpt = sanitizePlainText(excerpt ?? null);
 
     const before = await prisma.blogPost.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
 
@@ -505,8 +527,8 @@ router.put('/blog/:id', async (req, res) => {
       where: { id: req.params.id },
       data: {
         title,
-        content: content ?? null,
-        excerpt: excerpt ?? null,
+        content: sanitizedContent ?? null,
+        excerpt: sanitizedExcerpt ?? null,
         thumbnailUrl: thumbnail_url ?? null,
         categoryId: category_id ?? null,
         membersOnly: members_only ?? false,
