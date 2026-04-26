@@ -33,6 +33,9 @@
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "brace-expansion": "^2.0.2",
+    "postcss": "^8.5.10",
+    "minimatch": "^5.1.9",
+    "js-yaml": "^4.1.1"
   }
 }
