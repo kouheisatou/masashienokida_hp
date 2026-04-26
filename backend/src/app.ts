@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 
 import { optionalAuth } from './middleware/auth';
+import { csrfTokenRouter } from './middleware/csrf';
 import authRouter from './routes/auth';
 import concertsRouter from './routes/concerts';
 import discographyRouter from './routes/discography';
@@ -85,6 +86,8 @@ app.use(
 
 app.use(passport.initialize());
 app.use(optionalAuth);
+
+app.use(csrfTokenRouter);
 
 app.use('/auth', authRouter);
 app.use('/concerts', concertsRouter);

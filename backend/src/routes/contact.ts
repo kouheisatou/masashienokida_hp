@@ -2,6 +2,8 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { prisma } from '../lib/prisma';
 import { sendContactNotification, sendContactConfirmation } from '../utils/email';
+import { contactCreateSchema, parseBody } from '../lib/validators';
+import { requireCsrfToken } from '../middleware/csrf';
 
 const router = Router();
 
@@ -11,20 +13,12 @@ const contactLimiter = rateLimit({
   message: { error: '送信回数の上限に達しました。しばらくしてから再度お試しください。' },
 });
 
-router.post('/', contactLimiter, async (req, res) => {
+router.post('/', contactLimiter, requireCsrfToken, async (req, res) => {
   try {
-    const { name, email, phone, category, subject, message } = req.body;
+    const data = parseBody(req, res, contactCreateSchema);
+    if (!data) return;
 
-    if (!name || !email || !subject || !message) {
-      res.status(400).json({ error: '必須項目を入力してください' });
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ error: 'メールアドレスの形式が正しくありません' });
-      return;
-    }
+    const { name, email, phone, category, subject, message } = data;
 
     await prisma.contact.create({
       data: {
@@ -37,9 +31,14 @@ router.post('/', contactLimiter, async (req, res) => {
       },
     });
 
-    sendContactNotification({ name, email, phone, category, subject, message }).catch(
-      (err) => console.error('Failed to send admin notification:', err)
-    );
+    sendContactNotification({
+      name,
+      email,
+      phone: phone ?? undefined,
+      category: category ?? undefined,
+      subject,
+      message,
+    }).catch((err) => console.error('Failed to send admin notification:', err));
     sendContactConfirmation(email, name, subject).catch(
       (err) => console.error('Failed to send confirmation:', err)
     );

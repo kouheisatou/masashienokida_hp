@@ -1,10 +1,16 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
 
 const ITEMS_PER_PAGE = 9;
+
+const blogListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(10000).optional(),
+  category: z.string().trim().max(200).optional(),
+});
 
 // ── Public: list blog categories ─────────────────────────────────
 router.get('/categories', async (_req, res) => {
@@ -22,8 +28,13 @@ router.get('/categories', async (_req, res) => {
 // ── Public: list blog posts ──────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const page = Math.max(Number(req.query.page ?? 1), 1);
-    const categorySlug = req.query.category as string | undefined;
+    const parsed = blogListQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid query parameters' });
+      return;
+    }
+    const page = parsed.data.page ?? 1;
+    const categorySlug = parsed.data.category;
     const offset = (page - 1) * ITEMS_PER_PAGE;
 
     const where: Prisma.BlogPostWhereInput = {
