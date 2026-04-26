@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
+import {
+  biographyCreateSchema,
+  biographyUpdateSchema,
+  reorderSchema,
+  parseBody,
+} from '../lib/validators';
 
 const router = Router();
 
@@ -33,7 +39,9 @@ router.get('/', async (_req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description, sort_order } = req.body;
+    const data = parseBody(req, res, biographyCreateSchema);
+    if (!data) return;
+    const { year, description, sort_order } = data;
     const row = await prisma.biography.create({
       data: { year, description, sortOrder: sort_order ?? 0 },
     });
@@ -45,7 +53,12 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
   try {
-    const items: { id: string; sort_order: number }[] = req.body;
+    const result = reorderSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: 'Validation failed', details: result.error.issues });
+      return;
+    }
+    const items = result.data;
     await prisma.$transaction(
       items.map((item) =>
         prisma.biography.update({
@@ -62,14 +75,16 @@ router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { year, description, sort_order } = req.body;
-    const data: { year?: string; description?: string; sortOrder?: number } = {};
-    if (year !== undefined) data.year = year;
-    if (description !== undefined) data.description = description;
-    if (sort_order !== undefined) data.sortOrder = sort_order;
+    const data = parseBody(req, res, biographyUpdateSchema);
+    if (!data) return;
+    const { year, description, sort_order } = data;
+    const updateData: { year?: string; description?: string; sortOrder?: number } = {};
+    if (year !== undefined) updateData.year = year;
+    if (description !== undefined) updateData.description = description;
+    if (sort_order !== undefined) updateData.sortOrder = sort_order;
     const row = await prisma.biography.update({
       where: { id: req.params.id },
-      data,
+      data: updateData,
     });
     res.json(serializeBiography(row));
   } catch (err: unknown) {

@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
+import {
+  discographyCreateSchema,
+  discographyUpdateSchema,
+  reorderSchema,
+  parseBody,
+} from '../lib/validators';
 
 const router = Router();
 
@@ -57,14 +63,16 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = req.body;
+    const data = parseBody(req, res, discographyCreateSchema);
+    if (!data) return;
+    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = data;
     const row = await prisma.discography.create({
       data: {
         title,
         releaseYear: release_year,
-        description,
-        imageUrl: image_url,
-        purchaseUrl: purchase_url,
+        description: description ?? null,
+        imageUrl: image_url ?? null,
+        purchaseUrl: purchase_url ?? null,
         sortOrder: sort_order ?? 0,
         isPublished: is_published ?? true,
       },
@@ -77,15 +85,17 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = req.body;
+    const data = parseBody(req, res, discographyUpdateSchema);
+    if (!data) return;
+    const { title, release_year, description, image_url, purchase_url, sort_order, is_published } = data;
     const row = await prisma.discography.update({
       where: { id: req.params.id },
       data: {
         title,
         releaseYear: release_year,
-        description,
-        imageUrl: image_url,
-        purchaseUrl: purchase_url,
+        description: description ?? undefined,
+        imageUrl: image_url ?? undefined,
+        purchaseUrl: purchase_url ?? undefined,
         sortOrder: sort_order,
         isPublished: is_published,
       },
@@ -102,7 +112,12 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/reorder', requireRole('ADMIN'), async (req, res) => {
   try {
-    const items: { id: string; sort_order: number }[] = req.body;
+    const result = reorderSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: 'Validation failed', details: result.error.issues });
+      return;
+    }
+    const items = result.data;
     await prisma.$transaction(
       items.map((item) =>
         prisma.discography.update({

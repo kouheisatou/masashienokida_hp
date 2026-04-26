@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../middleware/requireRole';
 import { sendConcertNotification } from '../utils/email';
+import { concertCreateSchema, concertUpdateSchema, parseBody } from '../lib/validators';
 
 const router = Router();
 
@@ -74,19 +75,24 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published } = req.body;
+    const data = parseBody(req, res, concertCreateSchema);
+    if (!data) return;
+    const {
+      title, date, time, venue, address, image_url, program, price, ticket_url, note,
+      is_upcoming, is_published,
+    } = data;
     const row = await prisma.concert.create({
       data: {
         title,
         date: new Date(date),
-        time,
+        time: time ?? null,
         venue,
-        address,
-        imageUrl: image_url,
+        address: address ?? null,
+        imageUrl: image_url ?? null,
         program: Array.isArray(program) ? program : program ? [program] : [],
-        price,
-        ticketUrl: ticket_url,
-        note,
+        price: price ?? null,
+        ticketUrl: ticket_url ?? null,
+        note: note ?? null,
         isUpcoming: is_upcoming ?? true,
         isPublished: is_published ?? true,
       },
@@ -108,7 +114,12 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
 
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
-    const { title, date, time, venue, address, image_url, program, price, ticket_url, note, is_upcoming, is_published } = req.body;
+    const data = parseBody(req, res, concertUpdateSchema);
+    if (!data) return;
+    const {
+      title, date, time, venue, address, image_url, program, price, ticket_url, note,
+      is_upcoming, is_published,
+    } = data;
 
     const before = await prisma.concert.findUnique({ where: { id: req.params.id }, select: { isPublished: true } });
 
@@ -117,14 +128,14 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
       data: {
         title,
         date: date ? new Date(date) : undefined,
-        time,
+        time: time ?? undefined,
         venue,
-        address,
-        imageUrl: image_url,
+        address: address ?? undefined,
+        imageUrl: image_url ?? undefined,
         program: Array.isArray(program) ? program : program ? [program] : undefined,
-        price,
-        ticketUrl: ticket_url,
-        note,
+        price: price ?? undefined,
+        ticketUrl: ticket_url ?? undefined,
+        note: note ?? undefined,
         isUpcoming: is_upcoming,
         isPublished: is_published,
       },
